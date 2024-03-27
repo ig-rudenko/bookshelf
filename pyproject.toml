@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "bookshelf"
+version = "0.1.0"
+description = ""
+authors = ["ig-rudenko <ig.rudenko1@yandex.ru>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.110.0"
+uvicorn = "^0.29.0"
+sqlalchemy = "^2.0.29"
+alembic = "^1.13.1"
+passlib = "^1.7.4"
+pydantic = {extras = ["email"], version = "^2.6.4"}
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+bcrypt = "^4.1.2"
+
+
+[tool.poetry.group.dev.dependencies]
+aiosqlite = "^0.20.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
