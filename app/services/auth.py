@@ -7,7 +7,6 @@ from jose import jwt, JWTError
 from sqlalchemy import exc
 from starlette import status
 
-from ..crud.users import get_user
 from ..models import User
 from ..schemas.auth import TokenPair
 
@@ -60,7 +59,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     payload = _get_token_payload(token, "access")
 
     try:
-        user = await get_user(id=payload[USER_IDENTIFIER])
+        user = await User.get(id=payload[USER_IDENTIFIER])
     except exc.NoResultFound:
         raise CredentialsException
 

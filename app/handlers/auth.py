@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError, NoResultFound
 from fastapi.routing import APIRouter
 
 from app import models
-from ..crud.users import create_user, get_user
+from ..crud.users import create_user
 from ..schemas.users import User, UserCreate, UserCredentials
 from ..schemas.auth import TokenPair
 from ..services.auth import create_jwt_token_pair, get_current_user, CredentialsException
@@ -26,7 +26,7 @@ async def register_user(user: UserCreate):
 async def get_tokens(user: UserCredentials):
     """Получение пары JWT"""
     try:
-        user_model = await get_user(username=user.username)
+        user_model = await models.User.get(username=user.username)
     except NoResultFound:
         raise CredentialsException
 
