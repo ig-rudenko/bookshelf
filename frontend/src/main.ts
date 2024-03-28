@@ -6,6 +6,9 @@ import 'primeicons/primeicons.css'
 import 'primevue/resources/themes/aura-light-green/theme.css';
 
 import Button from "primevue/button";
+import InlineMessage from "primevue/inlinemessage/InlineMessage.vue";
+import InputText from "primevue/inputtext";
+import Password from "primevue/password";
 
 import App from '@/App.vue';
 import store from "@/store";
@@ -21,5 +24,8 @@ app.use(store);
 app.use(createRouter());
 
 app.component('Button', Button);
+app.component('InlineMessage', InlineMessage);
+app.component('InputText', InputText);
+app.component('Password', Password);
 
 app.mount('#app');

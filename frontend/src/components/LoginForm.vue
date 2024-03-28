@@ -1,27 +1,17 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
-import {mapState} from "vuex";
-
-import Button from "primevue/button";
-import InputText from "primevue/inputtext";
-import Password from "primevue/password";
-import Toast from 'primevue/toast';
+import {mapState, mapActions} from "vuex";
 
 import {LoginUser} from "@/user";
+import {AxiosError, AxiosResponse} from "axios";
 
 export default defineComponent({
   name: "LoginForm",
 
-  components: {
-    Button,
-    InputText,
-    Password,
-    Toast,
-  },
-
   data() {
     return {
       user: new LoginUser(),
+      userError: "",
     };
   },
   computed: {
@@ -36,15 +26,19 @@ export default defineComponent({
     }
   },
   methods: {
-    ...mapState({
-      loggedIn: (state: any) => state.auth.status.loggedIn
-    }),
+    ...mapActions("auth", ["login"]),
     handleLogin() {
       if (!this.user.isValid) return;
 
-      this.state.dispatch("auth/login", this.user).then(
-          () => this.$router.push("/"),
-          () => this.$toast.add({ severity: 'error', summary: 'Error', detail: 'Неверный логин или пароль', life: 3000 })
+      this.login(this.user)
+          .then(
+          (value: AxiosResponse|AxiosError) => {
+            if (value.status == 200) this.$router.push("/");
+            this.userError = (<AxiosError>value).message
+          },
+          () => this.userError = 'Неверный логин или пароль'
+      ).catch(
+          (reason: AxiosError) => this.userError = reason.message
       );
     },
 
@@ -53,7 +47,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="surface-card p-4 shadow-2 border-round w-full lg:w-6">
+  <div class="surface-card p-4 shadow-2 border-round w-full lg:w-4">
     <div class="text-center mb-5">
       <img src="#" alt="Image" height="50" class="mb-3" />
       <div class="text-900 text-3xl font-medium mb-3">Welcome Back</div>
@@ -62,17 +56,20 @@ export default defineComponent({
     </div>
 
     <div>
-      <label for="email1" class="block text-900 font-medium mb-2">Email</label>
-      <InputText id="email1" type="text" placeholder="Email address" class="w-full mb-3" />
+      <div v-if="userError.length" class="flex justify-content-center pb-4">
+        <InlineMessage @click="userError = ''" severity="error">{{userError}}</InlineMessage>
+      </div>
 
-      <label for="password1" class="block text-900 font-medium mb-2">Password</label>
-      <InputText id="password1" type="password" placeholder="Password" class="w-full mb-3" />
+      <label for="username-input" class="block text-900 font-medium mb-2">
+        Username <span v-if="!user.valid.username">{{}}</span>
+      </label>
 
-      <div class="flex align-items-center justify-content-between mb-6">
-        <div class="flex align-items-center">
-          <Checkbox id="rememberme1" :binary="true" class="mr-2"></Checkbox>
-          <label for="rememberme1">Remember me</label>
-        </div>
+      <InputText v-model="user.username" id="username-input" type="text" :class="user.valid.username?['w-full', 'mb-3']:['w-full', 'mb-3', 'p-invalid']" />
+
+      <label for="password-input" class="block text-900 font-medium mb-2">Password</label>
+      <InputText v-model="user.password" id="password-input" type="password" :class="user.valid.password?['w-full', 'mb-3']:['w-full', 'mb-3', 'p-invalid']" />
+
+      <div class="mb-4">
         <a class="font-medium no-underline ml-2 text-blue-500 text-right cursor-pointer">Forgot password?</a>
       </div>
 
@@ -83,4 +80,9 @@ export default defineComponent({
 
 <style scoped>
 
+@media (width < 600px) {
+  .shadow-2 {
+    box-shadow: none!important;
+  }
+}
 </style>

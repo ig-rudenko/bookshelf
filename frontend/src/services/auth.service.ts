@@ -18,7 +18,6 @@ class AuthService {
                     return response.data
                 },
                 reason => {
-                    console.log(reason)
                     return reason
                 }
             );

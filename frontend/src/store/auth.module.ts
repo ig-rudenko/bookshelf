@@ -20,7 +20,7 @@ class UserState {
 
 const user = UserService.getUser()
 const initialState = new UserState(
-    new Status(user !== null),
+    new Status(user !== null && user.username?.length > 0),
     user,
     TokenService.getUserTokens(),
 )
@@ -32,9 +32,12 @@ export const auth = {
     actions: {
         login({ commit }: any, user: LoginUser) {
             return AuthService.login(user).then(
-                user => {
-                    commit('loginSuccess');
-                    return Promise.resolve(user);
+                (data) => {
+                    console.log("STATUS", data)
+                    if (data.status == 200) {
+                        commit('loginSuccess');
+                    }
+                    return Promise.resolve(data);
                 },
                 error => {
                     commit('loginFailure');
