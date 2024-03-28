@@ -7,7 +7,10 @@ import 'primevue/resources/themes/aura-light-green/theme.css';
 
 import Button from "primevue/button";
 import InlineMessage from "primevue/inlinemessage/InlineMessage.vue";
+import FloatLabel from "primevue/floatlabel";
 import InputText from "primevue/inputtext";
+import InputGroup from "primevue/inputgroup";
+import InputGroupAddon from "primevue/inputgroupaddon";
 import Password from "primevue/password";
 
 import App from '@/App.vue';
@@ -24,8 +27,11 @@ app.use(store);
 app.use(createRouter());
 
 app.component('Button', Button);
+app.component('FloatLabel', FloatLabel);
 app.component('InlineMessage', InlineMessage);
 app.component('InputText', InputText);
+app.component('InputGroupAddon', InputGroupAddon);
+app.component('InputGroup', InputGroup);
 app.component('Password', Password);
 
 app.mount('#app');

@@ -12,13 +12,11 @@ class RegisterUserIsValid extends LoginUserIsValid {
 
 
 class LoginUser {
-    username: string
-    password: string
+    username: string = ""
+    password: string = ""
     readonly valid: LoginUserIsValid
 
-    constructor(username: string = "", password: string = "") {
-        this.username = username
-        this.password = password
+    constructor() {
         this.valid = new LoginUserIsValid()
     }
 
@@ -31,19 +29,19 @@ class LoginUser {
 }
 
 class RegisterUser extends LoginUser {
-    email: string
+    email: string = ""
+    password2: string = ""
     readonly valid: RegisterUserIsValid
 
-    constructor(username: string = "", email: string = "", password: string = "") {
-        super(username, password)
-        this.email = email
+    constructor() {
+        super()
         this.valid = new RegisterUserIsValid()
     }
 
     public get isValid(): boolean {
       this.valid.username = this.username.length > 2
       this.valid.email = this.email.length > 0 && this.email.indexOf("@") > 0
-      this.valid.password = this.password.length > 8
+      this.valid.password = this.password.length > 8 && this.password == this.password2
       return this.valid.username && this.valid.email && this.valid.password
     }
 
