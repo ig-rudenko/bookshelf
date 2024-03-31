@@ -5,9 +5,14 @@ from sqlalchemy.exc import IntegrityError, NoResultFound
 
 from app import models
 from ..crud.users import create_user
-from ..schemas.auth import TokenPair
+from ..schemas.auth import TokenPair, RefreshToken, AccessToken
 from ..schemas.users import User, UserCreate, UserCredentials
-from ..services.auth import create_jwt_token_pair, get_current_user, CredentialsException
+from ..services.auth import (
+    create_jwt_token_pair,
+    get_current_user,
+    CredentialsException,
+    refresh_access_token,
+)
 from ..services.encrypt import validate_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -33,6 +38,12 @@ async def get_tokens(user: UserCredentials):
         raise CredentialsException
 
     return create_jwt_token_pair(user_id=user_model.id)
+
+
+@router.post("/token/refresh", response_model=AccessToken)
+def refresh(token: RefreshToken):
+    """Получение нового access token через refresh token"""
+    return AccessToken(accessToken=refresh_access_token(token.refresh_token))
 
 
 @router.get("/myself", response_model=User)

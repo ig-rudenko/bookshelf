@@ -2,7 +2,7 @@ from sqlalchemy import select
 
 from ..database.connector import db_conn
 from ..models import Publisher, Tag, Book, User
-from ..schemas.books import CreateBookSchema
+from ..schemas.books import CreateBookSchema, BookSchema
 
 
 async def create_book(user: User, book_data: CreateBookSchema) -> Book:
@@ -51,3 +51,26 @@ async def get_or_create_publisher(publisher_name: str) -> Publisher:
             await conn.refresh(publisher)
 
         return publisher
+
+
+async def get_non_private_books() -> list[BookSchema]:
+    books = []
+    async with db_conn.session as session:
+        result = await session.execute(select(Book).where(Book.private.is_(False)))
+        result.unique()
+        for book in result.scalars():
+            books.append(BookSchema.model_validate(book))
+    return books
+
+
+async def get_books_with_user_private(user_id: int) -> list[BookSchema]:
+    books = []
+    async with db_conn.session as session:
+        query = select(Book).where(
+            Book.private.is_(False) | (Book.private.is_(True) & Book.user_id == user_id)
+        )
+        print(query)
+        result = await session.execute(query)
+        for book in result.scalars():
+            books.append(BookSchema.model_validate(book))
+    return books

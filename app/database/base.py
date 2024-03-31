@@ -27,7 +27,8 @@ class Manager:
             filters = [getattr(cls, key) == value for key, value in kwargs.items()]
             query = select(cls).where(*filters)
             result = await session.execute(query)
-            return result.scalars().first()
+            result.unique()
+            return result.scalar_one()
 
     @classmethod
     async def all(cls) -> Sequence[Self]:

@@ -38,7 +38,7 @@ InvalidAccessTokenException = HTTPException(
 )
 
 
-def create_jwt_token_pair(user_id: str) -> TokenPair:
+def create_jwt_token_pair(user_id: int) -> TokenPair:
     """
     Создает пару токенов: access_token, refresh_token.
     """

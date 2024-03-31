@@ -89,6 +89,7 @@ class Book(Base, Manager):
     tags = relationship("Tag", secondary=book_tag_association, back_populates="books", lazy="joined")
     # Define relationship to Publisher
     publisher: Mapped[Publisher] = relationship("Publisher", lazy="joined")
+    user: Mapped[User] = relationship("User")
 
     # Define a check constraint
     __table_args__ = (
