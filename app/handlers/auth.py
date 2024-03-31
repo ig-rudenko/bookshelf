@@ -1,13 +1,12 @@
-from fastapi.exceptions import HTTPException
-
 from fastapi import Depends
-from sqlalchemy.exc import IntegrityError, NoResultFound
+from fastapi.exceptions import HTTPException
 from fastapi.routing import APIRouter
+from sqlalchemy.exc import IntegrityError, NoResultFound
 
 from app import models
 from ..crud.users import create_user
-from ..schemas.users import User, UserCreate, UserCredentials
 from ..schemas.auth import TokenPair
+from ..schemas.users import User, UserCreate, UserCredentials
 from ..services.auth import create_jwt_token_pair, get_current_user, CredentialsException
 from ..services.encrypt import validate_password
 

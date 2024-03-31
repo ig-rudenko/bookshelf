@@ -1,8 +1,8 @@
 from sqlalchemy import select
 
+from ..database.connector import db_conn
 from ..models import Publisher, Tag, Book, User
 from ..schemas.books import CreateBookSchema
-from ..database.connector import db_conn
 
 
 async def create_book(user: User, book_data: CreateBookSchema) -> Book:

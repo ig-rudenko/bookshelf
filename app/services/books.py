@@ -2,8 +2,9 @@ import pathlib
 import re
 
 import fitz
+from fastapi import UploadFile, status
+from fastapi.exceptions import HTTPException
 from sqlalchemy import select
-from fastapi import UploadFile
 
 from app.database.connector import db_conn
 from app.models import Book
@@ -29,9 +30,8 @@ async def set_file(file: UploadFile, book: Book):
     book_folder.mkdir(parents=True, exist_ok=True)
 
     # Удаляем старый файл книги
-    # old_file = book.get_file()
-    # if old_file:
-    #     old_file.unlink(missing_ok=True)
+    for old_file in book_folder.glob("*.pdf"):
+        old_file.unlink()
 
     # Открытие файла в бинарном режиме.
     with (book_folder / file_name).open("wb") as upload_file:
@@ -39,18 +39,21 @@ async def set_file(file: UploadFile, book: Book):
         upload_file.write(file.file.read())  # Записываем файл
 
     # Получаем расширение файла
-    file_format = file_name.split(".")[-1]
     book_file_path = book_folder / file_name
     book_preview_path = book_folder / "preview.png"
 
-    if file_format == "pdf":
-        # Если книга в PDF формате, то превью будет первой страницей документа
+    try:
         doc = fitz.Document(book_file_path.absolute())
-        page = doc.load_page(0)
-        pix = page.get_pixmap()
-        pix.save(book_preview_path.absolute())
+    except fitz.FileDataError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Ошибка чтения файла, загрузите другой"
+        )
 
-        book.preview_image = f"books/{book.id}/{file_name}"
-        book.size = book_file_path.stat().st_size
-        book.pages = doc.page_count
-        await book.save()
+    page = doc.load_page(0)
+    pix = page.get_pixmap()
+    pix.save(book_preview_path.absolute())
+
+    book.preview_image = f"books/{book.id}/{file_name}"
+    book.size = book_file_path.stat().st_size
+    book.pages = doc.page_count
+    await book.save()

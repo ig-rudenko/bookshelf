@@ -1,7 +1,7 @@
 from typing import Self, Sequence
 
 from sqlalchemy import select
-from sqlalchemy.orm import declarative_base, joinedload
+from sqlalchemy.orm import declarative_base
 
 from .connector import db_conn
 

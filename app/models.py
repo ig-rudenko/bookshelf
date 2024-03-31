@@ -3,9 +3,9 @@ from typing import Optional
 
 from sqlalchemy import Integer, String, ForeignKey, Text, CheckConstraint, Boolean
 from sqlalchemy import Table, Column
-from sqlalchemy.sql.functions import func
-from sqlalchemy.sql.expression import false, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql.expression import false, true
+from sqlalchemy.sql.functions import func
 
 from app.database.base import Base, Manager
 

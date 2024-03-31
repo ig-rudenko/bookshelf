@@ -10,7 +10,6 @@ from starlette import status
 from ..models import User
 from ..schemas.auth import TokenPair
 
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 SECRET_KEY = os.environ.get(
     "JWT_SECRET_KEY", "i9i3902849209323m009sfhs90dh"

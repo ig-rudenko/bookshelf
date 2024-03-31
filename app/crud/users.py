@@ -1,7 +1,5 @@
-from sqlalchemy import select
-
-from ..models import User
 from ..database.connector import db_conn
+from ..models import User
 from ..schemas.users import UserCreate
 from ..services.encrypt import encrypt_password
 
