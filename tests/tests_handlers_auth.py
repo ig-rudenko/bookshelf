@@ -8,13 +8,18 @@ from app.database.connector import db_conn
 from app.handlers.auth import router
 from app.models import User
 from app.services.auth import create_jwt_token_pair
+from tests.init import TEST_DB_URL
 
 
 class RegisterUserTest(IsolatedAsyncioTestCase):
 
     @classmethod
     def setUpClass(cls):
+        db_conn.initialize(TEST_DB_URL)
         cls.client = TestClient(router)
+
+    async def asyncSetUp(self):
+        await self.asyncTearDown()
 
     async def asyncTearDown(self):
         async with db_conn.session as conn:
@@ -66,9 +71,11 @@ class AuthJWTTest(IsolatedAsyncioTestCase):
 
     @classmethod
     def setUpClass(cls):
+        db_conn.initialize(TEST_DB_URL)
         cls.client = TestClient(router)
 
     async def asyncSetUp(self):
+        await self.asyncTearDown()
         self.user_data = {"username": "testuser", "password": "testpassword", "email": "igor@mail.com"}
         self.client.post("/auth/users", json=self.user_data)
 
