@@ -16,8 +16,10 @@ router = APIRouter(prefix="/books", tags=["books"])
 @router.get("/", response_model=list[BookSchema])
 async def get_books_view(current_user: Optional[User] = Depends(get_user_or_none)):
     if current_user is not None:
-        return await get_books_with_user_private(current_user.id)
-    return await get_non_private_books()
+        books = await get_books_with_user_private(current_user.id)
+    else:
+        books = await get_non_private_books()
+    return [BookSchema.model_validate(book) for book in books]
 
 
 @router.post("/", response_model=BookSchema)
