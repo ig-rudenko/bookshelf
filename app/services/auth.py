@@ -1,7 +1,8 @@
 import os
 from datetime import datetime, timedelta
+from typing import Optional
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Header
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from sqlalchemy import exc
@@ -11,9 +12,8 @@ from ..models import User
 from ..schemas.auth import TokenPair
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-SECRET_KEY = os.environ.get(
-    "JWT_SECRET_KEY", "i9i3902849209323m009sfhs90dh"
-)  # Замените на случайный секретный ключ
+# Замените на случайный секретный ключ
+SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "i9i3902849209323m009sfhs90dh")
 ALGORITHM = "HS512"
 USER_IDENTIFIER = "user_id"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -63,6 +63,17 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
         raise CredentialsException
 
     return user
+
+
+async def get_user_or_none(authorization: Optional[str] = Header(None)) -> User | None:
+    if authorization:
+        if authorization.startswith("Bearer "):
+            token = authorization.split(" ")[1]
+            try:
+                return await get_current_user(token)
+            except HTTPException:
+                return None
+    return None
 
 
 def refresh_access_token(refresh_token: str) -> str:
