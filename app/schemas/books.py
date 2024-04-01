@@ -34,7 +34,6 @@ class BookSchema(BaseModel):
 
     title: str = Field(..., max_length=254)
     preview_image: str = Field(..., max_length=128)
-    file: str = Field(..., max_length=128)
     authors: str = Field(..., max_length=254)
     description: str
     pages: int

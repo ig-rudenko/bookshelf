@@ -9,7 +9,7 @@ from sqlalchemy import delete
 from app.crud.books import create_book
 from app.database.connector import db_conn
 from app.handlers.books import router
-from app.models import Publisher, User, Tag, Book
+from app.models import Publisher, User, Tag, Book, book_tag_association
 from app.schemas.books import BookSchema, CreateBookSchema
 from app.services.auth import create_jwt_token_pair
 from app.settings import Settings
@@ -36,6 +36,7 @@ class BaseBookTest(IsolatedAsyncioTestCase):
             await conn.execute(delete(User))
             await conn.execute(delete(Tag))
             await conn.execute(delete(Book))
+            await conn.execute(delete(book_tag_association))
             await conn.commit()
 
     @staticmethod
@@ -173,6 +174,42 @@ class BookTest(BaseBookTest):
         self.assertEqual(response.status_code, 200)
 
 
+class UpdateBookTest(BaseBookTest):
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
+        self.book_update_data_with_new_tag = {
+            "title": "new title",
+            "authors": "Автор-1, Автор-2",
+            "publisher": "new Publisher",
+            "description": "Описание",
+            "year": 2023,
+            "private": True,
+            "tags": ["mysql", "django"],
+        }
+
+    async def test_update_book_and_tags(self):
+        token_pair = create_jwt_token_pair(user_id=self.user_2.id)
+        before_tags_count = len(await Tag.all())
+        before_publisher_count = len(await Publisher.all())
+
+        response = self.client.put(
+            f"/books/{self.book_private.id}/",
+            headers={"Authorization": f"Bearer {token_pair.access_token}"},
+            json=self.book_update_data_with_new_tag,
+        )
+        self.assertEqual(response.status_code, 200)
+
+        self.book_private = await Book.get(title="new title")  # проверка изменения
+        valid_response = BookSchema.model_validate(self.book_private).model_dump()
+        self.assertEqual(valid_response, response.json())
+
+        # Проверка изменения тегов
+        after_tags_count = len(await Tag.all())
+        self.assertEqual(after_tags_count, before_tags_count + 2)
+        after_publisher_count = len(await Publisher.all())
+        self.assertEqual(after_publisher_count, before_publisher_count + 1)
+
+
 class UploadBookFileTest(BaseBookTest):
 
     async def asyncSetUp(self):
@@ -197,12 +234,14 @@ class UploadBookFileTest(BaseBookTest):
             )
 
         book_media_path = Settings.MEDIA_ROOT / "books" / str(self.book_1.id)
+        book_preview_path = Settings.MEDIA_ROOT / "previews" / str(self.book_1.id)
+
         self.assertEqual(response.status_code, 200)
         self.assertTrue((book_media_path / "sample-pdf-file.pdf").exists())
-        self.assertTrue((book_media_path / "preview.png").exists())
+        self.assertTrue((book_preview_path / "preview.png").exists())
 
         self.book_1 = await Book.get(id=self.book_1.id)  # refresh book from db
-        self.assertEqual(self.book_1.preview_image, f"books/{self.book_1.id}/preview.png")
+        self.assertEqual(self.book_1.preview_image, f"previews/{self.book_1.id}/preview.png")
         self.assertEqual(self.book_1.file, f"books/{self.book_1.id}/sample-pdf-file.pdf")
         self.assertEqual(self.book_1.size, self.file_path.stat().st_size)
 

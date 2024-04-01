@@ -11,7 +11,7 @@ from starlette import status
 from ..models import User
 from ..schemas.auth import TokenPair
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 # Замените на случайный секретный ключ
 SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "i9i3902849209323m009sfhs90dh")
 ALGORITHM = "HS512"

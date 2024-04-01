@@ -9,8 +9,8 @@ class User(BaseModel):
 
 
 class UserCredentials(BaseModel):
-    username: str = Field(..., max_length=100)
-    password: str = Field(..., max_length=100)
+    username: str = Field(..., max_length=150)
+    password: str = Field(..., max_length=128)
 
 
 class UserCreate(User):

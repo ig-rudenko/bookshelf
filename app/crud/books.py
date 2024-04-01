@@ -31,7 +31,27 @@ async def create_book(user: User, book_data: CreateBookSchema) -> Book:
         return book
 
 
+async def update_book(book: Book, book_data: CreateBookSchema) -> Book:
+    async with db_conn.session as conn:
+        publisher = await _get_or_create_publisher(book_data.publisher, conn)
+        tags = await _get_or_create_tags(book_data.tags, conn)
+        book.publisher = publisher
+        book.title = book_data.title
+        book.authors = book_data.authors
+        book.description = book_data.description
+        book.year = book_data.year
+        book.tags = tags
+
+        conn.add(publisher)
+        conn.add_all(tags)
+        conn.add(book)
+        await conn.commit()
+        await conn.refresh(book)
+        return book
+
+
 async def _get_or_create_tags(tags: list[str], conn) -> list[Tag]:
+    """Находит или создает список тегов"""
     model_tags = []
     for tag_name in tags:
         result = await conn.execute(select(Tag).where(Tag.name.ilike(tag_name)))
@@ -46,6 +66,7 @@ async def _get_or_create_tags(tags: list[str], conn) -> list[Tag]:
 
 
 async def _get_or_create_publisher(publisher_name: str, conn) -> Publisher:
+    """Находит или создает издательство по названию"""
     query = select(Publisher).where(Publisher.name.ilike(publisher_name))
     result = await conn.execute(query)
     result.unique()
@@ -57,6 +78,7 @@ async def _get_or_create_publisher(publisher_name: str, conn) -> Publisher:
 
 
 async def get_non_private_books() -> list[BookSchema]:
+    """Возвращает список всех книг, которые являются публичными"""
     async with db_conn.session as session:
         result = await session.execute(select(Book).where(Book.private.is_(False)))
         result.unique()
@@ -64,6 +86,7 @@ async def get_non_private_books() -> list[BookSchema]:
 
 
 async def get_books_with_user_private(user_id: int) -> list[BookSchema]:
+    """Возвращает список всех книг, которые являются публичными или принадлежат пользователю"""
     async with db_conn.session as session:
         query = select(Book).where(
             Book.private.is_(False) | (Book.private.is_(True) & (Book.user_id == user_id))

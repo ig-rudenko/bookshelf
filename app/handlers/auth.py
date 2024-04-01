@@ -41,7 +41,7 @@ async def get_tokens(user: UserCredentials):
 
 
 @router.post("/token/refresh", response_model=AccessToken)
-def refresh(token: RefreshToken):
+def refresh_token(token: RefreshToken):
     """Получение нового access token через refresh token"""
     return AccessToken(accessToken=refresh_access_token(token.refresh_token))
 
