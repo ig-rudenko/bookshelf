@@ -5,6 +5,7 @@ from unittest import IsolatedAsyncioTestCase
 from fastapi.exceptions import HTTPException
 from fastapi.testclient import TestClient
 from sqlalchemy import delete
+from sqlalchemy.exc import NoResultFound
 
 from app.crud.books import create_book
 from app.database.connector import db_conn
@@ -125,30 +126,46 @@ class ListBooksTest(BaseBookTest):
 
     async def test_list_books(self):
         response = self.client.get("/books")
+
         self.assertEqual(response.status_code, 200)
-
-        book_schema = BookSchema.model_validate(self.book_1)
-        valid_data = [book_schema.model_dump()]
-
+        valid_data = {
+            "books": [BookSchema.model_validate(self.book_1).model_dump()],
+            "currentPage": 1,
+            "maxPages": 1,
+            "perPage": 25,
+            "totalCount": 1,
+        }
         self.assertEqual(valid_data, response.json())
 
     async def test_list_books_with_user(self):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
-
         response = self.client.get("/books", headers={"Authorization": f"Bearer {token_pair.access_token}"})
-        public_book_schema = BookSchema.model_validate(self.book_1)
-        valid_data = [public_book_schema.model_dump()]
 
+        self.assertEqual(response.status_code, 200)
+        valid_data = {
+            "books": [BookSchema.model_validate(self.book_1).model_dump()],
+            "currentPage": 1,
+            "maxPages": 1,
+            "perPage": 25,
+            "totalCount": 1,
+        }
         self.assertEqual(valid_data, response.json())
 
     async def test_list_books_with_my_privates(self):
         token_pair = create_jwt_token_pair(user_id=self.user_2.id)
-
         response = self.client.get("/books", headers={"Authorization": f"Bearer {token_pair.access_token}"})
-        book_schema_1 = BookSchema.model_validate(self.book_1)
-        book_schema_private = BookSchema.model_validate(self.book_private)
-        valid_data = [book_schema_1.model_dump(), book_schema_private.model_dump()]
 
+        self.assertEqual(response.status_code, 200)
+        valid_data = {
+            "books": [
+                BookSchema.model_validate(self.book_1).model_dump(),
+                BookSchema.model_validate(self.book_private).model_dump(),
+            ],
+            "currentPage": 1,
+            "maxPages": 1,
+            "perPage": 25,
+            "totalCount": 2,
+        }
         self.assertEqual(valid_data, response.json())
 
 
@@ -213,6 +230,33 @@ class UpdateBookTest(BaseBookTest):
         self.assertEqual(after_tags_count, before_tags_count + 2)
         after_publisher_count = len(await Publisher.all())
         self.assertEqual(after_publisher_count, before_publisher_count + 1)
+
+
+class DeleteBookTest(BaseBookTest):
+    async def test_delete_book(self):
+        token_pair = create_jwt_token_pair(user_id=self.user_1.id)
+        response = self.client.delete(
+            f"/books/{self.book_1.id}",
+            headers={"Authorization": f"Bearer {token_pair.access_token}"},
+        )
+        self.assertEqual(response.status_code, 204)
+
+        with self.assertRaises(NoResultFound):  # Книги больше нет
+            await Book.get(title=self.book_1.title)
+
+    async def test_delete_book_anonymous(self):
+        with self.assertRaises(HTTPException):
+            self.client.delete(f"/books/{self.book_1.id}")
+        await Book.get(title=self.book_1.title)
+
+    async def test_delete_book_not_owner(self):
+        token_pair = create_jwt_token_pair(user_id=self.user_1.id)
+        with self.assertRaises(HTTPException):
+            self.client.delete(
+                f"/books/{self.book_private.id}",
+                headers={"Authorization": f"Bearer {token_pair.access_token}"},
+            )
+        await Book.get(title=self.book_private.title)
 
 
 class UploadBookFileTest(BaseBookTest):

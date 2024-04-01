@@ -5,7 +5,7 @@ from fastapi import APIRouter, UploadFile, HTTPException, Depends, status, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.exc import NoResultFound
 
-from ..crud.books import create_book, get_non_private_books, get_books_with_user_private, update_book
+from ..crud.books import create_book, get_filtered_books_list, update_book
 from ..models import Book, User
 from ..schemas.books import BookSchema, CreateBookSchema, BooksListSchema
 from ..services.auth import get_current_user, get_user_or_none
@@ -56,10 +56,7 @@ async def get_books_view(
     current_user: Optional[User] = Depends(get_user_or_none),
 ):
     """Просмотр всех книг"""
-    if current_user is not None:
-        books, total_count = await get_books_with_user_private(current_user.id, query_params)
-    else:
-        books, total_count = await get_non_private_books(query_params)
+    books, total_count = await get_filtered_books_list(current_user, query_params)
     books = [BookSchema.model_validate(book) for book in books]
 
     return BooksListSchema(

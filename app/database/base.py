@@ -44,5 +44,5 @@ class Manager:
 
     async def delete(self) -> None:
         async with db_conn.session as session:
-            session.delete(self)
+            await session.delete(self)
             await session.commit()

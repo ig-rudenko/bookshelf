@@ -1,6 +1,6 @@
 from typing import TypedDict, TypeVar
 
-from sqlalchemy import select, func, ScalarResult
+from sqlalchemy import select, ScalarResult, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database.connector import db_conn
@@ -99,7 +99,7 @@ class QueryParams(TypedDict):
 QT = TypeVar("QT")
 
 
-def filter_book_query(query: QT, query_params: QueryParams) -> QT:
+def filter_query_by_params(query: QT, query_params: QueryParams) -> QT:
     if query_params["title"]:
         query = query.where(Book.title.ilike(f'%{query_params["title"]}%'))
     if query_params["authors"]:
@@ -127,34 +127,36 @@ def filter_book_query(query: QT, query_params: QueryParams) -> QT:
     return query
 
 
-async def get_non_private_books(query_params: QueryParams) -> tuple[ScalarResult[BookSchema], int]:
-    """Возвращает список книг и количество, которые являются публичными"""
-    async with db_conn.session as session:
-        query = filter_book_query(select(Book), query_params).where(Book.private.is_(False))
-        result = await session.execute(query)
-        result.unique()
-        books = result.scalars()
-        books_count = await _get_books_count_for_query(query_params, session)
-    return books, books_count
-
-
-async def get_books_with_user_private(
-    user_id: int, query_params: QueryParams
+async def get_filtered_books_list(
+    user: User | None,
+    query_params: QueryParams,
 ) -> tuple[ScalarResult[BookSchema], int]:
-    """Возвращает список книг и количество, которые являются публичными или принадлежат пользователю"""
+    """Возвращает список книг и количество, которые являются публичными"""
+
+    def filter_query_by_user(q: QT) -> QT:
+        if user is not None:
+            return q.where(Book.private.is_(False) | (Book.private.is_(True) & (Book.user_id == user.id)))
+        return q.where(Book.private.is_(False))
+
     async with db_conn.session as session:
-        query = filter_book_query(select(Book), query_params)
-        query = query.where(Book.private.is_(False) | (Book.private.is_(True) & (Book.user_id == user_id)))
+        query = filter_query_by_params(select(Book), query_params)
+        query = filter_query_by_user(query)
+
         result = await session.execute(query)
         result.unique()
         books = result.scalars()
-        books_count = await _get_books_count_for_query(query_params, session)
+
+        books_count: int = await _get_books_count_for_query(
+            filter_query_by_user(select(func.count(Book.id))),
+            query_params,
+            session,
+        )
     return books, books_count
 
 
-async def _get_books_count_for_query(query_params: QueryParams, session: AsyncSession) -> int:
+async def _get_books_count_for_query(query, query_params: QueryParams, session: AsyncSession) -> int:
     """Определяет количество книг для запроса"""
-    count_query = filter_book_query(select(func.count(Book.id)), query_params).limit(None).offset(None)
+    count_query = filter_query_by_params(query, query_params).limit(None).offset(None)
     count_result = await session.execute(count_query)
     count_result.unique()
     return count_result.scalar_one_or_none() or 0

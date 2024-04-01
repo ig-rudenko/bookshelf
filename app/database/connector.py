@@ -1,4 +1,4 @@
-from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 
 class AsyncConnection:
@@ -15,10 +15,6 @@ class AsyncConnection:
     @property
     def session(self) -> AsyncSession:
         return self._session
-
-    @property
-    def engine(self) -> AsyncEngine:
-        return self._engine
 
 
 db_conn = AsyncConnection()
