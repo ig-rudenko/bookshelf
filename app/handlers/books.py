@@ -1,13 +1,13 @@
 import pathlib
 from typing import Optional, Generator
 
-from fastapi import APIRouter, UploadFile, HTTPException, Depends, status
+from fastapi import APIRouter, UploadFile, HTTPException, Depends, status, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.exc import NoResultFound
 
 from ..crud.books import create_book, get_non_private_books, get_books_with_user_private, update_book
 from ..models import Book, User
-from ..schemas.books import BookSchema, CreateBookSchema
+from ..schemas.books import BookSchema, CreateBookSchema, BooksListSchema
 from ..services.auth import get_current_user, get_user_or_none
 from ..services.books import set_file
 from ..settings import Settings
@@ -15,14 +15,60 @@ from ..settings import Settings
 router = APIRouter(prefix="/books", tags=["books"])
 
 
-@router.get("/", response_model=list[BookSchema])
-async def get_books_view(current_user: Optional[User] = Depends(get_user_or_none)):
+def books_query_params(
+    title: str | None = Query(None, max_length=254, description="Заголовок"),
+    authors: str | None = Query(None, max_length=254, description="Авторы книги"),
+    publisher: str | None = Query(None, max_length=128, description="Издательство"),
+    year: int | None = Query(None, gt=0, description="Год издания"),
+    language: str | None = Query(None, max_length=128, description="Язык книги"),
+    pages_gt: int | None = Query(None, gt=0, alias="pages-gt", description="Количество страниц больше чем"),
+    pages_lt: int | None = Query(None, gt=0, alias="pages-lt", description="Количество страниц меньше чем"),
+    description: str | None = Query(None, description="Описание книги"),
+    only_private: bool | None = Query(False, alias="only-private", description="Только приватные книги"),
+    tags: list[str] | None = Query([], description="Теги книги"),
+    page: int | None = Query(1, gt=0, description="Номер страницы"),
+    per_page: int = Query(25, gte=1, alias="per-page", description="Количество элементов на странице"),
+) -> dict:
+    if pages_gt and pages_lt and pages_gt >= pages_lt:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="pages_gt must be less than pages_lt",
+        )
+    return {
+        "title": title,
+        "authors": authors,
+        "publisher": publisher,
+        "year": year,
+        "language": language,
+        "pages_gt": pages_gt,
+        "pages_lt": pages_lt,
+        "description": description,
+        "only_private": only_private,
+        "tags": tags,
+        "page": page,
+        "per_page": per_page,
+    }
+
+
+@router.get("/", response_model=BooksListSchema)
+async def get_books_view(
+    query_params: dict = Depends(books_query_params),
+    current_user: Optional[User] = Depends(get_user_or_none),
+):
     """Просмотр всех книг"""
     if current_user is not None:
-        books = await get_books_with_user_private(current_user.id)
+        books, total_count = await get_books_with_user_private(current_user.id, query_params)
     else:
-        books = await get_non_private_books()
-    return [BookSchema.model_validate(book) for book in books]
+        books, total_count = await get_non_private_books(query_params)
+    books = [BookSchema.model_validate(book) for book in books]
+
+    return BooksListSchema(
+        books=books,
+        totalCount=total_count,
+        currentPage=query_params["page"],
+        maxPages=total_count // query_params["per_page"] or 1,
+        perPage=query_params["per_page"],
+    )
 
 
 @router.post("/", response_model=BookSchema, status_code=status.HTTP_201_CREATED)

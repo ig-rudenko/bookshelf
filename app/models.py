@@ -86,6 +86,7 @@ class Book(Base, Manager):
     size: Mapped[int] = mapped_column(Integer())
     year: Mapped[int] = mapped_column(Integer())
     private: Mapped[bool] = mapped_column(Boolean)
+    language: Mapped[str] = mapped_column(String(128))
     # Define relationship to Tag using the association table
     tags = relationship("Tag", secondary=book_tag_association, back_populates="books", lazy="joined")
     # Define relationship to Publisher, User

@@ -25,6 +25,7 @@ class CreateBookSchema(BaseModel):
     description: str
     year: int
     private: bool
+    language: str = Field(..., max_length=128)
     tags: list[str]
 
 
@@ -40,8 +41,17 @@ class BookSchema(BaseModel):
     size: int
     year: int
     private: bool
+    language: str = Field(..., max_length=128)
     tags: list[TagSchema]
     publisher: PublisherSchema
 
     class Config:
         from_attributes = True
+
+
+class BooksListSchema(BaseModel):
+    books: list[BookSchema]
+    totalCount: int
+    currentPage: int
+    maxPages: int
+    perPage: int

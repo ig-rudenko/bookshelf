@@ -48,6 +48,7 @@ class BaseBookTest(IsolatedAsyncioTestCase):
             description="Описание",
             year=2023,
             private=private,
+            language="русский",
             tags=["tag_1", "tag_2"],
         )
         return await create_book(user, book_schema)
@@ -73,6 +74,7 @@ class CreateBookTest(BaseBookTest):
             "description": "Описание",
             "year": 2023,
             "private": True,
+            "language": "русский",
             "tags": ["python", "django"],
         }
         self.book_data_no_publisher = {
@@ -81,6 +83,7 @@ class CreateBookTest(BaseBookTest):
             "description": "Описание",
             "year": 2023,
             "private": True,
+            "language": "русский",
             "tags": ["python", "django"],
         }
         self.book_data_no_tags = {
@@ -90,6 +93,7 @@ class CreateBookTest(BaseBookTest):
             "description": "Описание",
             "year": 2023,
             "private": True,
+            "language": "русский",
         }
 
     async def test_create_book(self):
@@ -184,6 +188,7 @@ class UpdateBookTest(BaseBookTest):
             "description": "Описание",
             "year": 2023,
             "private": True,
+            "language": "русский",
             "tags": ["mysql", "django"],
         }
 
