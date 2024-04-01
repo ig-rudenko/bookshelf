@@ -6,7 +6,7 @@ from fastapi import UploadFile, status
 from fastapi.exceptions import HTTPException
 
 from app.models import Book
-from app.settings import MEDIA_ROOT
+from app.settings import Settings
 
 
 async def set_file(file: UploadFile, book: Book):
@@ -17,7 +17,7 @@ async def set_file(file: UploadFile, book: Book):
     # Фильтруем запрещенные символы
     file_name = re.sub(r"[<>#%\"|^\[\]`;?:@&=+$ ]+", "_", file.filename)
     # Создаем директорию для хранения книги
-    book_folder = pathlib.Path(MEDIA_ROOT / "books" / str(book.id))
+    book_folder = pathlib.Path(Settings.MEDIA_ROOT / "books" / str(book.id))
     book_folder.mkdir(parents=True, exist_ok=True)
 
     # Удаляем старый файл книги
@@ -44,7 +44,8 @@ async def set_file(file: UploadFile, book: Book):
     pix = page.get_pixmap()
     pix.save(book_preview_path.absolute())
 
-    book.preview_image = f"books/{book.id}/{file_name}"
+    book.file = f"books/{book.id}/{file_name}"
+    book.preview_image = f"books/{book.id}/preview.png"
     book.size = book_file_path.stat().st_size
     book.pages = doc.page_count
     await book.save()

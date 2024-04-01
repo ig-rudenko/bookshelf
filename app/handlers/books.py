@@ -15,6 +15,7 @@ router = APIRouter(prefix="/books", tags=["books"])
 
 @router.get("/", response_model=list[BookSchema])
 async def get_books_view(current_user: Optional[User] = Depends(get_user_or_none)):
+    """Просмотр всех книг"""
     if current_user is not None:
         books = await get_books_with_user_private(current_user.id)
     else:
@@ -22,14 +23,16 @@ async def get_books_view(current_user: Optional[User] = Depends(get_user_or_none
     return [BookSchema.model_validate(book) for book in books]
 
 
-@router.post("/", response_model=BookSchema)
+@router.post("/", response_model=BookSchema, status_code=status.HTTP_201_CREATED)
 async def create_book_view(book_data: CreateBookSchema, current_user: User = Depends(get_current_user)):
+    """Создание книги"""
     book = await create_book(current_user, book_data)
     return book
 
 
 @router.get("/{book_id}", response_model=BookSchema)
 async def get_book_view(book_id: int, current_user: Optional[User] = Depends(get_user_or_none)):
+    """Просмотр книги"""
     book = await Book.get(id=book_id)
     book_schema = BookSchema.model_validate(book)
 
@@ -46,6 +49,7 @@ async def get_book_view(book_id: int, current_user: Optional[User] = Depends(get
 
 @router.post("/{book_id}/upload", response_model=BookSchema)
 async def upload_book_file(book_id: int, file: UploadFile, user: User = Depends(get_current_user)):
+    """Загрузка файла книги"""
     if not file.filename.endswith(".pdf"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Формат файла должен быть только '.pdf'"
@@ -57,7 +61,8 @@ async def upload_book_file(book_id: int, file: UploadFile, user: User = Depends(
 
     if book.user_id != user.id:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to update this book"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="У вас нет прав на загрузку файла данной книги",
         )
 
     await set_file(file, book)

@@ -7,6 +7,7 @@ from sqlalchemy.sql.expression import delete
 from app.database.connector import db_conn
 from app.handlers.auth import router
 from app.models import User
+from app.services.encrypt import validate_password
 from app.services.auth import create_jwt_token_pair
 from tests.init import TEST_DB_URL
 
@@ -41,6 +42,10 @@ class RegisterUserTest(IsolatedAsyncioTestCase):
         )
         user = await User.get(username="testuser")
         self.assertEqual(user.email, "igor@mail.com")
+        self.assertNotEqual(user.password, user_data["password"])
+
+        # Проверим, что пароль валидный
+        self.assertTrue(validate_password(user_data["password"], user.password))
 
     def test_register_user_duplicate(self):
         """Попытка зарегистрировать уже существующего пользователя"""

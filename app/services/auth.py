@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Optional
 
 from fastapi import Depends, HTTPException, Header
@@ -89,7 +89,7 @@ def refresh_access_token(refresh_token: str) -> str:
 
 
 def _create_jwt_token(data: dict, delta: timedelta) -> str:
-    expires_delta = datetime.utcnow() + delta
+    expires_delta = datetime.now(UTC) + delta
     data.update({"exp": expires_delta})
     encoded_jwt = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt

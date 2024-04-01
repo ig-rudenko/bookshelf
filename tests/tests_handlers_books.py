@@ -1,14 +1,18 @@
+import pathlib
+import shutil
 from unittest import IsolatedAsyncioTestCase
 
 from fastapi.exceptions import HTTPException
 from fastapi.testclient import TestClient
 from sqlalchemy import delete
 
+from app.crud.books import create_book
 from app.database.connector import db_conn
 from app.handlers.books import router
 from app.models import Publisher, User, Tag, Book
-from app.schemas.books import BookSchema
+from app.schemas.books import BookSchema, CreateBookSchema
 from app.services.auth import create_jwt_token_pair
+from app.settings import Settings
 from tests.init import TEST_DB_URL
 
 
@@ -36,30 +40,16 @@ class BaseBookTest(IsolatedAsyncioTestCase):
 
     @staticmethod
     async def create_book(user: User, title: str, private: bool) -> Book:
-        async with db_conn.session as conn:
-            publisher = Publisher(name="Publisher")
-            tags = [Tag(name="Python"), Tag(name="Django")]
-
-            book = Book(
-                user_id=user.id,
-                publisher=publisher,
-                title=title,
-                preview_image="",
-                authors="Автор-1, Автор-2",
-                description="Описание",
-                pages=321,
-                size=1024 * 1024 * 3,
-                year=2023,
-                private=private,
-                tags=tags,
-            )
-
-            conn.add(publisher)
-            conn.add_all(tags)
-            conn.add(book)
-            await conn.commit()
-            await conn.refresh(book)
-        return book
+        book_schema = CreateBookSchema(
+            publisher=f"Publisher-{user.username}",
+            title=title,
+            authors="Автор-1, Автор-2",
+            description="Описание",
+            year=2023,
+            private=private,
+            tags=["tag_1", "tag_2"],
+        )
+        return await create_book(user, book_schema)
 
     @staticmethod
     async def create_user(username: str) -> User:
@@ -69,6 +59,61 @@ class BaseBookTest(IsolatedAsyncioTestCase):
             await conn.commit()
             await conn.refresh(user)
             return user
+
+
+class CreateBookTest(BaseBookTest):
+
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
+        self.book_valid_data = {
+            "title": "book_3",
+            "authors": "Автор-1, Автор-2",
+            "publisher": "Publisher",
+            "description": "Описание",
+            "year": 2023,
+            "private": True,
+            "tags": ["python", "django"],
+        }
+        self.book_data_no_publisher = {
+            "title": "book_3",
+            "authors": "Автор-1, Автор-2",
+            "description": "Описание",
+            "year": 2023,
+            "private": True,
+            "tags": ["python", "django"],
+        }
+        self.book_data_no_tags = {
+            "title": "book_3",
+            "authors": "Автор-1, Автор-2",
+            "publisher": "Publisher",
+            "description": "Описание",
+            "year": 2023,
+            "private": True,
+        }
+
+    async def test_create_book(self):
+        token_pair = create_jwt_token_pair(user_id=self.user_1.id)
+
+        response = self.client.post(
+            "/books",
+            headers={"Authorization": f"Bearer {token_pair.access_token}"},
+            json=self.book_valid_data,
+        )
+
+        self.assertEqual(response.status_code, 201)
+        new_book = await Book.get(title="book_3")
+        valid_response = BookSchema.model_validate(new_book).model_dump()
+        self.assertEqual(valid_response, response.json())
+
+    async def test_create_book_without_auth(self):
+        with self.assertRaises(HTTPException):
+            self.client.post("/books", json=self.book_valid_data)
+
+    async def test_create_book_invalid_data(self):
+        with self.assertRaises(HTTPException):
+            self.client.post("/books", json=self.book_data_no_publisher)
+        with self.assertRaises(HTTPException):
+            self.client.post("/books", json=self.book_data_no_tags)
 
 
 class ListBooksTest(BaseBookTest):
@@ -126,3 +171,62 @@ class BookTest(BaseBookTest):
             f"/books/{self.book_private.id}", headers={"Authorization": f"Bearer {token_pair.access_token}"}
         )
         self.assertEqual(response.status_code, 200)
+
+
+class UploadBookFileTest(BaseBookTest):
+
+    async def asyncSetUp(self):
+        await super().asyncSetUp()
+        self.file_path = pathlib.Path(__file__).parent / "sample-pdf-file.pdf"
+        Settings.MEDIA_ROOT = pathlib.Path(__file__).parent / "media-test"
+        Settings.MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
+
+    async def asyncTearDown(self):
+        await super().asyncTearDown()
+        if Settings.MEDIA_ROOT.name.endswith("media-test"):
+            shutil.rmtree(Settings.MEDIA_ROOT, ignore_errors=True)
+
+    async def test_upload_file(self):
+        token_pair = create_jwt_token_pair(user_id=self.user_1.id)
+
+        with open(self.file_path, "rb") as file:
+            response = self.client.post(
+                f"/books/{self.book_1.id}/upload",
+                headers={"Authorization": f"Bearer {token_pair.access_token}"},
+                files={"file": file},
+            )
+
+        book_media_path = Settings.MEDIA_ROOT / "books" / str(self.book_1.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue((book_media_path / "sample-pdf-file.pdf").exists())
+        self.assertTrue((book_media_path / "preview.png").exists())
+
+        self.book_1 = await Book.get(id=self.book_1.id)  # refresh book from db
+        self.assertEqual(self.book_1.preview_image, f"books/{self.book_1.id}/preview.png")
+        self.assertEqual(self.book_1.file, f"books/{self.book_1.id}/sample-pdf-file.pdf")
+        self.assertEqual(self.book_1.size, self.file_path.stat().st_size)
+
+    async def test_upload_file_no_owner_user(self):
+        token_pair = create_jwt_token_pair(user_id=self.user_1.id)
+        with self.assertRaises(HTTPException):
+            with open(self.file_path, "rb") as file:
+                self.client.post(
+                    f"/books/{self.book_private.id}/upload",
+                    headers={"Authorization": f"Bearer {token_pair.access_token}"},
+                    files={"file": file},
+                )
+
+    async def test_upload_file_without_auth(self):
+        with self.assertRaises(HTTPException):
+            with open(self.file_path, "rb") as file:
+                self.client.post(f"/books/{self.book_1.id}/upload", files={"file": file})
+
+    async def test_upload_invalid_file(self):
+        with self.assertRaises(HTTPException):
+            with open(__file__, "rb") as file:
+                self.client.post(f"/books/{self.book_1.id}/upload", files={"file": file})
+
+    async def test_upload_to_non_existing_book(self):
+        with self.assertRaises(HTTPException):
+            with open(self.file_path, "rb") as file:
+                self.client.post(f"/books/0/upload", files={"file": file})

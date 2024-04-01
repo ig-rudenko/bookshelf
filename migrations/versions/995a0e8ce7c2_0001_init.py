@@ -1,8 +1,8 @@
 """0001_init
 
-Revision ID: 8426bfe1f49f
+Revision ID: 995a0e8ce7c2
 Revises: 
-Create Date: 2024-03-28 20:42:57.331656
+Create Date: 2024-04-01 11:10:58.551751
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '8426bfe1f49f'
+revision: str = '995a0e8ce7c2'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -23,12 +23,14 @@ def upgrade() -> None:
     op.create_table('publishers',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=128), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('name')
     )
     op.create_table('tag',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=128), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('name')
     )
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -52,6 +54,7 @@ def upgrade() -> None:
     sa.Column('publisher_id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(length=254), nullable=False),
     sa.Column('preview_image', sa.String(length=128), nullable=False),
+    sa.Column('file', sa.String(length=128), nullable=False),
     sa.Column('authors', sa.String(length=254), nullable=False),
     sa.Column('description', sa.Text(), nullable=False),
     sa.Column('pages', sa.Integer(), nullable=False),

@@ -36,7 +36,7 @@ class Publisher(Base, Manager):
     __tablename__ = "publishers"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(128))
+    name: Mapped[str] = mapped_column(String(128), unique=True)
 
     def __str__(self):
         return self.name
@@ -58,7 +58,7 @@ book_tag_association = Table(
 class Tag(Base):
     __tablename__ = "tag"
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(128))
+    name: Mapped[str] = mapped_column(String(128), unique=True)
     # Define relationship to Book using the association table
     books = relationship("Book", secondary=book_tag_association, back_populates="tags")
 
@@ -79,6 +79,7 @@ class Book(Base, Manager):
 
     title: Mapped[str] = mapped_column(String(254))
     preview_image: Mapped[str] = mapped_column(String(128))
+    file: Mapped[str] = mapped_column(String(128))
     authors: Mapped[str] = mapped_column(String(254))
     description: Mapped[str] = mapped_column(Text)
     pages: Mapped[int] = mapped_column(Integer())
@@ -87,7 +88,7 @@ class Book(Base, Manager):
     private: Mapped[bool] = mapped_column(Boolean)
     # Define relationship to Tag using the association table
     tags = relationship("Tag", secondary=book_tag_association, back_populates="books", lazy="joined")
-    # Define relationship to Publisher
+    # Define relationship to Publisher, User
     publisher: Mapped[Publisher] = relationship("Publisher", lazy="joined")
     user: Mapped[User] = relationship("User")
 

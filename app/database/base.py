@@ -36,7 +36,13 @@ class Manager:
             result = await session.execute(select(cls))
             return result.scalars().all()
 
-    async def save(self):
+    async def save(self) -> None:
         async with db_conn.session as session:
             session.add(self)
+            await session.commit()
+            await session.refresh(self)
+
+    async def delete(self) -> None:
+        async with db_conn.session as session:
+            session.delete(self)
             await session.commit()
