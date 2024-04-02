@@ -33,7 +33,6 @@ export const auth = {
         login({ commit }: any, user: LoginUser) {
             return AuthService.login(user).then(
                 (data) => {
-                    console.log("STATUS", data)
                     if (data.status == 200) {
                         commit('loginSuccess');
                     }
@@ -68,7 +67,7 @@ export const auth = {
     mutations: {
         loginSuccess(state: UserState) {
             state.status.loggedIn = true;
-            api.get("/users/myself")
+            api.get("/auth/myself")
                 .then(
                     resp => {
                         const user = createNewUser(resp.data)

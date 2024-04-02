@@ -4,6 +4,7 @@ import {mapState, mapActions} from "vuex";
 
 import {LoginUser} from "@/user";
 import {AxiosError, AxiosResponse} from "axios";
+import getVerboseAxiosError from "@/errorFmt.ts";
 
 export default defineComponent({
   name: "LoginForm",
@@ -17,7 +18,6 @@ export default defineComponent({
   computed: {
     ...mapState({
       loggedIn: (state: any) => state.auth.status.loggedIn,
-      state: (state: any) => state,
     }),
   },
   created() {
@@ -28,23 +28,27 @@ export default defineComponent({
   methods: {
     ...mapActions("auth", ["login"]),
 
-
     getClassesFor(isValid: boolean): string[] {
       return isValid ? ['w-full', 'pb-3'] : ['w-full', 'pb-3', 'p-invalid']
     },
 
     handleLogin() {
-      if (!this.user.isValid) return;
-
       this.login(this.user)
           .then(
-          (value: AxiosResponse|AxiosError) => {
-            if (value.status == 200) this.$router.push("/");
-            this.userError = (<AxiosError>value).message
-          },
-          () => this.userError = 'Неверный логин или пароль'
-      ).catch(
-          (reason: AxiosError) => this.userError = reason.message
+              (value: AxiosResponse|AxiosError) => {
+                console.log(value)
+                if (value.status == 200) {
+                  this.$router.push("/");
+                } else {
+                  this.userError = (<AxiosError>value).message
+                }
+              },
+              () => this.userError = 'Неверный логин или пароль'
+          )
+          .catch(
+          (reason: AxiosError<any>) => {
+            this.userError = getVerboseAxiosError(reason)
+          }
       );
     },
 
@@ -63,23 +67,21 @@ export default defineComponent({
 
     <div>
       <div v-if="userError.length" class="flex justify-content-center mb-5">
-        <InlineMessage @click="userError = ''" severity="error">{{userError}}</InlineMessage>
+        <InlineMessage @click="userError = ''" severity="error"><span v-html="userError"></span></InlineMessage>
       </div>
 
       <div class="mb-5">
         <FloatLabel>
-          <InputText v-model="user.username" id="username-input" type="text" :class="getClassesFor(user.valid.username)" />
+          <InputText @keydown.enter="handleLogin" v-model="user.username" id="username-input" type="text" :class="getClassesFor(user.valid.username)" />
           <label for="username-input" class="block text-900 mb-2">Username</label>
         </FloatLabel>
-        <InlineMessage v-if="!user.valid.username" severity="error">{{user.valid.usernameError}}</InlineMessage>
       </div>
 
       <div class="mb-5">
         <FloatLabel>
           <label for="password-input" class="block text-900 mb-2">Password</label>
-          <Password v-model="user.password" id="password-input" :input-class="getClassesFor(user.valid.password)" class="w-full" />
+          <Password @keydown.enter="handleLogin" v-model="user.password" id="password-input" :input-class="getClassesFor(user.valid.password)" class="w-full" />
         </FloatLabel>
-        <InlineMessage v-if="!user.valid.password" severity="error">{{user.valid.passwordError}}</InlineMessage>
       </div>
 
       <div class="mb-4">

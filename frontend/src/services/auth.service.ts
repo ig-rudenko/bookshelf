@@ -15,7 +15,7 @@ class AuthService {
                     if (response.data.accessToken) {
                         TokenService.setUser(new UserTokens(response.data.accessToken, response.data.refreshToken || null));
                     }
-                    return response.data
+                    return response
                 },
                 reason => {
                     return reason
@@ -29,7 +29,7 @@ class AuthService {
     }
 
     register(user: RegisterUser) {
-        return api.post("/auth/register", {
+        return api.post("/auth/users", {
             username: user.username,
             email: user.email,
             password: user.password

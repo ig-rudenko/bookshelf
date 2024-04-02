@@ -104,7 +104,7 @@ class RegisterUser extends LoginUser {
 
 class User {
     constructor(
-        public _id: string,
+        public id: string,
         public username: string,
         public canCreateTests: boolean,
         public isSuperuser: boolean,

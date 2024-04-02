@@ -4,7 +4,7 @@ class ThemeSwitch {
     constructor() {
         let themeStore = localStorage.getItem("userTheme")
         if (!themeStore) {
-            themeStore = "lara-light-teal"
+            themeStore = "soho-light"
         }
         this._current = themeStore
     }
@@ -23,10 +23,10 @@ class ThemeSwitch {
     }
 
     private getOtherTheme(theme: string) {
-        if (theme === "lara-light-teal") {
-            return  "lara-dark-teal"
+        if (theme === "soho-light") {
+            return "soho-dark"
         } else {
-            return  "lara-light-teal"
+            return "soho-light"
         }
     }
 }

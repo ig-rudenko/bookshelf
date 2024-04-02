@@ -4,6 +4,7 @@ import {mapState, mapActions} from "vuex";
 
 import {RegisterUser} from "@/user";
 import {AxiosError, AxiosResponse} from "axios";
+import getVerboseAxiosError from "@/errorFmt.ts";
 
 export default defineComponent({
   name: "LoginForm",
@@ -26,24 +27,25 @@ export default defineComponent({
     }
   },
   methods: {
-    ...mapActions("auth", ["login"]),
+    ...mapActions("auth", ["register"]),
 
     getClassesFor(isValid: boolean): string[] {
       return isValid ? ['w-full', 'pb-3'] : ['w-full', 'pb-3', 'p-invalid']
     },
 
-    handleLogin() {
+    handleRegister() {
       if (!this.user.isValid) return;
 
-      this.login(this.user)
+      this.register(this.user)
           .then(
           (value: AxiosResponse|AxiosError) => {
             if (value.status == 200) this.$router.push("/");
             this.userError = (<AxiosError>value).message
           },
-          () => this.userError = 'Неверный логин или пароль'
       ).catch(
-          (reason: AxiosError) => this.userError = reason.message
+          (reason: AxiosError<any>) => {
+            this.userError = getVerboseAxiosError(reason)
+          }
       );
     },
 
@@ -61,12 +63,12 @@ export default defineComponent({
 
     <div>
       <div v-if="userError.length" class="flex justify-content-center pb-4">
-        <InlineMessage @click="userError = ''" severity="error">{{userError}}</InlineMessage>
+        <InlineMessage @click="userError = ''" severity="error"><span v-html="userError"></span></InlineMessage>
       </div>
 
       <div class="mb-5">
         <FloatLabel>
-          <InputText v-model="user.username" id="username-input" type="text" :class="getClassesFor(user.valid.username)" />
+          <InputText @keydown.enter="handleRegister" v-model="user.username" id="username-input" type="text" :class="getClassesFor(user.valid.username)" />
           <label for="username-input" class="block text-900 mb-2">Username</label>
         </FloatLabel>
         <InlineMessage v-if="!user.valid.username" severity="error">{{user.valid.usernameError}}</InlineMessage>
@@ -74,7 +76,7 @@ export default defineComponent({
 
       <div class="mb-5">
         <FloatLabel>
-          <InputText v-model="user.email" id="email-input" type="text" :class="getClassesFor(user.valid.email)" />
+          <InputText @keydown.enter="handleRegister" v-model="user.email" id="email-input" type="text" :class="getClassesFor(user.valid.email)" />
           <label for="email-input" class="block text-900 mb-2">Email</label>
         </FloatLabel>
         <InlineMessage v-if="!user.valid.email" severity="error">{{user.valid.emailError}}</InlineMessage>
@@ -82,18 +84,18 @@ export default defineComponent({
 
       <div class="mb-5">
         <FloatLabel>
-          <Password v-model="user.password" id="password-input" :input-class="getClassesFor(user.valid.password)" class="w-full" />
+          <Password @keydown.enter="handleRegister" v-model="user.password" id="password-input" :input-class="getClassesFor(user.valid.password)" class="w-full" />
           <label for="password-input" class="block text-900 mb-2">Password</label>
         </FloatLabel>
         <InlineMessage v-if="!user.valid.password" severity="error">{{user.valid.passwordError}}</InlineMessage>
       </div>
 
       <FloatLabel class="mb-5">
-        <InputText v-model="user.password2" id="password-input" type="password" :class="getClassesFor(user.valid.password)" />
+        <InputText @keydown.enter="handleRegister" v-model="user.password2" id="password-input" type="password" :class="getClassesFor(user.valid.password)" />
         <label for="password-input" class="block text-900 mb-2">Confirm password</label>
       </FloatLabel>
 
-      <Button label="Sign In" icon="pi pi-user" @click="handleLogin" class="w-full"></Button>
+      <Button label="Sign In" icon="pi pi-user" @click="handleRegister" class="w-full"></Button>
     </div>
   </div>
 </template>
