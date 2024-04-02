@@ -64,20 +64,29 @@ export default defineComponent({
         <InlineMessage @click="userError = ''" severity="error">{{userError}}</InlineMessage>
       </div>
 
-      <FloatLabel class="mb-5">
-        <InputText v-model="user.username" id="username-input" type="text" :class="getClassesFor(user.valid.username)" />
-        <label for="username-input" class="block text-900 mb-2">Username</label>
-      </FloatLabel>
+      <div class="mb-5">
+        <FloatLabel>
+          <InputText v-model="user.username" id="username-input" type="text" :class="getClassesFor(user.valid.username)" />
+          <label for="username-input" class="block text-900 mb-2">Username</label>
+        </FloatLabel>
+        <InlineMessage v-if="!user.valid.username" severity="error">{{user.valid.usernameError}}</InlineMessage>
+      </div>
 
-      <FloatLabel class="mb-5">
-        <InputText v-model="user.email" id="email-input" type="text" :class="getClassesFor(user.valid.email)" />
-        <label for="email-input" class="block text-900 mb-2">Email</label>
-      </FloatLabel>
+      <div class="mb-5">
+        <FloatLabel>
+          <InputText v-model="user.email" id="email-input" type="text" :class="getClassesFor(user.valid.email)" />
+          <label for="email-input" class="block text-900 mb-2">Email</label>
+        </FloatLabel>
+        <InlineMessage v-if="!user.valid.email" severity="error">{{user.valid.emailError}}</InlineMessage>
+      </div>
 
-      <FloatLabel class="mb-5">
-        <Password v-model="user.password" id="password-input" :input-class="getClassesFor(user.valid.password)" class="w-full" />
-        <label for="password-input" class="block text-900 mb-2">Password</label>
-      </FloatLabel>
+      <div class="mb-5">
+        <FloatLabel>
+          <Password v-model="user.password" id="password-input" :input-class="getClassesFor(user.valid.password)" class="w-full" />
+          <label for="password-input" class="block text-900 mb-2">Password</label>
+        </FloatLabel>
+        <InlineMessage v-if="!user.valid.password" severity="error">{{user.valid.passwordError}}</InlineMessage>
+      </div>
 
       <FloatLabel class="mb-5">
         <InputText v-model="user.password2" id="password-input" type="password" :class="getClassesFor(user.valid.password)" />

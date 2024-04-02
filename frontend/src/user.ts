@@ -2,11 +2,66 @@
 
 class LoginUserIsValid {
     username: boolean = true
+    usernameError: string = ""
     password: boolean = true
+    passwordError: string = ""
+
+    validateUsername(value: string): void {
+        if (value.length <= 3) {
+            this.username = false;
+            this.usernameError = "Укажите более 3 символов";
+            return;
+        }
+        this.username = true;
+        this.usernameError = "";
+    }
+
+    validatePassword(value: string): void {
+        if (value.length < 8) {
+            this.password = false;
+            this.passwordError = "Пароль должен быть 8 или более символов";
+            return;
+        }
+        if (!value.match(/\d/) || !value.match(/\D/)) {
+            this.password = false;
+            this.passwordError = "Пароль должен состоять, как минимум, из цифр и букв";
+            return;
+        }
+        this.password = true;
+        this.passwordError = "";
+    }
+
+    get isValid(): boolean {
+        return this.username && this.password;
+    }
+
 }
 
 class RegisterUserIsValid extends LoginUserIsValid {
     email: boolean = true
+    emailError: string = ""
+
+    validateEmail(value: string): void {
+        if (!value.match(/^[A-Z0-9._%+-]+@[A-Z0-9-]+.+\.[A-Z]{2,4}$/i)) {
+            this.email = false;
+            this.emailError = "Укажите верный адрес";
+            return;
+        }
+        this.email = true;
+        this.emailError = "";
+    }
+
+    validatePasswordPair(pass1: string, pass2: string) {
+        this.validatePassword(pass1)
+        if (pass1 !== pass2) {
+            this.password = false;
+            this.passwordError += "Пароли не совпадают";
+        }
+    }
+
+    get isValid(): boolean {
+        return this.username && this.password && this.email;
+    }
 }
 
 
@@ -21,9 +76,9 @@ class LoginUser {
     }
 
     public get isValid(): boolean {
-      this.valid.username = this.username.length > 2
-      this.valid.password = this.password.length > 8
-      return this.valid.username && this.valid.password
+        this.valid.validateUsername(this.username)
+        this.valid.validatePassword(this.password)
+        return this.valid.isValid
     }
 
 }
@@ -39,10 +94,10 @@ class RegisterUser extends LoginUser {
     }
 
     public get isValid(): boolean {
-      this.valid.username = this.username.length > 2
-      this.valid.email = this.email.length > 0 && this.email.indexOf("@") > 0
-      this.valid.password = this.password.length > 8 && this.password == this.password2
-      return this.valid.username && this.valid.email && this.valid.password
+        this.valid.validateUsername(this.username)
+        this.valid.validateEmail(this.email)
+        this.valid.validatePasswordPair(this.password, this.password2)
+        return this.valid.isValid
     }
 
 }

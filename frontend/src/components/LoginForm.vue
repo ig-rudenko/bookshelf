@@ -66,15 +66,21 @@ export default defineComponent({
         <InlineMessage @click="userError = ''" severity="error">{{userError}}</InlineMessage>
       </div>
 
-      <FloatLabel class="mb-5">
-        <InputText v-model="user.username" id="username-input" type="text" :class="getClassesFor(user.valid.username)" />
-        <label for="username-input" class="block text-900 mb-2">Username</label>
-      </FloatLabel>
+      <div class="mb-5">
+        <FloatLabel>
+          <InputText v-model="user.username" id="username-input" type="text" :class="getClassesFor(user.valid.username)" />
+          <label for="username-input" class="block text-900 mb-2">Username</label>
+        </FloatLabel>
+        <InlineMessage v-if="!user.valid.username" severity="error">{{user.valid.usernameError}}</InlineMessage>
+      </div>
 
-      <FloatLabel class="mb-5">
-        <label for="password-input" class="block text-900 mb-2">Password</label>
-        <Password v-model="user.password" id="password-input" :input-class="getClassesFor(user.valid.password)" class="w-full" />
-      </FloatLabel>
+      <div class="mb-5">
+        <FloatLabel>
+          <label for="password-input" class="block text-900 mb-2">Password</label>
+          <Password v-model="user.password" id="password-input" :input-class="getClassesFor(user.valid.password)" class="w-full" />
+        </FloatLabel>
+        <InlineMessage v-if="!user.valid.password" severity="error">{{user.valid.passwordError}}</InlineMessage>
+      </div>
 
       <div class="mb-4">
         <a class="font-medium no-underline ml-2 text-blue-500 text-right cursor-pointer">Forgot password?</a>
