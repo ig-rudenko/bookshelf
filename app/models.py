@@ -3,16 +3,15 @@ from typing import Optional
 
 from sqlalchemy import Integer, String, ForeignKey, Text, CheckConstraint, Boolean
 from sqlalchemy import Table, Column
-from sqlalchemy.orm import Mapped, mapped_column, relationship, declarative_base
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.expression import false, true
 from sqlalchemy.sql.functions import func
 
 from app.crud.manager import Manager
+from app.orm.base_model import OrmBase
 
-Base = declarative_base()
 
-
-class User(Base, Manager):
+class User(OrmBase, Manager):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -34,7 +33,7 @@ class User(Base, Manager):
         return f"<User {self.username}>"
 
 
-class Publisher(Base, Manager):
+class Publisher(OrmBase, Manager):
     __tablename__ = "publishers"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -50,14 +49,14 @@ class Publisher(Base, Manager):
 # Define association table for many-to-many relationship between Tag and Book
 book_tag_association = Table(
     "book_tag_association",
-    Base.metadata,
+    OrmBase.metadata,
     Column("id", Integer, primary_key=True),
     Column("book_id", Integer, ForeignKey("books.id")),
     Column("tag_id", Integer, ForeignKey("tag.id")),
 )
 
 
-class Tag(Base, Manager):
+class Tag(OrmBase, Manager):
     __tablename__ = "tag"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(128), unique=True)
@@ -71,7 +70,7 @@ class Tag(Base, Manager):
         return f"<Tag: {self.name}>"
 
 
-class Book(Base, Manager):
+class Book(OrmBase, Manager):
     __tablename__ = "books"
 
     id: Mapped[int] = mapped_column(primary_key=True)

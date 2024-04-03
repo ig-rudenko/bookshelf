@@ -1,8 +1,8 @@
 """0001_init
 
-Revision ID: 76749e497766
+Revision ID: c4ba516667de
 Revises: 
-Create Date: 2024-04-01 15:34:22.191997
+Create Date: 2024-04-03 22:32:25.482540
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '76749e497766'
+revision: str = 'c4ba516667de'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -23,14 +23,14 @@ def upgrade() -> None:
     op.create_table('publishers',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=128), nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('name')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk__publishers')),
+    sa.UniqueConstraint('name', name=op.f('uq__publishers__name'))
     )
     op.create_table('tag',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=128), nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('name')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk__tag')),
+    sa.UniqueConstraint('name', name=op.f('uq__tag__name'))
     )
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -44,9 +44,9 @@ def upgrade() -> None:
     sa.Column('is_staff', sa.Boolean(), server_default=sa.text('0'), nullable=False),
     sa.Column('is_active', sa.Boolean(), server_default=sa.text('1'), nullable=False),
     sa.Column('date_join', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('email'),
-    sa.UniqueConstraint('username')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk__users')),
+    sa.UniqueConstraint('email', name=op.f('uq__users__email')),
+    sa.UniqueConstraint('username', name=op.f('uq__users__username'))
     )
     op.create_table('books',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -62,19 +62,19 @@ def upgrade() -> None:
     sa.Column('year', sa.Integer(), nullable=False),
     sa.Column('private', sa.Boolean(), nullable=False),
     sa.Column('language', sa.String(length=128), nullable=False),
-    sa.CheckConstraint('pages > 0', name='check_pages_positive'),
-    sa.CheckConstraint('year > 1', name='check_year_positive'),
-    sa.ForeignKeyConstraint(['publisher_id'], ['publishers.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.CheckConstraint('pages > 0', name=op.f('ck__books__check_pages_positive')),
+    sa.CheckConstraint('year > 1', name=op.f('ck__books__check_year_positive')),
+    sa.ForeignKeyConstraint(['publisher_id'], ['publishers.id'], name=op.f('fk__books__publisher_id__publishers'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], name=op.f('fk__books__user_id__users'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk__books'))
     )
     op.create_table('book_tag_association',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('book_id', sa.Integer(), nullable=True),
     sa.Column('tag_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['book_id'], ['books.id'], ),
-    sa.ForeignKeyConstraint(['tag_id'], ['tag.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['book_id'], ['books.id'], name=op.f('fk__book_tag_association__book_id__books')),
+    sa.ForeignKeyConstraint(['tag_id'], ['tag.id'], name=op.f('fk__book_tag_association__tag_id__tag')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk__book_tag_association'))
     )
     # ### end Alembic commands ###
 
