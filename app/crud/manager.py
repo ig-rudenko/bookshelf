@@ -1,11 +1,8 @@
 from typing import Self, Sequence
 
 from sqlalchemy import select
-from sqlalchemy.orm import declarative_base
 
-from .connector import db_conn
-
-Base = declarative_base()
+from app.database.connector import db_conn
 
 
 class Manager:

@@ -3,11 +3,13 @@ from typing import Optional
 
 from sqlalchemy import Integer, String, ForeignKey, Text, CheckConstraint, Boolean
 from sqlalchemy import Table, Column
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, declarative_base
 from sqlalchemy.sql.expression import false, true
 from sqlalchemy.sql.functions import func
 
-from app.database.base import Base, Manager
+from app.crud.manager import Manager
+
+Base = declarative_base()
 
 
 class User(Base, Manager):
