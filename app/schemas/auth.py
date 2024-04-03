@@ -1,14 +1,14 @@
-from pydantic import BaseModel, Field
+from .base import BaseConfigModel
 
 
-class TokenPair(BaseModel):
-    access_token: str = Field(..., alias="accessToken")
-    refresh_token: str = Field(..., alias="refreshToken")
+class TokenPair(BaseConfigModel):
+    access_token: str
+    refresh_token: str
 
 
-class AccessToken(BaseModel):
-    access_token: str = Field(..., alias="accessToken")
+class AccessToken(BaseConfigModel):
+    access_token: str
 
 
-class RefreshToken(BaseModel):
-    refresh_token: str = Field(..., alias="refreshToken")
+class RefreshToken(BaseConfigModel):
+    refresh_token: str

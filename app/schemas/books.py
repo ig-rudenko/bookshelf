@@ -1,23 +1,19 @@
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from .base import BaseConfigModel
 
 
-class PublisherSchema(BaseModel):
+class PublisherSchema(BaseConfigModel):
     id: int
     name: str = Field(..., max_length=128)
 
-    class Config:
-        from_attributes = True
 
-
-class TagSchema(BaseModel):
+class TagSchema(BaseConfigModel):
     id: int
     name: str = Field(..., max_length=128)
 
-    class Config:
-        from_attributes = True
 
-
-class CreateBookSchema(BaseModel):
+class CreateBookSchema(BaseConfigModel):
     publisher: str = Field(..., max_length=128)
 
     title: str = Field(..., max_length=254)
@@ -29,7 +25,7 @@ class CreateBookSchema(BaseModel):
     tags: list[str]
 
 
-class BookSchema(BaseModel):
+class BookSchema(BaseConfigModel):
     id: int
     user_id: int
 
@@ -45,13 +41,10 @@ class BookSchema(BaseModel):
     tags: list[TagSchema]
     publisher: PublisherSchema
 
-    class Config:
-        from_attributes = True
 
-
-class BooksListSchema(BaseModel):
+class BooksListSchema(BaseConfigModel):
     books: list[BookSchema]
     totalCount: int
-    currentPage: int
-    maxPages: int
-    perPage: int
+    current_page: int
+    max_pages: int
+    per_page: int

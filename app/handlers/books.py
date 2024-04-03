@@ -62,9 +62,9 @@ async def get_books_view(
     return BooksListSchema(
         books=books,
         totalCount=total_count,
-        currentPage=query_params["page"],
-        maxPages=total_count // query_params["per_page"] or 1,
-        perPage=query_params["per_page"],
+        current_page=query_params["page"],
+        max_pages=total_count // query_params["per_page"] or 1,
+        per_page=query_params["per_page"],
     )
 
 
