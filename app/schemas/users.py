@@ -2,10 +2,10 @@ from datetime import datetime
 
 from pydantic import Field, EmailStr
 
-from .base import BaseConfigModel
+from .base import CamelSerializerModel, CamelAliasModel
 
 
-class User(BaseConfigModel):
+class UserSchema(CamelSerializerModel):
     username: str = Field(..., min_length=2, max_length=150)
     email: EmailStr = Field(..., max_length=254)
     first_name: str | None = Field(None, max_length=150)
@@ -16,12 +16,12 @@ class User(BaseConfigModel):
     date_join: datetime
 
 
-class UserCredentials(BaseConfigModel):
+class UserCredentialsSchema(CamelAliasModel):
     username: str = Field(..., max_length=150)
     password: str = Field(..., max_length=128)
 
 
-class UserCreate(BaseConfigModel):
+class UserCreateSchema(CamelAliasModel):
     username: str = Field(..., min_length=2, max_length=150)
     email: EmailStr = Field(..., max_length=254)
     password: str = Field(..., min_length=8, max_length=50)

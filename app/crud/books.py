@@ -3,62 +3,59 @@ from typing import TypedDict, TypeVar
 from sqlalchemy import select, ScalarResult, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..database.connector import db_conn
 from ..models import Publisher, Tag, Book, User
 from ..schemas.books import CreateBookSchema, BookSchema
 
 
-async def create_book(user: User, book_data: CreateBookSchema) -> Book:
-    async with db_conn.session as conn:
-        publisher = await _get_or_create_publisher(book_data.publisher, conn)
-        tags = await _get_or_create_tags(book_data.tags, conn)
-        book = Book(
-            user_id=user.id,
-            publisher=publisher,
-            title=book_data.title,
-            preview_image="",
-            file="",
-            authors=book_data.authors,
-            description=book_data.description,
-            pages=1,
-            size=1,
-            year=book_data.year,
-            private=book_data.private,
-            language=book_data.language,
-            tags=tags,
-        )
-        conn.add(publisher)
-        conn.add_all(tags)
-        conn.add(book)
-        await conn.commit()
-        await conn.refresh(book)
-        return book
+async def create_book(session: AsyncSession, user: User, book_data: CreateBookSchema) -> Book:
+    publisher = await _get_or_create_publisher(session, book_data.publisher)
+    tags = await _get_or_create_tags(session, book_data.tags)
+    book = Book(
+        user_id=user.id,
+        publisher=publisher,
+        title=book_data.title,
+        preview_image="",
+        file="",
+        authors=book_data.authors,
+        description=book_data.description,
+        pages=1,
+        size=1,
+        year=book_data.year,
+        private=book_data.private,
+        language=book_data.language,
+        tags=tags,
+    )
+    session.add(publisher)
+    session.add_all(tags)
+    session.add(book)
+    await session.commit()
+    await session.refresh(book)
+    return book
 
 
-async def update_book(book: Book, book_data: CreateBookSchema) -> Book:
-    async with db_conn.session as conn:
-        publisher = await _get_or_create_publisher(book_data.publisher, conn)
-        tags = await _get_or_create_tags(book_data.tags, conn)
-        book.publisher = publisher
-        book.title = book_data.title
-        book.authors = book_data.authors
-        book.description = book_data.description
-        book.year = book_data.year
-        book.tags = tags
+async def update_book(session: AsyncSession, book: Book, book_data: CreateBookSchema) -> Book:
+    publisher = await _get_or_create_publisher(session, book_data.publisher)
+    tags = await _get_or_create_tags(session, book_data.tags)
+    book.publisher = publisher
+    book.title = book_data.title
+    book.authors = book_data.authors
+    book.description = book_data.description
+    book.year = book_data.year
+    book.tags = tags
 
-        conn.add(publisher)
-        conn.add_all(tags)
-        conn.add(book)
-        await conn.commit()
-        await conn.refresh(book)
-        return book
+    session.add(publisher)
+    session.add_all(tags)
+    session.add(book)
+    await session.commit()
+    await session.refresh(book)
+    return book
 
 
-async def _get_or_create_tags(tags: list[str], conn) -> list[Tag]:
+async def _get_or_create_tags(session: AsyncSession, tags: list[str]) -> list[Tag]:
     """Находит или создает список тегов"""
     model_tags = []
     for tag_name in tags:
-        result = await conn.execute(select(Tag).where(Tag.name.ilike(tag_name)))
+        result = await session.execute(select(Tag).where(Tag.name.ilike(tag_name)))
         result.unique()
         tag = result.scalar_one_or_none()
         if tag is None:
@@ -69,10 +66,10 @@ async def _get_or_create_tags(tags: list[str], conn) -> list[Tag]:
     return model_tags
 
 
-async def _get_or_create_publisher(publisher_name: str, conn) -> Publisher:
+async def _get_or_create_publisher(session: AsyncSession, publisher_name: str) -> Publisher:
     """Находит или создает издательство по названию"""
     query = select(Publisher).where(Publisher.name.ilike(publisher_name))
-    result = await conn.execute(query)
+    result = await session.execute(query)
     result.unique()
     publisher = result.scalar_one_or_none()
     if publisher is None:
@@ -128,6 +125,7 @@ def filter_query_by_params(query: QT, query_params: QueryParams) -> QT:
 
 
 async def get_filtered_books_list(
+    session: AsyncSession,
     user: User | None,
     query_params: QueryParams,
 ) -> tuple[ScalarResult[BookSchema], int]:
@@ -138,23 +136,22 @@ async def get_filtered_books_list(
             return q.where(Book.private.is_(False) | (Book.private.is_(True) & (Book.user_id == user.id)))
         return q.where(Book.private.is_(False))
 
-    async with db_conn.session as session:
-        query = filter_query_by_params(select(Book), query_params)
-        query = filter_query_by_user(query)
+    query = filter_query_by_params(select(Book), query_params)
+    query = filter_query_by_user(query)
 
-        result = await session.execute(query)
-        result.unique()
-        books = result.scalars()
+    result = await session.execute(query)
+    result.unique()
+    books = result.scalars()
 
-        books_count: int = await _get_books_count_for_query(
-            filter_query_by_user(select(func.count(Book.id))),
-            query_params,
-            session,
-        )
+    books_count: int = await _get_books_count_for_query(
+        session,
+        filter_query_by_user(select(func.count(Book.id))),
+        query_params,
+    )
     return books, books_count
 
 
-async def _get_books_count_for_query(query, query_params: QueryParams, session: AsyncSession) -> int:
+async def _get_books_count_for_query(session: AsyncSession, query, query_params: QueryParams) -> int:
     """Определяет количество книг для запроса"""
     count_query = filter_query_by_params(query, query_params).limit(None).offset(None)
     count_result = await session.execute(count_query)

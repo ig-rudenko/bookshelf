@@ -8,12 +8,12 @@ from sqlalchemy import delete
 from sqlalchemy.exc import NoResultFound
 
 from app.crud.books import create_book
-from app.database.connector import db_conn
 from app.handlers.books import router
 from app.models import Publisher, User, Tag, Book, book_tag_association
+from app.orm.session_manager import db_manager
 from app.schemas.books import BookSchema, CreateBookSchema
 from app.services.auth import create_jwt_token_pair
-from app.settings import Settings
+from app.settings import settings
 from tests.init import TEST_DB_URL
 
 
@@ -21,7 +21,7 @@ class BaseBookTest(IsolatedAsyncioTestCase):
 
     @classmethod
     def setUpClass(cls):
-        db_conn.initialize(TEST_DB_URL)
+        db_manager.init(TEST_DB_URL)
         cls.client = TestClient(router)
 
     async def asyncSetUp(self):
@@ -32,7 +32,7 @@ class BaseBookTest(IsolatedAsyncioTestCase):
         self.book_private = await self.create_book(self.user_2, "book_2", private=True)
 
     async def asyncTearDown(self):
-        async with db_conn.session as conn:
+        async with db_manager.session() as conn:
             await conn.execute(delete(Publisher))
             await conn.execute(delete(User))
             await conn.execute(delete(Tag))
@@ -52,11 +52,12 @@ class BaseBookTest(IsolatedAsyncioTestCase):
             language="русский",
             tags=["tag_1", "tag_2"],
         )
-        return await create_book(user, book_schema)
+        async with db_manager.session() as session:
+            return await create_book(session, user, book_schema)
 
     @staticmethod
     async def create_user(username: str) -> User:
-        async with db_conn.session as conn:
+        async with db_manager.session() as conn:
             user = User(username=username, email=f"{username}@mail.com", password="<PASSWORD>")
             conn.add(user)
             await conn.commit()
@@ -107,8 +108,9 @@ class CreateBookTest(BaseBookTest):
         )
 
         self.assertEqual(response.status_code, 201)
-        new_book = await Book.get(title="book_3")
-        valid_response = BookSchema.model_validate(new_book).model_dump()
+        async with db_manager.session() as session:
+            new_book = await Book.get(session, title="book_3")
+        valid_response = BookSchema.model_validate(new_book).model_dump(by_alias=True)
         self.assertEqual(valid_response, response.json())
 
     async def test_create_book_without_auth(self):
@@ -129,7 +131,7 @@ class ListBooksTest(BaseBookTest):
 
         self.assertEqual(response.status_code, 200)
         valid_data = {
-            "books": [BookSchema.model_validate(self.book_1).model_dump()],
+            "books": [BookSchema.model_validate(self.book_1).model_dump(by_alias=True)],
             "currentPage": 1,
             "maxPages": 1,
             "perPage": 25,
@@ -143,7 +145,7 @@ class ListBooksTest(BaseBookTest):
 
         self.assertEqual(response.status_code, 200)
         valid_data = {
-            "books": [BookSchema.model_validate(self.book_1).model_dump()],
+            "books": [BookSchema.model_validate(self.book_1).model_dump(by_alias=True)],
             "currentPage": 1,
             "maxPages": 1,
             "perPage": 25,
@@ -158,8 +160,8 @@ class ListBooksTest(BaseBookTest):
         self.assertEqual(response.status_code, 200)
         valid_data = {
             "books": [
-                BookSchema.model_validate(self.book_1).model_dump(),
-                BookSchema.model_validate(self.book_private).model_dump(),
+                BookSchema.model_validate(self.book_1).model_dump(by_alias=True),
+                BookSchema.model_validate(self.book_private).model_dump(by_alias=True),
             ],
             "currentPage": 1,
             "maxPages": 1,
@@ -211,25 +213,28 @@ class UpdateBookTest(BaseBookTest):
 
     async def test_update_book_and_tags(self):
         token_pair = create_jwt_token_pair(user_id=self.user_2.id)
-        before_tags_count = len(await Tag.all())
-        before_publisher_count = len(await Publisher.all())
 
-        response = self.client.put(
-            f"/books/{self.book_private.id}/",
-            headers={"Authorization": f"Bearer {token_pair.access_token}"},
-            json=self.book_update_data_with_new_tag,
-        )
-        self.assertEqual(response.status_code, 200)
+        async with db_manager.session() as session:
 
-        self.book_private = await Book.get(title="new title")  # проверка изменения
-        valid_response = BookSchema.model_validate(self.book_private).model_dump()
-        self.assertEqual(valid_response, response.json())
+            before_tags_count = len(await Tag.all(session))
+            before_publisher_count = len(await Publisher.all(session))
 
-        # Проверка изменения тегов
-        after_tags_count = len(await Tag.all())
-        self.assertEqual(after_tags_count, before_tags_count + 2)
-        after_publisher_count = len(await Publisher.all())
-        self.assertEqual(after_publisher_count, before_publisher_count + 1)
+            response = self.client.put(
+                f"/books/{self.book_private.id}/",
+                headers={"Authorization": f"Bearer {token_pair.access_token}"},
+                json=self.book_update_data_with_new_tag,
+            )
+            self.assertEqual(response.status_code, 200)
+
+            self.book_private = await Book.get(session, title="new title")  # проверка изменения
+            valid_response = BookSchema.model_validate(self.book_private).model_dump(by_alias=True)
+            self.assertEqual(valid_response, response.json())
+
+            # Проверка изменения тегов
+            after_tags_count = len(await Tag.all(session))
+            self.assertEqual(after_tags_count, before_tags_count + 2)
+            after_publisher_count = len(await Publisher.all(session))
+            self.assertEqual(after_publisher_count, before_publisher_count + 1)
 
 
 class DeleteBookTest(BaseBookTest):
@@ -241,13 +246,15 @@ class DeleteBookTest(BaseBookTest):
         )
         self.assertEqual(response.status_code, 204)
 
-        with self.assertRaises(NoResultFound):  # Книги больше нет
-            await Book.get(title=self.book_1.title)
+        async with db_manager.session() as session:
+            with self.assertRaises(NoResultFound):  # Книги больше нет
+                await Book.get(session, title=self.book_1.title)
 
     async def test_delete_book_anonymous(self):
         with self.assertRaises(HTTPException):
             self.client.delete(f"/books/{self.book_1.id}")
-        await Book.get(title=self.book_1.title)
+        async with db_manager.session() as session:
+            await Book.get(session, title=self.book_1.title)
 
     async def test_delete_book_not_owner(self):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
@@ -256,7 +263,9 @@ class DeleteBookTest(BaseBookTest):
                 f"/books/{self.book_private.id}",
                 headers={"Authorization": f"Bearer {token_pair.access_token}"},
             )
-        await Book.get(title=self.book_private.title)
+
+        async with db_manager.session() as session:
+            await Book.get(session, title=self.book_private.title)
 
 
 class UploadBookFileTest(BaseBookTest):
@@ -264,13 +273,13 @@ class UploadBookFileTest(BaseBookTest):
     async def asyncSetUp(self):
         await super().asyncSetUp()
         self.file_path = pathlib.Path(__file__).parent / "sample-pdf-file.pdf"
-        Settings.MEDIA_ROOT = pathlib.Path(__file__).parent / "media-test"
-        Settings.MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
+        settings.media_root = pathlib.Path(__file__).parent / "media-test"
+        settings.media_root.mkdir(parents=True, exist_ok=True)
 
     async def asyncTearDown(self):
         await super().asyncTearDown()
-        if Settings.MEDIA_ROOT.name.endswith("media-test"):
-            shutil.rmtree(Settings.MEDIA_ROOT, ignore_errors=True)
+        if settings.media_root.name.endswith("media-test"):
+            shutil.rmtree(settings.media_root, ignore_errors=True)
 
     async def test_upload_file(self):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
@@ -282,14 +291,15 @@ class UploadBookFileTest(BaseBookTest):
                 files={"file": file},
             )
 
-        book_media_path = Settings.MEDIA_ROOT / "books" / str(self.book_1.id)
-        book_preview_path = Settings.MEDIA_ROOT / "previews" / str(self.book_1.id)
+        book_media_path = settings.media_root / "books" / str(self.book_1.id)
+        book_preview_path = settings.media_root / "previews" / str(self.book_1.id)
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue((book_media_path / "sample-pdf-file.pdf").exists())
         self.assertTrue((book_preview_path / "preview.png").exists())
 
-        self.book_1 = await Book.get(id=self.book_1.id)  # refresh book from db
+        async with db_manager.session() as session:
+            self.book_1 = await Book.get(session, id=self.book_1.id)  # refresh book from db
         self.assertEqual(self.book_1.preview_image, f"previews/{self.book_1.id}/preview.png")
         self.assertEqual(self.book_1.file, f"books/{self.book_1.id}/sample-pdf-file.pdf")
         self.assertEqual(self.book_1.size, self.file_path.stat().st_size)

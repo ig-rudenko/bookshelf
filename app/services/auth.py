@@ -1,14 +1,17 @@
 import os
+import re
 from datetime import datetime, timedelta, UTC
 from typing import Optional
 
 from fastapi import Depends, HTTPException, Header
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
-from sqlalchemy import exc
+from sqlalchemy.exc import NoResultFound
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 from ..models import User
+from ..orm.session_manager import get_session
 from ..schemas.auth import TokenPair
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
@@ -53,24 +56,28 @@ def create_jwt_token_pair(user_id: int) -> TokenPair:
     return TokenPair(accessToken=access_token, refreshToken=refresh_token)
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    session: AsyncSession = Depends(get_session, use_cache=True),
+) -> User:
     """Получение текущего пользователя"""
     payload = _get_token_payload(token, "access")
-
     try:
-        user = await User.get(id=payload[USER_IDENTIFIER])
-    except exc.NoResultFound:
+        user = await User.get(session, id=payload[USER_IDENTIFIER])
+    except NoResultFound:
         raise CredentialsException
 
     return user
 
 
-async def get_user_or_none(authorization: Optional[str] = Header(None)) -> User | None:
+async def get_user_or_none(
+    authorization: Optional[str] = Header(None),
+    session: AsyncSession = Depends(get_session, use_cache=True),
+) -> User | None:
     if authorization:
-        if authorization.startswith("Bearer "):
-            token = authorization.split(" ")[1]
+        if token_match := re.match(r"Bearer (\S+)", authorization):
             try:
-                return await get_current_user(token)
+                return await get_current_user(token_match.group(1), session)
             except HTTPException:
                 return None
     return None

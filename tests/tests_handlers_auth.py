@@ -4,11 +4,12 @@ from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.testclient import TestClient
 from sqlalchemy.sql.expression import delete
 
-from app.database.connector import db_conn
 from app.handlers.auth import router
 from app.models import User
-from app.services.encrypt import validate_password
+from app.orm.session_manager import db_manager
+from app.schemas.users import UserSchema
 from app.services.auth import create_jwt_token_pair
+from app.services.encrypt import validate_password
 from tests.init import TEST_DB_URL
 
 
@@ -16,14 +17,14 @@ class RegisterUserTest(IsolatedAsyncioTestCase):
 
     @classmethod
     def setUpClass(cls):
-        db_conn.initialize(TEST_DB_URL)
+        db_manager.init(TEST_DB_URL)
         cls.client = TestClient(router)
 
     async def asyncSetUp(self):
         await self.asyncTearDown()
 
     async def asyncTearDown(self):
-        async with db_conn.session as conn:
+        async with db_manager.session() as conn:
             await conn.execute(delete(User))
             await conn.commit()
 
@@ -31,16 +32,14 @@ class RegisterUserTest(IsolatedAsyncioTestCase):
         user_data = {"username": "testuser", "password": "testpassword", "email": "igor@mail.com"}
         response = self.client.post("/auth/users", json=user_data)
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(
+        async with db_manager.session() as session:
+            user = await User.get(session, username="testuser")
+
+        self.assertEqual(
+            UserSchema.model_validate(user).model_dump(mode="json", by_alias=True),
             response.json(),
-            {
-                "username": "testuser",
-                "email": "igor@mail.com",
-                "first_name": None,
-                "last_name": None,
-            },
         )
-        user = await User.get(username="testuser")
+
         self.assertEqual(user.email, "igor@mail.com")
         self.assertNotEqual(user.password, user_data["password"])
 
@@ -76,7 +75,7 @@ class AuthJWTTest(IsolatedAsyncioTestCase):
 
     @classmethod
     def setUpClass(cls):
-        db_conn.initialize(TEST_DB_URL)
+        db_manager.init(TEST_DB_URL)
         cls.client = TestClient(router)
 
     async def asyncSetUp(self):
@@ -85,7 +84,7 @@ class AuthJWTTest(IsolatedAsyncioTestCase):
         self.client.post("/auth/users", json=self.user_data)
 
     async def asyncTearDown(self):
-        async with db_conn.session as conn:
+        async with db_manager.session() as conn:
             await conn.execute(delete(User))
             await conn.commit()
 
@@ -105,7 +104,8 @@ class AuthJWTTest(IsolatedAsyncioTestCase):
 
     async def test_verify_jwt(self):
         """Тест на успешное верифицирование JWT"""
-        user = await User.get(username="testuser")
+        async with db_manager.session() as session:
+            user = await User.get(session, username="testuser")
         token_pair = create_jwt_token_pair(user_id=user.id)
 
         response = self.client.get(
@@ -119,7 +119,8 @@ class AuthJWTTest(IsolatedAsyncioTestCase):
         self.assertEqual(data["email"], user.email)
 
     async def test_refresh_jwt(self):
-        user = await User.get(username="testuser")
+        async with db_manager.session() as session:
+            user = await User.get(session, username="testuser")
         token_pair = create_jwt_token_pair(user_id=user.id)
         response = self.client.post("/auth/token/refresh", json={"refreshToken": token_pair.refresh_token})
         self.assertEqual(response.status_code, 200)

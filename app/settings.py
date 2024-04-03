@@ -1,7 +1,15 @@
 from pathlib import Path
 
+from pydantic_settings import BaseSettings
 
-class Settings:
+
+class _BaseSettings(BaseSettings):
     # Путь к медиа хранилищу
-    MEDIA_ROOT = Path(__file__).parent.parent / "media"
-    MEDIA_ROOT.mkdir(exist_ok=True, parents=True)
+    media_root: Path = Path(__file__).parent.parent / "media"
+    media_root.mkdir(exist_ok=True, parents=True)
+
+    # Путь к базе данных
+    database_url: str
+
+
+settings = _BaseSettings()

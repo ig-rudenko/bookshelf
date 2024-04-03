@@ -3,12 +3,13 @@ import re
 import fitz
 from fastapi import UploadFile, status
 from fastapi.exceptions import HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Book
-from app.settings import Settings
+from app.settings import settings
 
 
-async def set_file(file: UploadFile, book: Book):
+async def set_file(session: AsyncSession, file: UploadFile, book: Book):
     """
     Создаем для книги файл, а также превью для его просмотра.
     """
@@ -16,8 +17,8 @@ async def set_file(file: UploadFile, book: Book):
     # Фильтруем запрещенные символы
     file_name = re.sub(r"[<>#%\"|^\[\]`;?:@&=+$ ]+", "_", file.filename)
     # Создаем директорию для хранения книги
-    book_folder = Settings.MEDIA_ROOT / "books" / str(book.id)
-    preview_folder = Settings.MEDIA_ROOT / "previews" / str(book.id)
+    book_folder = settings.media_root / "books" / str(book.id)
+    preview_folder = settings.media_root / "previews" / str(book.id)
     book_folder.mkdir(parents=True, exist_ok=True)
     preview_folder.mkdir(parents=True, exist_ok=True)
 
@@ -49,4 +50,4 @@ async def set_file(file: UploadFile, book: Book):
     book.preview_image = f"previews/{book.id}/preview.png"
     book.size = book_file_path.stat().st_size
     book.pages = doc.page_count
-    await book.save()
+    await book.save(session)

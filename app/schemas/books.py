@@ -1,19 +1,19 @@
 from pydantic import Field
 
-from .base import BaseConfigModel
+from .base import CamelSerializerModel, CamelAliasModel
 
 
-class PublisherSchema(BaseConfigModel):
+class PublisherSchema(CamelSerializerModel):
     id: int
     name: str = Field(..., max_length=128)
 
 
-class TagSchema(BaseConfigModel):
+class TagSchema(CamelSerializerModel):
     id: int
     name: str = Field(..., max_length=128)
 
 
-class CreateBookSchema(BaseConfigModel):
+class CreateBookSchema(CamelAliasModel):
     publisher: str = Field(..., max_length=128)
 
     title: str = Field(..., max_length=254)
@@ -25,7 +25,7 @@ class CreateBookSchema(BaseConfigModel):
     tags: list[str]
 
 
-class BookSchema(BaseConfigModel):
+class BookSchema(CamelSerializerModel):
     id: int
     user_id: int
 
@@ -42,9 +42,9 @@ class BookSchema(BaseConfigModel):
     publisher: PublisherSchema
 
 
-class BooksListSchema(BaseConfigModel):
+class BooksListSchema(CamelSerializerModel):
     books: list[BookSchema]
-    totalCount: int
+    total_count: int
     current_page: int
     max_pages: int
     per_page: int

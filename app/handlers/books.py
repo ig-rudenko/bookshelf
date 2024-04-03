@@ -4,13 +4,15 @@ from typing import Optional, Generator
 from fastapi import APIRouter, UploadFile, HTTPException, Depends, status, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.exc import NoResultFound
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..crud.books import create_book, get_filtered_books_list, update_book
 from ..models import Book, User
+from ..orm.session_manager import get_session
 from ..schemas.books import BookSchema, CreateBookSchema, BooksListSchema
 from ..services.auth import get_current_user, get_user_or_none
 from ..services.books import set_file
-from ..settings import Settings
+from ..settings import settings
 
 router = APIRouter(prefix="/books", tags=["books"])
 
@@ -50,36 +52,45 @@ def books_query_params(
     }
 
 
-@router.get("/", response_model=BooksListSchema)
+@router.get("", response_model=BooksListSchema)
 async def get_books_view(
     query_params: dict = Depends(books_query_params),
     current_user: Optional[User] = Depends(get_user_or_none),
+    session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Просмотр всех книг"""
-    books, total_count = await get_filtered_books_list(current_user, query_params)
+    books, total_count = await get_filtered_books_list(session, current_user, query_params)
     books = [BookSchema.model_validate(book) for book in books]
 
     return BooksListSchema(
         books=books,
-        totalCount=total_count,
+        total_count=total_count,
         current_page=query_params["page"],
         max_pages=total_count // query_params["per_page"] or 1,
         per_page=query_params["per_page"],
     )
 
 
-@router.post("/", response_model=BookSchema, status_code=status.HTTP_201_CREATED)
-async def create_book_view(book_data: CreateBookSchema, current_user: User = Depends(get_current_user)):
+@router.post("", response_model=BookSchema, status_code=status.HTTP_201_CREATED)
+async def create_book_view(
+    book_data: CreateBookSchema,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session, use_cache=True),
+):
     """Создание книги"""
-    book = await create_book(current_user, book_data)
+    book = await create_book(session, current_user, book_data)
     return book
 
 
 @router.get("/{book_id}", response_model=BookSchema)
-async def get_book_view(book_id: int, current_user: Optional[User] = Depends(get_user_or_none)):
+async def get_book_view(
+    book_id: int,
+    current_user: Optional[User] = Depends(get_user_or_none),
+    session: AsyncSession = Depends(get_session, use_cache=True),
+):
     """Просмотр книги"""
     try:
-        book = await Book.get(id=book_id)
+        book = await Book.get(session, id=book_id)
     except NoResultFound:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Книга не найдена")
 
@@ -98,40 +109,52 @@ async def get_book_view(book_id: int, current_user: Optional[User] = Depends(get
 
 @router.put("/{book_id}", response_model=BookSchema)
 async def update_book_view(
-    book_id: int, book_data: CreateBookSchema, current_user: User = Depends(get_current_user)
+    book_id: int,
+    book_data: CreateBookSchema,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Обновление книги"""
-    book = await Book.get(id=book_id)
+    book = await Book.get(session, id=book_id)
     if book.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="У вас нет прав на обновление данной книги",
         )
-    book = await update_book(book, book_data)
+    book = await update_book(session, book, book_data)
     return BookSchema.model_validate(book)
 
 
 @router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_book_view(book_id: int, current_user: User = Depends(get_current_user)):
+async def delete_book_view(
+    book_id: int,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session, use_cache=True),
+):
     """Удаление книги"""
-    book = await Book.get(id=book_id)
+    book = await Book.get(session, id=book_id)
     if book.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="У вас нет прав на удаление данной книги",
         )
-    await book.delete()
+    await book.delete(session)
 
 
 @router.post("/{book_id}/upload", response_model=BookSchema)
-async def upload_book_file(book_id: int, file: UploadFile, user: User = Depends(get_current_user)):
+async def upload_book_file(
+    book_id: int,
+    file: UploadFile,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session, use_cache=True),
+):
     """Загрузка файла книги"""
     if not file.filename.endswith(".pdf"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Формат файла должен быть только '.pdf'"
         )
     try:
-        book = await Book.get(id=book_id)
+        book = await Book.get(session, id=book_id)
     except NoResultFound:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
 
@@ -141,16 +164,20 @@ async def upload_book_file(book_id: int, file: UploadFile, user: User = Depends(
             detail="У вас нет прав на загрузку файла данной книги",
         )
 
-    await set_file(file, book)
+    await set_file(session, file, book)
 
     return BookSchema.model_validate(book)
 
 
 @router.get("/{book_id}/show", response_class=StreamingResponse)
-async def download_book_file(book_id: int, user: Optional[User] = Depends(get_user_or_none)):
+async def download_book_file(
+    book_id: int,
+    user: Optional[User] = Depends(get_user_or_none),
+    session: AsyncSession = Depends(get_session, use_cache=True),
+):
     """Скачивание файла книги"""
     try:
-        book = await Book.get(id=book_id)
+        book = await Book.get(session, id=book_id)
     except NoResultFound:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Книга не найдена")
     if book.private and book.user_id != user.id:
@@ -164,6 +191,6 @@ async def download_book_file(book_id: int, user: Optional[User] = Depends(get_us
             yield file.read()
 
     return StreamingResponse(
-        content=get_data_from_file(Settings.MEDIA_ROOT / book.file),
+        content=get_data_from_file(settings.MEDIA_ROOT / book.file),
         media_type="application/pdf",
     )

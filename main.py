@@ -1,20 +1,20 @@
-import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.database.connector import db_conn
 from app.handlers.auth import router as auth_router
 from app.handlers.books import router as book_router
+from app.orm.session_manager import db_manager
+from app.settings import settings
 
 
 @asynccontextmanager
 async def startup(app_instance: FastAPI):
-    db_conn.initialize(os.environ["DATABASE_URL"])
+    db_manager.init(settings.database_url)
     print("Database initialized")
     yield
     print("Database closed")
-    db_conn.session.close_all()
+    await db_manager.close()
 
 
 app = FastAPI(lifespan=startup)

@@ -1,14 +1,16 @@
-from .base import BaseConfigModel
+from pydantic import Field
+
+from .base import CamelAliasModel
 
 
-class TokenPair(BaseConfigModel):
-    access_token: str
-    refresh_token: str
+class TokenPair(CamelAliasModel):
+    access_token: str = Field(..., alias="accessToken")
+    refresh_token: str = Field(..., alias="refreshToken")
 
 
-class AccessToken(BaseConfigModel):
-    access_token: str
+class AccessToken(CamelAliasModel):
+    access_token: str = Field(..., alias="accessToken")
 
 
-class RefreshToken(BaseConfigModel):
-    refresh_token: str
+class RefreshToken(CamelAliasModel):
+    refresh_token: str = Field(..., alias="refreshToken")
