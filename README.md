@@ -1,14 +1,16 @@
 ### Запуск
-Применение миграций
-
-```shell
-export DATABASE_MIGRATION_URL=...  # Без асинхронного драйвера
-alembic upgrade head;
-```
 
 Переменные окружения:
 
     DATABASE_URL=   # С асинхронным драйвером
+
+Применение миграций
+
+```shell
+alembic upgrade head;
+```
+
+Запуск
 
 ```shell
 uvicorn main:app
@@ -19,7 +21,7 @@ uvicorn main:app
 Миграции для тестовой базы
 
 ```shell
-export DATABASE_MIGRATION_URL=sqlite:///test.db;
+export DATABASE_URL=sqlite:///test.db;
 alembic upgrade head;
 ```
 
