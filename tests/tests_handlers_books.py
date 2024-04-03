@@ -236,6 +236,31 @@ class UpdateBookTest(BaseBookTest):
             after_publisher_count = len(await Publisher.all(session))
             self.assertEqual(after_publisher_count, before_publisher_count + 1)
 
+    async def test_update_book_no_auth(self):
+        with self.assertRaises(HTTPException):
+            self.client.put(
+                f"/books/{self.book_private.id}/",
+                json=self.book_update_data_with_new_tag,
+            )
+
+    async def test_update_book_not_owner(self):
+        token_pair = create_jwt_token_pair(user_id=self.user_1.id)
+        with self.assertRaises(HTTPException):
+            self.client.put(
+                f"/books/{self.book_private.id}/",
+                headers={"Authorization": f"Bearer {token_pair.access_token}"},
+                json=self.book_update_data_with_new_tag,
+            )
+
+    async def test_update_invalid_book(self):
+        token_pair = create_jwt_token_pair(user_id=self.user_1.id)
+        with self.assertRaises(HTTPException):
+            self.client.put(
+                f"/books/0",
+                headers={"Authorization": f"Bearer {token_pair.access_token}"},
+                json=self.book_update_data_with_new_tag,
+            )
+
 
 class DeleteBookTest(BaseBookTest):
     async def test_delete_book(self):
@@ -266,6 +291,14 @@ class DeleteBookTest(BaseBookTest):
 
         async with db_manager.session() as session:
             await Book.get(session, title=self.book_private.title)
+
+    async def test_delete_invalid_book(self):
+        token_pair = create_jwt_token_pair(user_id=self.user_1.id)
+        with self.assertRaises(HTTPException):
+            self.client.delete(
+                f"/books/0",
+                headers={"Authorization": f"Bearer {token_pair.access_token}"}
+            )
 
 
 class UploadBookFileTest(BaseBookTest):

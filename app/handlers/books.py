@@ -3,11 +3,10 @@ from typing import Optional, Generator
 
 from fastapi import APIRouter, UploadFile, HTTPException, Depends, status, Query
 from fastapi.responses import StreamingResponse
-from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..crud.books import create_book, get_filtered_books_list, update_book
-from ..models import Book, User
+from ..crud.books import create_book, get_filtered_books_list, update_book, get_book
+from ..models import User
 from ..orm.session_manager import get_session
 from ..schemas.books import BookSchema, CreateBookSchema, BooksListSchema
 from ..services.auth import get_current_user, get_user_or_none
@@ -89,22 +88,18 @@ async def get_book_view(
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Просмотр книги"""
-    try:
-        book = await Book.get(session, id=book_id)
-    except NoResultFound:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Книга не найдена")
-
+    book = await get_book(session, book_id)
     book_schema = BookSchema.model_validate(book)
 
     if not book_schema.private or (
         book_schema.private and current_user is not None and current_user.id == book_schema.user_id
     ):
         return book_schema
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="У вас нет прав на просмотр данной книги",
-        )
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="У вас нет прав на просмотр данной книги",
+    )
 
 
 @router.put("/{book_id}", response_model=BookSchema)
@@ -115,7 +110,7 @@ async def update_book_view(
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Обновление книги"""
-    book = await Book.get(session, id=book_id)
+    book = await get_book(session, book_id)
     if book.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -132,7 +127,7 @@ async def delete_book_view(
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Удаление книги"""
-    book = await Book.get(session, id=book_id)
+    book = await get_book(session, book_id)
     if book.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -145,7 +140,7 @@ async def delete_book_view(
 async def upload_book_file(
     book_id: int,
     file: UploadFile,
-    user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Загрузка файла книги"""
@@ -153,12 +148,9 @@ async def upload_book_file(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Формат файла должен быть только '.pdf'"
         )
-    try:
-        book = await Book.get(session, id=book_id)
-    except NoResultFound:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
 
-    if book.user_id != user.id:
+    book = await get_book(session, book_id)
+    if book.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="У вас нет прав на загрузку файла данной книги",
@@ -176,10 +168,7 @@ async def download_book_file(
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Скачивание файла книги"""
-    try:
-        book = await Book.get(session, id=book_id)
-    except NoResultFound:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Книга не найдена")
+    book = await get_book(session, book_id)
     if book.private and book.user_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

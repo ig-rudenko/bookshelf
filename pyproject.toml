@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "bookshelf"
+name = "app"
 version = "0.1.0"
 description = ""
 authors = ["ig-rudenko <ig.rudenko1@yandex.ru>"]
@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = "^0.110.0"
+fastapi = "^0.110.1"
 uvicorn = "^0.29.0"
 sqlalchemy = "^2.0.29"
 alembic = "^1.13.1"
@@ -15,9 +15,9 @@ passlib = "^1.7.4"
 pydantic = {extras = ["email"], version = "^2.6.4"}
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 bcrypt = "^4.1.2"
-pillow = "^10.2.0"
+pillow = "^10.3.0"
 python-multipart = "^0.0.9"
-pymupdf = "^1.24.0"
+pymupdf = "^1.24.1"
 pydantic-settings = "^2.2.1"
 
 

@@ -1,10 +1,19 @@
 from typing import TypedDict, TypeVar
 
+from fastapi import HTTPException, status
 from sqlalchemy import select, ScalarResult, func
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import Publisher, Tag, Book, User
 from ..schemas.books import CreateBookSchema, BookSchema
+
+
+async def get_book(session: AsyncSession, book_id: int) -> Book:
+    try:
+        return await Book.get(session, id=book_id)
+    except NoResultFound:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Книга не найдена")
 
 
 async def create_book(session: AsyncSession, user: User, book_data: CreateBookSchema) -> Book:
