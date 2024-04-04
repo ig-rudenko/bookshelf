@@ -5,7 +5,7 @@ from fastapi import APIRouter, UploadFile, HTTPException, Depends, status, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..crud.books import create_book, get_filtered_books_list, update_book, get_book
+from ..crud.books import create_book, get_filtered_books_list, update_book, get_book, QueryParams
 from ..models import User
 from ..orm.session_manager import get_session
 from ..schemas.books import BookSchema, CreateBookSchema, BooksListSchema
@@ -27,9 +27,9 @@ def books_query_params(
     description: str | None = Query(None, description="Описание книги"),
     only_private: bool | None = Query(False, alias="only-private", description="Только приватные книги"),
     tags: list[str] | None = Query([], description="Теги книги"),
-    page: int | None = Query(1, gt=0, description="Номер страницы"),
+    page: int = Query(1, gt=0, description="Номер страницы"),
     per_page: int = Query(25, gte=1, alias="per-page", description="Количество элементов на странице"),
-) -> dict:
+) -> QueryParams:
     if pages_gt and pages_lt and pages_gt >= pages_lt:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -53,16 +53,16 @@ def books_query_params(
 
 @router.get("", response_model=BooksListSchema)
 async def get_books_view(
-    query_params: dict = Depends(books_query_params),
+    query_params: QueryParams = Depends(books_query_params),
     current_user: Optional[User] = Depends(get_user_or_none),
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Просмотр всех книг"""
     books, total_count = await get_filtered_books_list(session, current_user, query_params)
-    books = [BookSchema.model_validate(book) for book in books]
+    books_schema = [BookSchema.model_validate(book) for book in books]
 
     return BooksListSchema(
-        books=books,
+        books=books_schema,
         total_count=total_count,
         current_page=query_params["page"],
         max_pages=total_count // query_params["per_page"] or 1,
@@ -144,7 +144,7 @@ async def upload_book_file(
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Загрузка файла книги"""
-    if not file.filename.endswith(".pdf"):
+    if file.filename is None or not file.filename.endswith(".pdf"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Формат файла должен быть только '.pdf'"
         )
@@ -169,7 +169,7 @@ async def download_book_file(
 ):
     """Скачивание файла книги"""
     book = await get_book(session, book_id)
-    if book.private and book.user_id != user.id:
+    if book.private and (user is None or book.user_id != user.id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="У вас нет прав на скачивание файла данной книги",
@@ -180,6 +180,6 @@ async def download_book_file(
             yield file.read()
 
     return StreamingResponse(
-        content=get_data_from_file(settings.MEDIA_ROOT / book.file),
+        content=get_data_from_file(settings.media_root / book.file),
         media_type="application/pdf",
     )

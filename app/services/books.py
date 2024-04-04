@@ -13,9 +13,9 @@ async def set_file(session: AsyncSession, file: UploadFile, book: Book):
     """
     Создаем для книги файл, а также превью для его просмотра.
     """
-
+    file_name = file.filename or f"book_{book.id}.pdf"
     # Фильтруем запрещенные символы
-    file_name = re.sub(r"[<>#%\"|^\[\]`;?:@&=+$ ]+", "_", file.filename)
+    file_name = re.sub(r"[<>#%\"|^\[\]`;?:@&=+$ ]+", "_", file_name)
     # Создаем директорию для хранения книги
     book_folder = settings.media_root / "books" / str(book.id)
     preview_folder = settings.media_root / "previews" / str(book.id)

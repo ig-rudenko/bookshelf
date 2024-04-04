@@ -73,7 +73,7 @@ class DatabaseSessionManager:
 db_manager: DatabaseSessionManager = DatabaseSessionManager()
 
 
-async def get_session() -> AsyncSession:
+async def get_session() -> AsyncIterator[AsyncSession]:
     # noinspection PyArgumentList
     async with db_manager.session() as session:
         yield session

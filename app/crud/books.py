@@ -1,12 +1,12 @@
 from typing import TypedDict, TypeVar
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, ScalarResult, func
+from sqlalchemy import select, ScalarResult, func, Select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import Publisher, Tag, Book, User
-from ..schemas.books import CreateBookSchema, BookSchema
+from ..schemas.books import CreateBookSchema
 
 
 async def get_book(session: AsyncSession, book_id: int) -> Book:
@@ -88,21 +88,21 @@ async def _get_or_create_publisher(session: AsyncSession, publisher_name: str) -
 
 
 class QueryParams(TypedDict):
-    title: str
-    authors: str
-    publisher: str
-    year: int
-    language: str
-    pages_gt: int
-    pages_lt: int
-    description: str
-    only_private: bool
-    tags: list[str]
+    title: str | None
+    authors: str | None
+    publisher: str | None
+    year: int | None
+    language: str | None
+    pages_gt: int | None
+    pages_lt: int | None
+    description: str | None
+    only_private: bool | None
+    tags: list[str] | None
     page: int
     per_page: int
 
 
-QT = TypeVar("QT")
+QT = TypeVar("QT", bound=Select)
 
 
 def filter_query_by_params(query: QT, query_params: QueryParams) -> QT:
@@ -137,7 +137,7 @@ async def get_filtered_books_list(
     session: AsyncSession,
     user: User | None,
     query_params: QueryParams,
-) -> tuple[ScalarResult[BookSchema], int]:
+) -> tuple[ScalarResult[Book], int]:
     """Возвращает список книг и количество, которые являются публичными"""
 
     def filter_query_by_user(q: QT) -> QT:

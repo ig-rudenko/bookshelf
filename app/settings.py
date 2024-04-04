@@ -9,7 +9,7 @@ class _BaseSettings(BaseSettings):
     media_root.mkdir(exist_ok=True, parents=True)
 
     # Путь к базе данных
-    database_url: str
+    database_url: str = ""
 
 
 settings = _BaseSettings()
