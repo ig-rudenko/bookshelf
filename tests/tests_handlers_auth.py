@@ -13,6 +13,7 @@ from app.services.encrypt import validate_password
 from tests.init import TEST_DB_URL
 
 
+# noinspection PyArgumentList
 class RegisterUserTest(IsolatedAsyncioTestCase):
 
     @classmethod
@@ -71,6 +72,7 @@ class RegisterUserTest(IsolatedAsyncioTestCase):
             self.client.post("/auth/users", json={"username": "testuser", "password": "password"})
 
 
+# noinspection PyArgumentList
 class AuthJWTTest(IsolatedAsyncioTestCase):
 
     @classmethod

@@ -17,6 +17,7 @@ from app.settings import settings
 from tests.init import TEST_DB_URL
 
 
+# noinspection PyArgumentList
 class BaseBookTest(IsolatedAsyncioTestCase):
 
     @classmethod
@@ -65,6 +66,7 @@ class BaseBookTest(IsolatedAsyncioTestCase):
             return user
 
 
+# noinspection PyArgumentList
 class CreateBookTest(BaseBookTest):
 
     async def asyncSetUp(self):
@@ -124,6 +126,7 @@ class CreateBookTest(BaseBookTest):
             self.client.post("/books", json=self.book_data_no_tags)
 
 
+# noinspection PyArgumentList
 class ListBooksTest(BaseBookTest):
 
     async def test_list_books(self):
@@ -171,6 +174,7 @@ class ListBooksTest(BaseBookTest):
         self.assertEqual(valid_data, response.json())
 
 
+# noinspection PyArgumentList
 class BookTest(BaseBookTest):
 
     async def test_book_anonymous_view(self):
@@ -197,6 +201,7 @@ class BookTest(BaseBookTest):
         self.assertEqual(response.status_code, 200)
 
 
+# noinspection PyArgumentList
 class UpdateBookTest(BaseBookTest):
     async def asyncSetUp(self):
         await super().asyncSetUp()
@@ -262,6 +267,7 @@ class UpdateBookTest(BaseBookTest):
             )
 
 
+# noinspection PyArgumentList
 class DeleteBookTest(BaseBookTest):
     async def test_delete_book(self):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
@@ -295,12 +301,10 @@ class DeleteBookTest(BaseBookTest):
     async def test_delete_invalid_book(self):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
         with self.assertRaises(HTTPException):
-            self.client.delete(
-                f"/books/0",
-                headers={"Authorization": f"Bearer {token_pair.access_token}"}
-            )
+            self.client.delete(f"/books/0", headers={"Authorization": f"Bearer {token_pair.access_token}"})
 
 
+# noinspection PyArgumentList
 class UploadBookFileTest(BaseBookTest):
 
     async def asyncSetUp(self):

@@ -70,9 +70,10 @@ class DatabaseSessionManager:
                 raise
 
 
-db_manager = DatabaseSessionManager()
+db_manager: DatabaseSessionManager = DatabaseSessionManager()
 
 
 async def get_session() -> AsyncSession:
+    # noinspection PyArgumentList
     async with db_manager.session() as session:
         yield session
