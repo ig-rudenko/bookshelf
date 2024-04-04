@@ -1,5 +1,8 @@
+from typing import TypeVar, Any, Awaitable, Self
+
 from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.util import greenlet_spawn
 
 # Default naming convention for all indexes and constraints
 # See why this is important and how it would save your time:
@@ -15,6 +18,24 @@ convention = {
     "pk": "pk__%(table_name)s",
 }
 
+_T = TypeVar("_T", bound=Any)
 
-class OrmBase(DeclarativeBase):
+
+class AwaitAttrs:
+    class _AwaitAttrGetitem:
+        __slots__ = "_instance"
+
+        def __init__(self, _instance: Any):
+            self._instance = _instance
+
+        def __getattr__(self, name: str) -> Awaitable[Any]:
+            return greenlet_spawn(getattr, self._instance, name)
+
+    @property
+    def await_attr(self) -> Self:
+        """provide awaitable attribute access"""
+        return AwaitAttrs._AwaitAttrGetitem(self)
+
+
+class OrmBase(AwaitAttrs, DeclarativeBase):
     metadata = MetaData(naming_convention=convention)  # type: ignore

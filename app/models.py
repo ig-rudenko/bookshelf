@@ -25,6 +25,10 @@ class User(OrmBase, Manager):
     is_staff: Mapped[bool] = mapped_column(server_default=false())
     is_active: Mapped[bool] = mapped_column(server_default=true())
     date_join: Mapped[datetime] = mapped_column(server_default=func.now())
+    favorites = relationship(
+        "Book", secondary="favorite_books", back_populates="favorite_for_users", lazy="select"
+    )
+    books_read = relationship("Book", secondary="books_read", back_populates="read_by_users", lazy="select")
 
     def __str__(self):
         return self.username
@@ -38,6 +42,7 @@ class Publisher(OrmBase, Manager):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(128), unique=True)
+    books: Mapped["Book"] = relationship("Book", back_populates="publisher", lazy="select")
 
     def __str__(self):
         return self.name
@@ -61,7 +66,7 @@ class Tag(OrmBase, Manager):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(128), unique=True)
     # Define relationship to Book using the association table
-    books = relationship("Book", secondary=book_tag_association, back_populates="tags")
+    books = relationship("Book", secondary=book_tag_association, back_populates="tags", lazy="select")
 
     def __str__(self):
         return self.name
@@ -91,8 +96,12 @@ class Book(OrmBase, Manager):
     # Define relationship to Tag using the association table
     tags = relationship("Tag", secondary=book_tag_association, back_populates="books", lazy="joined")
     # Define relationship to Publisher, User
-    publisher: Mapped[Publisher] = relationship("Publisher", lazy="joined")
+    publisher: Mapped[Publisher] = relationship("Publisher", back_populates="books", lazy="joined")
     user: Mapped[User] = relationship("User")
+    favorite_for_users = relationship(
+        "User", secondary="favorite_books", back_populates="favorites", lazy="select"
+    )
+    read_by_users = relationship("User", secondary="books_read", back_populates="books_read", lazy="select")
 
     # Define a check constraint
     __table_args__ = (
@@ -102,3 +111,23 @@ class Book(OrmBase, Manager):
 
     def __repr__(self):
         return f"<Book: {self.title}>"
+
+
+# Избранные книги
+favorite_books_association = Table(
+    "favorite_books",
+    OrmBase.metadata,
+    Column("id", Integer, primary_key=True),
+    Column("book_id", Integer, ForeignKey("books.id")),
+    Column("user_id", Integer, ForeignKey("users.id")),
+)
+
+
+# Уже прочитанные книги
+books_read_association = Table(
+    "books_read",
+    OrmBase.metadata,
+    Column("id", Integer, primary_key=True),
+    Column("book_id", Integer, ForeignKey("books.id")),
+    Column("user_id", Integer, ForeignKey("users.id")),
+)
