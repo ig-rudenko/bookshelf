@@ -2,7 +2,7 @@ import pathlib
 import shutil
 from unittest import IsolatedAsyncioTestCase
 
-from fastapi.exceptions import HTTPException
+from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.testclient import TestClient
 from sqlalchemy import delete
 from sqlalchemy.exc import NoResultFound
@@ -116,14 +116,24 @@ class CreateBookTest(BaseBookTest):
         self.assertEqual(valid_response, response.json())
 
     async def test_create_book_without_auth(self):
-        with self.assertRaises(HTTPException):
+        with self.assertRaises(HTTPException) as context:
             self.client.post("/books", json=self.book_valid_data)
+        self.assertEqual(context.exception.status_code, 401)
 
     async def test_create_book_invalid_data(self):
-        with self.assertRaises(HTTPException):
-            self.client.post("/books", json=self.book_data_no_publisher)
-        with self.assertRaises(HTTPException):
-            self.client.post("/books", json=self.book_data_no_tags)
+        token_pair = create_jwt_token_pair(user_id=self.user_1.id)
+        with self.assertRaises(RequestValidationError):
+            self.client.post(
+                "/books",
+                headers={"Authorization": f"Bearer {token_pair.access_token}"},
+                json=self.book_data_no_publisher,
+            )
+        with self.assertRaises(RequestValidationError):
+            self.client.post(
+                "/books",
+                headers={"Authorization": f"Bearer {token_pair.access_token}"},
+                json=self.book_data_no_tags,
+            )
 
 
 # noinspection PyArgumentList
@@ -182,16 +192,18 @@ class BookTest(BaseBookTest):
         self.assertEqual(response.status_code, 200)
 
     async def test_book_anonymous_forbidden_view(self):
-        with self.assertRaises(HTTPException):
+        with self.assertRaises(HTTPException) as context:
             self.client.get(f"/books/{self.book_private.id}")
+        self.assertEqual(context.exception.status_code, 403)
 
     async def test_book_non_owner_view(self):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
-        with self.assertRaises(HTTPException):
+        with self.assertRaises(HTTPException) as context:
             self.client.get(
                 f"/books/{self.book_private.id}",
                 headers={"Authorization": f"Bearer {token_pair.access_token}"},
             )
+        self.assertEqual(context.exception.status_code, 403)
 
     async def test_book_owner_view(self):
         token_pair = create_jwt_token_pair(user_id=self.user_2.id)
@@ -242,29 +254,32 @@ class UpdateBookTest(BaseBookTest):
             self.assertEqual(after_publisher_count, before_publisher_count + 1)
 
     async def test_update_book_no_auth(self):
-        with self.assertRaises(HTTPException):
+        with self.assertRaises(HTTPException) as context:
             self.client.put(
                 f"/books/{self.book_private.id}/",
                 json=self.book_update_data_with_new_tag,
             )
+        self.assertEqual(context.exception.status_code, 401)
 
     async def test_update_book_not_owner(self):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
-        with self.assertRaises(HTTPException):
+        with self.assertRaises(HTTPException) as context:
             self.client.put(
                 f"/books/{self.book_private.id}/",
                 headers={"Authorization": f"Bearer {token_pair.access_token}"},
                 json=self.book_update_data_with_new_tag,
             )
+        self.assertEqual(context.exception.status_code, 403)
 
     async def test_update_invalid_book(self):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
-        with self.assertRaises(HTTPException):
+        with self.assertRaises(HTTPException) as context:
             self.client.put(
                 f"/books/0",
                 headers={"Authorization": f"Bearer {token_pair.access_token}"},
                 json=self.book_update_data_with_new_tag,
             )
+        self.assertEqual(context.exception.status_code, 404)
 
 
 # noinspection PyArgumentList
@@ -282,26 +297,29 @@ class DeleteBookTest(BaseBookTest):
                 await Book.get(session, title=self.book_1.title)
 
     async def test_delete_book_anonymous(self):
-        with self.assertRaises(HTTPException):
+        with self.assertRaises(HTTPException) as context:
             self.client.delete(f"/books/{self.book_1.id}")
+        self.assertEqual(context.exception.status_code, 401)
         async with db_manager.session() as session:
             await Book.get(session, title=self.book_1.title)
 
     async def test_delete_book_not_owner(self):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
-        with self.assertRaises(HTTPException):
+        with self.assertRaises(HTTPException) as context:
             self.client.delete(
                 f"/books/{self.book_private.id}",
                 headers={"Authorization": f"Bearer {token_pair.access_token}"},
             )
+        self.assertEqual(context.exception.status_code, 403)
 
         async with db_manager.session() as session:
             await Book.get(session, title=self.book_private.title)
 
     async def test_delete_invalid_book(self):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
-        with self.assertRaises(HTTPException):
+        with self.assertRaises(HTTPException) as context:
             self.client.delete(f"/books/0", headers={"Authorization": f"Bearer {token_pair.access_token}"})
+        self.assertEqual(context.exception.status_code, 404)
 
 
 # noinspection PyArgumentList
@@ -343,25 +361,29 @@ class UploadBookFileTest(BaseBookTest):
 
     async def test_upload_file_no_owner_user(self):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
-        with self.assertRaises(HTTPException):
+        with self.assertRaises(HTTPException) as context:
             with open(self.file_path, "rb") as file:
                 self.client.post(
                     f"/books/{self.book_private.id}/upload",
                     headers={"Authorization": f"Bearer {token_pair.access_token}"},
                     files={"file": file},
                 )
+        self.assertEqual(context.exception.status_code, 403)
 
     async def test_upload_file_without_auth(self):
-        with self.assertRaises(HTTPException):
+        with self.assertRaises(HTTPException) as context:
             with open(self.file_path, "rb") as file:
                 self.client.post(f"/books/{self.book_1.id}/upload", files={"file": file})
+        self.assertEqual(context.exception.status_code, 401)
 
     async def test_upload_invalid_file(self):
-        with self.assertRaises(HTTPException):
+        with self.assertRaises(HTTPException) as context:
             with open(__file__, "rb") as file:
                 self.client.post(f"/books/{self.book_1.id}/upload", files={"file": file})
+        self.assertEqual(context.exception.status_code, 401)
 
     async def test_upload_to_non_existing_book(self):
-        with self.assertRaises(HTTPException):
+        with self.assertRaises(HTTPException) as context:
             with open(self.file_path, "rb") as file:
                 self.client.post(f"/books/0/upload", files={"file": file})
+        self.assertEqual(context.exception.status_code, 401)

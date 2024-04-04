@@ -29,6 +29,7 @@ class User(OrmBase, Manager):
         "Book", secondary="favorite_books", back_populates="favorite_for_users", lazy="select"
     )
     books_read = relationship("Book", secondary="books_read", back_populates="read_by_users", lazy="select")
+    comments = relationship("Comment", back_populates="user", lazy="select")
 
     def __str__(self):
         return self.username
@@ -93,6 +94,7 @@ class Book(OrmBase, Manager):
     year: Mapped[int] = mapped_column(Integer())
     private: Mapped[bool] = mapped_column(Boolean)
     language: Mapped[str] = mapped_column(String(128))
+
     # Define relationship to Tag using the association table
     tags = relationship("Tag", secondary=book_tag_association, back_populates="books", lazy="joined")
     # Define relationship to Publisher, User
@@ -102,6 +104,7 @@ class Book(OrmBase, Manager):
         "User", secondary="favorite_books", back_populates="favorites", lazy="select"
     )
     read_by_users = relationship("User", secondary="books_read", back_populates="books_read", lazy="select")
+    comments = relationship("Comment", back_populates="book", lazy="select")
 
     # Define a check constraint
     __table_args__ = (
@@ -111,6 +114,17 @@ class Book(OrmBase, Manager):
 
     def __repr__(self):
         return f"<Book: {self.title}>"
+
+
+class Comment(OrmBase, Manager):
+    __tablename__ = "comments"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    book_id: Mapped[int] = mapped_column(ForeignKey("books.id", ondelete="CASCADE"))
+    text: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    user: Mapped[User] = relationship("User", back_populates="comments", lazy="select")
+    book: Mapped[Book] = relationship("Book", back_populates="comments", lazy="select")
 
 
 # Избранные книги
