@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from app.handlers.auth import router as auth_router
 from app.handlers.bookmarks import router as bookmark_router
 from app.handlers.books import router as book_router
+from app.handlers.comments import router as comment_router
 from app.orm.session_manager import db_manager
 from app.settings import settings
 
@@ -23,6 +24,7 @@ app = FastAPI(lifespan=startup)
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(book_router, prefix="/api/v1")
 app.include_router(bookmark_router, prefix="/api/v1")
+app.include_router(comment_router, prefix="/api/v1")
 
 
 @app.get("/ping", tags=["health"])

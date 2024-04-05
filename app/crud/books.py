@@ -1,7 +1,7 @@
 from typing import TypedDict, TypeVar
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, ScalarResult, func, Select
+from sqlalchemy import select, ScalarResult, func, Select, delete
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -58,6 +58,11 @@ async def update_book(session: AsyncSession, book: Book, book_data: CreateBookSc
     await session.commit()
     await session.refresh(book)
     return book
+
+
+async def delete_book(session: AsyncSession, book_id: int) -> None:
+    await session.execute(delete(Book).where(Book.id == book_id))
+    await session.commit()
 
 
 async def _get_or_create_tags(session: AsyncSession, tags: list[str]) -> list[Tag]:

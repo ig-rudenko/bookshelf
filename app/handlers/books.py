@@ -5,12 +5,12 @@ from fastapi import APIRouter, UploadFile, HTTPException, Depends, status, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..crud.books import create_book, get_filtered_books_list, update_book, get_book, QueryParams
+from ..crud.books import create_book, get_filtered_books_list, update_book, get_book, QueryParams, delete_book
 from ..models import User
 from ..orm.session_manager import get_session
 from ..schemas.books import BookSchema, CreateBookSchema, BooksListSchema
 from ..services.auth import get_current_user, get_user_or_none
-from ..services.books import set_file
+from ..services.books import set_file, check_book_owner
 from ..settings import settings
 
 router = APIRouter(prefix="/books", tags=["books"])
@@ -111,11 +111,7 @@ async def update_book_view(
 ):
     """Обновление книги"""
     book = await get_book(session, book_id)
-    if book.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="У вас нет прав на обновление данной книги",
-        )
+    await check_book_owner(session, current_user.id, book_instance=book)
     book = await update_book(session, book, book_data)
     return BookSchema.model_validate(book)
 
@@ -127,13 +123,8 @@ async def delete_book_view(
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Удаление книги"""
-    book = await get_book(session, book_id)
-    if book.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="У вас нет прав на удаление данной книги",
-        )
-    await book.delete(session)
+    await check_book_owner(session, current_user.id, book_id=book_id)
+    await delete_book(session, book_id)
 
 
 @router.post("/{book_id}/upload", response_model=BookSchema)
@@ -150,11 +141,7 @@ async def upload_book_file(
         )
 
     book = await get_book(session, book_id)
-    if book.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="У вас нет прав на загрузку файла данной книги",
-        )
+    await check_book_owner(session, current_user.id, book_instance=book)
 
     await set_file(session, file, book)
 

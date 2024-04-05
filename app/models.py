@@ -126,6 +126,12 @@ class Comment(OrmBase, Manager):
     user: Mapped[User] = relationship("User", back_populates="comments", lazy="select")
     book: Mapped[Book] = relationship("Book", back_populates="comments", lazy="select")
 
+    def __str__(self):
+        return self.text
+
+    def __repr__(self):
+        return f"<Comment: {self.text}>"
+
 
 # Избранные книги
 favorite_books_association = Table(

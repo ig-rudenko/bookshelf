@@ -34,7 +34,7 @@ class DatabaseSessionManager:
             url=dsn,
             pool_pre_ping=True,
             connect_args=connect_args,
-            # echo=True,
+            echo=True,
         )
         self._session_maker = async_sessionmaker(
             bind=self._engine,
