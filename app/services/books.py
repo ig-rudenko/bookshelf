@@ -3,32 +3,10 @@ import re
 import fitz
 from fastapi import UploadFile, status
 from fastapi.exceptions import HTTPException
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Book
 from app.settings import settings
-
-
-async def check_book_owner(
-    session: AsyncSession, user_id: int, book_id: int | None = None, book_instance: Book | None = None
-):
-    """Если пользователь не является владельцем книги, выбрасывает исключение."""
-    if book_instance is None and book_id is not None:
-        result = await session.execute(select(Book.user_id).where(Book.id == book_id))
-        book_owner_id: int | None = result.scalar_one_or_none()
-    elif book_instance is not None:
-        book_owner_id: int = book_instance.user_id
-    else:
-        raise ValueError("book_id or book_instance must be specified")
-
-    if book_owner_id is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Книга не найдена")
-
-    elif book_owner_id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="У вас нет прав на доступ к этой книге"
-        )
 
 
 async def set_file(session: AsyncSession, file: UploadFile, book: Book):

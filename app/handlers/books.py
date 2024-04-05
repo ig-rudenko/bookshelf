@@ -10,7 +10,8 @@ from ..models import User
 from ..orm.session_manager import get_session
 from ..schemas.books import BookSchema, CreateBookSchema, BooksListSchema
 from ..services.auth import get_current_user, get_user_or_none
-from ..services.books import set_file, check_book_owner
+from ..services.books import set_file
+from ..services.permissions import check_book_owner_permission
 from ..settings import settings
 
 router = APIRouter(prefix="/books", tags=["books"])
@@ -111,7 +112,7 @@ async def update_book_view(
 ):
     """Обновление книги"""
     book = await get_book(session, book_id)
-    await check_book_owner(session, current_user.id, book_instance=book)
+    await check_book_owner_permission(session, current_user.id, book)
     book = await update_book(session, book, book_data)
     return BookSchema.model_validate(book)
 
@@ -123,7 +124,7 @@ async def delete_book_view(
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Удаление книги"""
-    await check_book_owner(session, current_user.id, book_id=book_id)
+    await check_book_owner_permission(session, current_user.id, book_id)
     await delete_book(session, book_id)
 
 
@@ -141,7 +142,7 @@ async def upload_book_file(
         )
 
     book = await get_book(session, book_id)
-    await check_book_owner(session, current_user.id, book_instance=book)
+    await check_book_owner_permission(session, current_user.id, book)
 
     await set_file(session, file, book)
 

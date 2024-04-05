@@ -25,6 +25,13 @@ class Manager:
         return result.scalar_one()
 
     @classmethod
+    async def exists(cls, session: AsyncSession, /, **kwargs) -> bool:
+        filters = [getattr(cls, key) == value for key, value in kwargs.items()]
+        query = select(cls.id).where(*filters)
+        result = await session.execute(query)
+        return result.scalar_one_or_none() is not None
+
+    @classmethod
     async def all(cls, session: AsyncSession) -> Sequence[Self]:
         result = await session.execute(select(cls))
         return result.scalars().all()
