@@ -63,6 +63,15 @@ export default defineComponent({
       ]
 
       if (this.loggedIn) {
+        if (this.user?.isStaff) {
+          data.push(
+              {
+                label: "Добавить книгу",
+                icon: "pi pi-plus pi-book",
+                href: "/create-book",
+              }
+          )
+        }
         data.push(
             {
               label: this.user?.username,

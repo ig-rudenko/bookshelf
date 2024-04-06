@@ -115,6 +115,22 @@ class CreateBookTest(BaseBookTest):
         valid_response = BookSchema.model_validate(new_book).model_dump(by_alias=True)
         self.assertEqual(valid_response, response.json())
 
+    async def test_create_book_with_same_publisher(self):
+        token_pair = create_jwt_token_pair(user_id=self.user_1.id)
+        self.book_valid_data["publisher"] = "Another Publisher"
+        response = self.client.post(
+            "/books",
+            headers={"Authorization": f"Bearer {token_pair.access_token}"},
+            json=self.book_valid_data,
+        )
+        self.assertEqual(response.status_code, 201)
+        response = self.client.post(
+            "/books",
+            headers={"Authorization": f"Bearer {token_pair.access_token}"},
+            json=self.book_valid_data,
+        )
+        self.assertEqual(response.status_code, 201)
+
     async def test_create_book_without_auth(self):
         with self.assertRaises(HTTPException) as context:
             self.client.post("/books", json=self.book_valid_data)

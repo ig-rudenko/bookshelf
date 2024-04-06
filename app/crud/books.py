@@ -18,10 +18,12 @@ async def get_book(session: AsyncSession, book_id: int) -> Book:
 
 async def create_book(session: AsyncSession, user: User, book_data: CreateBookSchema) -> Book:
     publisher = await _get_or_create_publisher(session, book_data.publisher)
+    session.add(publisher)
     tags = await _get_or_create_tags(session, book_data.tags)
+    session.add_all(tags)
     book = Book(
         user_id=user.id,
-        publisher=publisher,
+        publisher_id=publisher.id,
         title=book_data.title,
         preview_image="",
         file="",
@@ -34,8 +36,6 @@ async def create_book(session: AsyncSession, user: User, book_data: CreateBookSc
         language=book_data.language,
         tags=tags,
     )
-    session.add(publisher)
-    session.add_all(tags)
     session.add(book)
     await session.commit()
     await session.refresh(book)

@@ -6,6 +6,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..crud.books import create_book, get_filtered_books_list, update_book, get_book, QueryParams, delete_book
+from ..crud.publishers import get_publishers
 from ..models import User
 from ..orm.session_manager import get_session
 from ..schemas.books import BookSchema, CreateBookSchema, BooksListSchema
@@ -15,6 +16,15 @@ from ..services.permissions import check_book_owner_permission
 from ..settings import settings
 
 router = APIRouter(prefix="/books", tags=["books"])
+
+
+@router.get("/publishers", response_model=list[str])
+async def get_publishers_view(
+    name: str | None = Query(None, description="Издательство"),
+    session: AsyncSession = Depends(get_session, use_cache=True),
+    user: Optional[User] = Depends(get_user_or_none),
+):
+    return await get_publishers(session, name, user)
 
 
 def books_query_params(

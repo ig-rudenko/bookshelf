@@ -106,13 +106,12 @@ class User {
     constructor(
         public id: string,
         public username: string,
-        public canCreateTests: boolean,
         public isSuperuser: boolean,
-        public firstName: string,
-        public surname: string,
-        public lastName: string,
+        public isStaff: boolean,
+        public firstName?: string,
+        public lastName?: string,
         public email?: string,
-        public registrationDate?: string,
+        public dateJoin?: string,
     ) {}
 }
 
@@ -124,8 +123,8 @@ class UserTokens {
 }
 
 function createNewUser(data: any): User {
-    return new User(data._id, data.username, data.canCreateTests, data.isSuperuser,
-        data.firstName, data.surname, data.lastName, data.email, data.registrationDate)
+    return new User(data.id, data.username, data.isSuperuser, data.isStaff,
+        data.firstName, data.lastName, data.email, data.dateJoin)
 }
 
 class ChangePassword {

@@ -12,7 +12,6 @@ class UserSchema(CamelSerializerModel):
     last_name: str | None = Field(None, max_length=150)
     is_superuser: bool
     is_staff: bool
-    is_active: bool
     date_join: datetime
 
 
