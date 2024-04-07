@@ -3,3 +3,4 @@ db.sqlite3
 media
 test.db
 htmlReport
+pg_data

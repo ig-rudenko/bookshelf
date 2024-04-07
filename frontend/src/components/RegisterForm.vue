@@ -62,7 +62,7 @@ export default defineComponent({
     </div>
 
     <div>
-      <div v-if="userError.length" class="flex justify-content-center pb-4">
+      <div v-if="userError" class="flex justify-content-center pb-4">
         <InlineMessage @click="userError = ''" severity="error"><span v-html="userError"></span></InlineMessage>
       </div>
 

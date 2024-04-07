@@ -18,7 +18,8 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         ws: true,
-      }
+      },
+      '/media': { target: 'http://127.0.0.1:8000' },
     }
   }
 })

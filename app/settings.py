@@ -10,6 +10,7 @@ class _BaseSettings(BaseSettings):
 
     # Путь к базе данных
     database_url: str = ""
+    media_url: str = "/media"
 
 
 settings = _BaseSettings()

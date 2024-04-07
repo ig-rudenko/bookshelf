@@ -47,7 +47,7 @@ async def set_file(session: AsyncSession, file: UploadFile, book: Book):
     pix.save(book_preview_path.absolute())
 
     book.file = f"books/{book.id}/{file_name}"
-    book.preview_image = f"previews/{book.id}/preview.png"
+    book.preview_image = f"{settings.media_url}/previews/{book.id}/preview.png"
     book.size = book_file_path.stat().st_size
     book.pages = doc.page_count
     await book.save(session)

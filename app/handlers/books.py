@@ -88,6 +88,10 @@ async def create_book_view(
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Создание книги"""
+    if not current_user.is_staff:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав для создания книги"
+        )
     book = await create_book(session, current_user, book_data)
     return book
 
