@@ -15,6 +15,7 @@ services:
     command: /bin/sh run.sh
     volumes:
       - "./media:/app/media"
+      - "./app:/app/app"
     environment:
       DATABASE_URL: postgresql+asyncpg://dbuser:dbpassword@database:5432/bookshelf
 

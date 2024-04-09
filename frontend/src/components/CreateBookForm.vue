@@ -75,7 +75,6 @@
             <InputText @keydown.enter="addTag" id="book.tags" v-cloak v-model="currentTag" separator="," aria-describedby="book.tags-help" />
             <Button icon="pi pi-plus" severity="success" @click="addTag" />
           </InputGroup>
-          <small id="book.tags-help">Укажите несколько тегов через запятую</small>
         </div>
       </div>
 

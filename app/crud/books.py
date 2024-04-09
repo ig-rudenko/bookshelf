@@ -116,7 +116,7 @@ def filter_query_by_params(query: QT, query_params: QueryParams) -> QT:
     if query_params["authors"]:
         query = query.where(Book.authors.ilike(f'%{query_params["authors"]}%'))
     if query_params["publisher"]:
-        query = query.where(Book.publisher.name.ilike(f'%{query_params["publisher"]}%'))
+        query = query.join(Book.publisher).filter(Publisher.name.ilike(f'%{query_params["publisher"]}%'))
     if query_params["year"]:
         query = query.where(Book.year == query_params["year"])
     if query_params["language"]:
@@ -130,7 +130,8 @@ def filter_query_by_params(query: QT, query_params: QueryParams) -> QT:
     if query_params["only_private"]:
         query = query.where(Book.private.is_(True))
     if query_params["tags"]:
-        query = query.join(Book.tags).where(Tag.name.in_(query_params["tags"])).group_by(Book.id)
+        tags = list(map(str.lower, query_params["tags"]))
+        query = query.join(Book.tags).where(func.lower(Tag.name).in_(tags)).group_by(Book.id)
     if query_params["page"] and query_params["per_page"]:
         per_page = query_params["per_page"]
         page = query_params["page"]
@@ -170,4 +171,5 @@ async def _get_books_count_for_query(session: AsyncSession, query, query_params:
     count_query = filter_query_by_params(query, query_params).limit(None).offset(None)
     count_result = await session.execute(count_query)
     count_result.unique()
+    print(list(count_result.scalars()))
     return count_result.scalar_one_or_none() or 0

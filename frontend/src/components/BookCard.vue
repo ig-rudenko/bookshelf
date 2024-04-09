@@ -12,9 +12,10 @@
       <div class="m-2">
         Издательство <i class="pi pi-building mr-2"/>
         <a :href="`/publisher/${book.publisher.id}`" class="text-primary">{{book.publisher.name}}</a>
+        {{book.year}} г.
       </div>
       <div class="m-2 chips">
-        <Chip class="m-1 cursor-pointer" v-for="(tag, index) in book.tags" icon="pi pi-tag" :key="index" :label="tag.name" />
+        <Chip @click="selectTag(tag)" class="m-1 cursor-pointer" v-for="(tag, index) in book.tags" icon="pi pi-tag" :key="index" :label="tag.name" />
       </div>
     </div>
   </div>
@@ -30,6 +31,7 @@ export default defineComponent({
   props: {
     book: {required: true, type: Book},
   },
+  emits: ['select:tag'],
   data() {
       return {
         windowWidth: window.innerWidth,
@@ -49,9 +51,11 @@ export default defineComponent({
     showBook() {
       this.$router.push(`/book/${this.book.id}`)
     },
+    selectTag(tag: {id: number, name: string}) {
+      this.$emit('select:tag', tag)
+    }
   }
 })
-// flex flex-wrap border-1 shadow-2 border-100 border-round-xl justify-content-center align-items-center
 
 </script>
 

@@ -15,11 +15,6 @@ import LoginForm from "@/components/LoginForm.vue";
 export default defineComponent({
   name: "CreateBook",
   components: {LoginForm, CreateBookForm, Menu},
-  data() {
-      return {
-
-      }
-  },
   mounted() {
       if (!this.user?.isStaff) this.$router.push("/login");
   },
