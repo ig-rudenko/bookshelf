@@ -1,3 +1,4 @@
+from functools import reduce
 from typing import TypedDict, TypeVar
 
 from fastapi import HTTPException, status
@@ -93,6 +94,7 @@ async def _get_or_create_publisher(session: AsyncSession, publisher_name: str) -
 
 
 class QueryParams(TypedDict):
+    search: str | None
     title: str | None
     authors: str | None
     publisher: str | None
@@ -111,6 +113,11 @@ QT = TypeVar("QT", bound=Select)
 
 
 def filter_query_by_params(query: QT, query_params: QueryParams) -> QT:
+    if query_params["search"]:
+        query = query.where(
+            Book.title.ilike(f'%{query_params["search"]}%')
+            | Book.description.ilike(f'%{query_params["search"]}%')
+        )
     if query_params["title"]:
         query = query.where(Book.title.ilike(f'%{query_params["title"]}%'))
     if query_params["authors"]:
@@ -130,7 +137,7 @@ def filter_query_by_params(query: QT, query_params: QueryParams) -> QT:
     if query_params["only_private"]:
         query = query.where(Book.private.is_(True))
     if query_params["tags"]:
-        tags = list(map(str.lower, query_params["tags"]))
+        tags = list(map(lambda x: x.lower(), query_params["tags"]))
         query = query.join(Book.tags).where(func.lower(Tag.name).in_(tags)).group_by(Book.id)
     if query_params["page"] and query_params["per_page"]:
         per_page = query_params["per_page"]
@@ -170,6 +177,5 @@ async def _get_books_count_for_query(session: AsyncSession, query, query_params:
     """Определяет количество книг для запроса"""
     count_query = filter_query_by_params(query, query_params).limit(None).offset(None)
     count_result = await session.execute(count_query)
-    count_result.unique()
-    print(list(count_result.scalars()))
-    return count_result.scalar_one_or_none() or 0
+    counts_list = list(count_result.scalars())
+    return reduce(lambda x, y: x + y, counts_list) if counts_list else 0

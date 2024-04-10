@@ -28,6 +28,7 @@ async def get_publishers_view(
 
 
 def books_query_params(
+    search: str | None = Query(None, max_length=254, description="Поиск по названию и описанию"),
     title: str | None = Query(None, max_length=254, description="Заголовок"),
     authors: str | None = Query(None, max_length=254, description="Авторы книги"),
     publisher: str | None = Query(None, max_length=128, description="Издательство"),
@@ -47,6 +48,7 @@ def books_query_params(
             detail="pages_gt must be less than pages_lt",
         )
     return {
+        "search": search,
         "title": title,
         "authors": authors,
         "publisher": publisher,

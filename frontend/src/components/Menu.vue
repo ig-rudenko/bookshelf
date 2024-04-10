@@ -11,11 +11,6 @@
           <i v-if="hasSubmenu" :class="['pi pi-angle-down', { 'pi-angle-down ml-2': root, 'pi-angle-right ml-auto': !root }]"></i>
         </a>
       </template>
-      <template #end>
-        <div class="flex align-items-center gap-2 mr-2">
-          <InputText placeholder="Search" type="text" class="w-8rem sm:w-auto" />
-        </div>
-      </template>
     </Menubar>
   </div>
 

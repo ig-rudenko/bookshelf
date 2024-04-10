@@ -2,26 +2,31 @@
 
   <IconField class="max-w-24rem w-full" iconPosition="left">
     <InputIcon class="pi pi-search"> </InputIcon>
-    <InputText class="w-full" v-model="filterData.search" placeholder="Search" />
+    <InputText class="w-full" v-model="filterData.search" placeholder="Поиск" @keydown.enter="$emit('filtered', filterData)"/>
   </IconField>
 
-  <Button icon="pi pi-filter" @click="toggleFilterBooks"/>
+  <Button icon="pi pi-filter" :outlined="!filterData.urlParams" @click="toggleFilterBooks"/>
   <OverlayPanel ref="filterBooks">
-    <div class="flex flex-column gap-2 pb-2 w-25rem w-full">
-      <label for="filter.title">Название книги</label>
-      <InputText id="filter.title" class="w-full" v-model="filterData.title"/>
-    </div>
-    <div class="flex flex-column gap-2 pb-2">
+
+    <Button class="mr-1" icon="pi pi-search" @click="doFilter" label="Фильтровать" />
+    <Button icon="pi pi-filter-slash" severity="contrast" @click="clearFilter" label="Сбросить" />
+
+    <div class="flex flex-column gap-2 py-2">
       <label for="filter.authors">Авторы</label>
-      <InputText class="w-full" id="filter.authors" v-model="filterData.authors" />
+      <InputText class="w-full" id="filter.authors" @keydown.enter="doFilter" v-model="filterData.authors" />
     </div>
     <div class="flex flex-column gap-2 pb-2">
       <label for="filter.publisher">Издательство</label>
-      <InputText input-class="w-full" id="filter.authors" v-model="filterData.publisher" />
+      <InputText input-class="w-full" id="filter.authors" @keydown.enter="doFilter" v-model="filterData.publisher" />
     </div>
     <div class="flex flex-column gap-2 pb-2">
-      <label for="filter.year">Год издания</label>
-      <InputNumber input-class="w-6rem" id="filter.year" v-model="filterData.year" suffix=" г." :useGrouping="false"/>
+      <label for="filter.year">Кол-во страниц</label>
+      <div class="flex flex-row gap-1 align-items-center">
+        <span>от</span>
+        <InputNumber input-class="w-8rem" id="filter.pagesGt" @keydown.enter="doFilter" v-model="filterData.pagesGt" />
+        <span>до</span>
+        <InputNumber input-class="w-8rem" id="filter.pagesLt" @keydown.enter="doFilter" v-model="filterData.pagesLt" />
+      </div>
     </div>
     <div class="flex flex-column gap-2 pb-2">
       <label for="filter.tags">Теги</label>
@@ -37,8 +42,6 @@
         </template>
       </Chip>
     </div>
-
-    <Button class="mt-2" icon="pi pi-search" @click="doFilter"/>
   </OverlayPanel>
 
 </template>
@@ -66,6 +69,11 @@ export default defineComponent({
     doFilter(event: Event): void {
       this.toggleFilterBooks(event);
       this.$emit("filtered", this.filterData);
+    },
+    clearFilter(event: Event) {
+      this.filterData.clear()
+      this.$emit("filtered", this.filterData);
+      this.toggleFilterBooks(event);
     },
     addTag() {
       if (this.currentTag.length > 0 && !this.filterData.tags.includes(this.currentTag)) {

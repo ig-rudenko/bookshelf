@@ -9,10 +9,10 @@
     <BookCard @select:tag="(t: any) => selectTag(t.name)" class="m-2" v-for="(book, index) in results.books" :key="index" :book="book"/>
   </div>
   <Paginator v-if="results"
-      @page="(event: any) => getBooksList(event.page+1)"
+      @page="(event: any) => getBooksList(event.page+1, filters)"
       @update:rows="(value: number) => results!.perPage = value"
       v-model="results.currentPage"
-      :rows="results.perPage" :totalRecords="results.totalCount" :rowsPerPageOptions="[2, 25, 50]" />
+      :rows="results.perPage" :totalRecords="results.totalCount" :rowsPerPageOptions="[10, 25, 50]" />
 </template>
 
 <script lang="ts">

@@ -1,17 +1,31 @@
 class FilterBook {
     constructor(
-        public search: string|null = null,
-        public title: string|null = null,
-        public authors: string|null = null,
-        public publisher: string|null = null,
+        public search: string = "",
+        public title: string = "",
+        public authors: string = "",
+        public publisher: string = "",
         public year: number|null = null,
         public language: string|null = null,
         public pagesGt: number|null = null,
         public pagesLt: number|null = null,
-        public description: string|null = null,
+        public description: string = "",
         public onlyPrivate: boolean|null = null,
         public tags: string[] = [],
     ) {}
+
+    clear() {
+        this.search = "";
+        this.title = "";
+        this.authors = "";
+        this.publisher = "";
+        this.year = null;
+        this.language = null;
+        this.pagesGt = null;
+        this.pagesLt = null;
+        this.description = "";
+        this.onlyPrivate = null;
+        this.tags = [];
+    }
 
     get urlParams(): string {
         let urlParams = new URLSearchParams();

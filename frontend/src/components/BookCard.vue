@@ -2,20 +2,23 @@
 
   <div class="card-plate">
     <div class="flex mr-2">
-      <img @click="showBook" style="height: 350px" class="border-round-xl cursor-pointer" alt="book" :src="book.previewImage"/>
+      <img @click="showBook" style="height: 400px" class="border-round-xl cursor-pointer" alt="book" :src="book.previewImage"/>
     </div>
 
     <div class="book-about px-2">
       <h2 @click="showBook" class="book-title">
-        <span><i class="pi pi-book"/> {{book.title}}</span>
+        <span>{{book.title}}</span>
       </h2>
-      <div class="m-2">
-        Издательство <i class="pi pi-building mr-2"/>
+      <div class="m-1">
+        <span>Издательство <i class="pi pi-building mr-2"/></span>
         <a :href="`/publisher/${book.publisher.id}`" class="text-primary">{{book.publisher.name}}</a>
-        {{book.year}} г.
+        <span class="ml-2">{{book.year}} г.</span>
+      </div>
+      <div class="m-2">
+        <i class="pi pi-book mx-2"/>{{book.pages}} стр. <i class="pi pi-file mx-2"/>{{formatBytes(book.size)}}
       </div>
       <div class="m-2 chips">
-        <Chip @click="selectTag(tag)" class="m-1 cursor-pointer" v-for="(tag, index) in book.tags" icon="pi pi-tag" :key="index" :label="tag.name" />
+        <Chip @click="selectTag(tag)" class="m-1 cursor-pointer" style="font-size: 0.9rem;" v-for="(tag, index) in book.tags" icon="pi pi-tag" :key="index" :label="tag.name" />
       </div>
     </div>
   </div>
@@ -53,6 +56,14 @@ export default defineComponent({
     },
     selectTag(tag: {id: number, name: string}) {
       this.$emit('select:tag', tag)
+    },
+    formatBytes(bytes: number, decimals = 2) {
+      if (!+bytes) return '0 Bytes'
+      const k = 1024
+      const dm = decimals < 0 ? 0 : decimals
+      const sizes = ['Б', 'КБ', 'МБ', 'ГБ']
+      const i = Math.floor(Math.log(bytes) / Math.log(k))
+      return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
     }
   }
 })
