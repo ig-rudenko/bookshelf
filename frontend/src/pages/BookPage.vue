@@ -87,7 +87,10 @@ export default defineComponent({
       if (this.book) return;
       api.get(`/books/${this.bookIdParam}`)
           .then(
-              (value: AxiosResponse<Book>) => this.book = value.data
+              (value: AxiosResponse<Book>) => {
+                this.book = value.data;
+                document.title = this.book.title;
+              }
           )
     },
     getComments(page: number) {

@@ -17,6 +17,7 @@ export default defineComponent({
   components: {LoginForm, CreateBookForm, Menu},
   mounted() {
       if (!this.user?.isStaff) this.$router.push("/login");
+      document.title = "Добавление книги";
   },
   computed: {
       ...mapState({

@@ -5,7 +5,10 @@ import RegisterForm from "@/components/RegisterForm.vue";
 
 export default defineComponent({
   name: "Register",
-  components: {RegisterForm}
+  components: {RegisterForm},
+  mounted() {
+    document.title = "Регистрация";
+  }
 });
 </script>
 

@@ -5,7 +5,10 @@ import LoginForm from "@/components/LoginForm.vue";
 
 export default defineComponent({
   name: "Login",
-  components: {LoginForm}
+  components: {LoginForm},
+  mounted() {
+      document.title = "Вход";
+  },
 });
 </script>
 
