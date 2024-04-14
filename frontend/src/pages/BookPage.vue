@@ -1,30 +1,38 @@
 <template>
   <Menu/>
 
-  <div class="m-2 flex justify-content-center">
-    <div v-if="book" class="flex flex-wrap justify-content-center" style="max-width: 1280px">
-      <a :href="'/api/v1/books/'+book.id+'/show'" target="_blank" class="flex flex-column">
-        <img style="width: 100%" class="border-round-xl" alt="book" :src="book.previewImage"/>
-      </a>
-      <div class="flex flex-column m-3 w-full" style="max-width: 40rem;">
-        <h2 class="p-2">{{book.title}}</h2>
-        <div class="m-2">
-          <span>Издательство <i class="pi pi-building mr-2"/></span>
-          <a :href="`/?publisher=${book.publisher.name}`" class="text-primary">{{book.publisher.name}}</a>
-          <span class="ml-2">{{book.year}} г.</span>
-        </div>
-        <div class="m-2">
-          <i class="pi pi-users"/>
-          {{book.authors}}
-        </div>
-        <div class="m-2">
-          <i class="pi pi-book"/> {{book.pages}} стр. <i class="pi pi-file mx-2"/>{{formatBytes(book.size)}}
-        </div>
-        <div class="m-2 chips">
-          <Chip class="m-1" style="font-size: 0.9rem;" v-for="(tag, index) in book.tags" icon="pi pi-tag" :key="index" :label="tag.name" />
-        </div>
-        <div class="p-3" v-html="book.description" ></div>
+  <div v-if="book" class="flex flex-wrap justify-content-center align-items-center">
+    <a :href="'/api/v1/books/'+book.id+'/show'" target="_blank" class="flex flex-column">
+      <img style="width: 100%" class="border-round-xl" alt="book" :src="book.previewImage"/>
+    </a>
+
+    <div class="flex flex-column m-3 w-full" style="max-width: 40rem;">
+      <h2 class="p-2">{{book.title}}</h2>
+
+      <div class="pl-2 mb-3">
+        <Button @click="showEditBook" icon="pi pi-pencil" label="Редактировать" rounded outlined severity="warning"/>
+        <Button @click="displayDeleteBookDialog = true" icon="pi pi-trash" label="Удалить" rounded outlined severity="danger"/>
       </div>
+
+      <div class="m-2">
+        <span>Издательство <i class="pi pi-building mr-2"/></span>
+        <span class="text-primary">{{book.publisher.name}}</span>
+        <span class="ml-2">{{book.year}} г.</span>
+      </div>
+      <div class="m-2">
+        Язык книги: {{book.language}}
+        <img :alt="book.language" :src="`https://flagcdn.com/${getLanguagePairByLabel(book.language).code}.svg`" style="width: 18px" />
+      </div>
+      <div class="m-2">
+        <i class="pi pi-users"/> {{book.authors}}
+      </div>
+      <div class="m-2">
+        <i class="pi pi-book"/> {{book.pages}} стр. <i class="pi pi-file mx-2"/>{{formatBytes(book.size)}}
+      </div>
+      <div class="m-2 chips">
+        <Chip class="m-1" style="font-size: 0.9rem;" v-for="(tag, index) in book.tags" icon="pi pi-tag" :key="index" :label="tag.name" />
+      </div>
+      <div class="p-3" v-html="book.description"></div>
     </div>
   </div>
 
@@ -42,6 +50,17 @@
                :rows="results.perPage" :totalRecords="results.totalCount" :rowsPerPageOptions="[10, 25, 50]" />
   </div>
 
+  <Dialog v-model:visible="displayDeleteBookDialog" class="pt-2" :show-header="false" modal :style="{ width: '25rem' }">
+    <div class="flex align-items-center py-4">
+      <i class="text-5xl pi pi-exclamation-circle mr-2" />
+      <h3>Вы уверены, что хотите удалить эту книгу?</h3>
+    </div>
+
+    <div class="flex justify-content-end gap-2">
+      <Button type="button" severity="secondary" label="Остаться" @click="displayDeleteBookDialog = false"></Button>
+      <Button type="button" severity="danger" label="Выйти" @click="deleteBook"></Button>
+    </div>
+  </Dialog>
 </template>
 
 <script lang="ts">
@@ -55,6 +74,7 @@ import CreateComment from "@/components/CreateComment.vue";
 import {mapState} from "vuex";
 import Comment from "@/components/Comment.vue";
 import {CommentResult} from "@/comment"
+import {getLanguagePairByLabel} from "@/languages.ts";
 
 export default defineComponent({
   name: "BookPage",
@@ -63,6 +83,7 @@ export default defineComponent({
       return {
         book: null as Book|null,
         results: null as CommentResult|null,
+        displayDeleteBookDialog: false,
       }
   },
   mounted() {
@@ -82,6 +103,7 @@ export default defineComponent({
     }
   },
   methods: {
+    getLanguagePairByLabel,
     formatBytes,
     getBook() {
       if (this.book) return;
@@ -98,6 +120,21 @@ export default defineComponent({
       if (this.results) url += `&per-page=${this.results.perPage}`
       api.get(url).then(
               (value: AxiosResponse<CommentResult>) => this.results = value.data
+          )
+    },
+
+    showEditBook() {
+      document.location.href = `/book/${this.bookIdParam}/edit`;
+    },
+
+    deleteBook() {
+      api.delete(`/books/${this.bookIdParam}`)
+          .then(
+              (value: AxiosResponse<Book>) => {
+                if (value.status == 204) {
+                  document.location.href = "/"
+                }
+              }
           )
     }
   }

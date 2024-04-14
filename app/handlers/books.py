@@ -5,7 +5,7 @@ from fastapi import APIRouter, UploadFile, HTTPException, Depends, status, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..crud.books import create_book, get_filtered_books_list, update_book, get_book, QueryParams, delete_book
+from ..crud.books import create_book, get_filtered_books_list, update_book, get_book, QueryParams
 from ..crud.publishers import get_publishers
 from ..models import User
 from ..orm.session_manager import get_session
@@ -141,7 +141,8 @@ async def delete_book_view(
 ):
     """Удаление книги"""
     await check_book_owner_permission(session, current_user.id, book_id)
-    await delete_book(session, book_id)
+    book = await get_book(session, book_id)
+    await book.delete(session)
 
 
 @router.post("/{book_id}/upload", response_model=BookSchema)

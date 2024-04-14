@@ -5,14 +5,25 @@
     <div id="drag-drop-area">
       <div class="flex align-content-center">
         <input ref="inputFile" id="book.file" accept="application/pdf" hidden type="file" @change="handleFileChange"/>
-        <label v-if="!bookFile" for="book.file" >
+
+        <div v-if="editMode && !bookFile" class="m-2 mr-4 border-round-3xl">
+          <div class="flex justify-content-center">
+            <Button icon="pi pi-file-pdf" label="Обновить файл книги" @click="() => {(<HTMLInputElement>$refs.inputFile).click()}"/>
+          </div>
+          <div>
+            <img :src="editBookPreview" class="border-round-3xl w-full" alt="preview"/>
+          </div>
+        </div>
+
+        <label v-else-if="!bookFile" for="book.file" >
           <span v-if="!isMobile" style="padding: 250px 150px" class="flex flex-column align-items-center cursor-pointer m-4 mr-4 border-1 border-purple-700 text-purple-700 hover:text-purple-300 hover:border-purple-300 border-round-3xl border-dashed">
             <i style="font-size: 3rem;" class="pi pi-file-pdf pb-2"/>
             <span>Загрузить файл</span>
           </span>
           <Button v-else icon="pi pi-file-pdf" label="Загрузить файл" @click="() => {(<HTMLInputElement>$refs.inputFile).click()}"/>
         </label>
-        <div v-else>
+
+        <div v-if="bookFile">
           <div class="flex justify-content-center">
             <Button icon="pi pi-file-pdf" :label="truncateString(bookFile?.name)" @click="() => {(<HTMLInputElement>$refs.inputFile).click()}"/>
           </div>
@@ -26,7 +37,9 @@
     </div>
     <div>
       <div class="flex flex-column gap-2 mt-4">
-        <Button v-if="bookFile" severity="success" label="Создать" @click="createBook" />
+        <Button v-if="editMode" severity="success" label="Обновить" @click="createBook" />
+        <Button v-else-if="bookFile" severity="success" label="Создать" @click="createBook" />
+
         <div class="flex flex-column gap-2 pb-2 w-25rem w-full">
           <label for="book.title">Название книги</label>
           <InputText id="book.title" class="w-full" v-model="book.title"/>
@@ -104,18 +117,20 @@ import {Book, CreateBook} from "@/books";
 import api from "@/services/api.ts";
 import {AxiosResponse} from "axios";
 import {AutoCompleteCompleteEvent} from "primevue/autocomplete";
+import {getLanguagePairByLabel, languagesList} from "@/languages";
 
 export default defineComponent({
   name: "CreateBook",
+  props: {
+    editBookId: {required: false, type: Number, default: 0},
+  },
   data() {
       return {
         bookFile: null as (File|null),
+        editBookPreview: "",
         book: new CreateBook(),
         currentTag: "",
-        languages: [
-          {label: "Русский", code: "ru"},
-          {label: "Английский", code: "gb"}
-        ],
+        languages: languagesList,
         windowWidth: window.innerWidth,
         publishersList: [] as string[],
       }
@@ -125,6 +140,11 @@ export default defineComponent({
     window.addEventListener('resize', () => {
       this.windowWidth = window.innerWidth
     })
+
+    if (this.editBookId > 0) {
+      this.getEditBook()
+    }
+
   },
 
   computed: {
@@ -134,6 +154,9 @@ export default defineComponent({
     bookPreview(): string {
       if (!this.bookFile) return ""
       return URL.createObjectURL(this.bookFile);
+    },
+    editMode(): boolean {
+      return this.editBookId > 0;
     }
   },
 
@@ -195,7 +218,6 @@ export default defineComponent({
     },
 
     createBook() {
-      if (!this.bookFile) return;
       const data = {
         title: this.book.title,
         authors: this.book.authors,
@@ -206,12 +228,29 @@ export default defineComponent({
         language: this.book.language?.label,
         tags: this.book.tags,
       }
-      api.post("/books", data)
-          .then(
-              (value: AxiosResponse<Book>) => {
-                if (value.status == 201) this.uploadBookFile(value.data);
-              }
-          )
+
+      if (this.editMode) {
+        // Редактирование книги
+        api.put(`/books/${this.editBookId}`, data)
+            .then(
+                (value: AxiosResponse<Book>) => {
+                  if (value.status == 200 && this.bookFile) {
+                    this.uploadBookFile(value.data);
+                  } else if (value.status == 200) {
+                    this.$router.push("/book/"+this.editBookId);
+                  }
+                }
+            )
+      } else {
+        // Создание новой книги
+        if (!this.bookFile) return;
+        api.post("/books", data)
+            .then(
+                (value: AxiosResponse<Book>) => {
+                  if (value.status == 201) this.uploadBookFile(value.data);
+                }
+            )
+      }
     },
 
     uploadBookFile(bookData: Book) {
@@ -220,9 +259,32 @@ export default defineComponent({
       api.post("/books/"+bookData.id+"/upload", form, {headers: {"Content-Type": "multipart/form-data"}})
           .then(
               (value: AxiosResponse<any>) => {
-                console.log(value)
-                if (value.status == 200) this.$router.push("/books/"+bookData.id);
+                if (value.status == 200) this.$router.push("/book/"+bookData.id);
               },
+          )
+    },
+
+    getEditBook() {
+      api.get("/books/"+this.editBookId)
+          .then(
+              (response: AxiosResponse<Book>) => {
+                if (response.status !== 200) return;
+                const tags = []
+                for (const tag of response.data.tags) {
+                  tags.push(tag.name)
+                }
+                this.book = new CreateBook(
+                    response.data.title,
+                    response.data.authors,
+                    response.data.publisher.name,
+                    response.data.description,
+                    response.data.year,
+                    response.data.private_,
+                    tags,
+                    getLanguagePairByLabel(response.data.language),
+                );
+                this.editBookPreview = response.data.previewImage;
+              }
           )
     }
 

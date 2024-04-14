@@ -2,7 +2,7 @@ from functools import reduce
 from typing import TypedDict, TypeVar
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, ScalarResult, func, Select, delete
+from sqlalchemy import select, ScalarResult, func, Select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,9 +19,7 @@ async def get_book(session: AsyncSession, book_id: int) -> Book:
 
 async def create_book(session: AsyncSession, user: User, book_data: CreateBookSchema) -> Book:
     publisher = await _get_or_create_publisher(session, book_data.publisher)
-    session.add(publisher)
     tags = await _get_or_create_tags(session, book_data.tags)
-    session.add_all(tags)
     book = Book(
         user_id=user.id,
         publisher_id=publisher.id,
@@ -46,24 +44,17 @@ async def create_book(session: AsyncSession, user: User, book_data: CreateBookSc
 async def update_book(session: AsyncSession, book: Book, book_data: CreateBookSchema) -> Book:
     publisher = await _get_or_create_publisher(session, book_data.publisher)
     tags = await _get_or_create_tags(session, book_data.tags)
-    book.publisher = publisher
+
+    book.publisher_id = publisher.id
     book.title = book_data.title
     book.authors = book_data.authors
     book.description = book_data.description
     book.year = book_data.year
+    book.language = book_data.language
     book.tags = tags
-
-    session.add(publisher)
-    session.add_all(tags)
-    session.add(book)
+    await book.save(session)
     await session.commit()
-    await session.refresh(book)
     return book
-
-
-async def delete_book(session: AsyncSession, book_id: int) -> None:
-    await session.execute(delete(Book).where(Book.id == book_id))
-    await session.commit()
 
 
 async def _get_or_create_tags(session: AsyncSession, tags: list[str]) -> list[Tag]:
@@ -77,7 +68,7 @@ async def _get_or_create_tags(session: AsyncSession, tags: list[str]) -> list[Ta
             tag = Tag(name=tag_name)
 
         model_tags.append(tag)
-
+    session.add_all(model_tags)
     return model_tags
 
 
@@ -89,6 +80,8 @@ async def _get_or_create_publisher(session: AsyncSession, publisher_name: str) -
     publisher = result.scalar_one_or_none()
     if publisher is None:
         publisher = Publisher(name=publisher_name)
+        session.add(publisher)
+        await session.refresh(publisher)
 
     return publisher
 

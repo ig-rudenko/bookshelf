@@ -1,12 +1,15 @@
 <template>
   <Menu/>
 
-  <div class="flex flex-wrap justify-content-center p-4">
+  <div class="flex flex-wrap justify-content-center p-2">
     <SearchBookForm :filterData="filters" @filtered="(f) => {filters = f; getBooksList(1, f)}" />
   </div>
 
   <div v-if="results" class="flex flex-wrap justify-content-center align-content-center">
-    <BookCard @select:tag="(t: any) => selectTag(t.name)" class="m-2" v-for="(book, index) in results.books" :key="index" :book="book"/>
+    <BookCard
+        @select:tag="(t: any) => selectTag(t.name)"
+        @select:publisher="selectPublisher"
+        class="m-2" v-for="(book, index) in results.books" :key="index" :book="book"/>
   </div>
   <Paginator v-if="results"
       @page="(event: any) => getBooksList(event.page+1, filters)"
@@ -69,6 +72,11 @@ export default defineComponent({
         this.filters.tags.push(tag)
         this.getBooksList(1, this.filters);
       }
+    },
+
+    selectPublisher(publisherName: string) {
+      this.filters.publisher = publisherName;
+      this.getBooksList(1, this.filters);
     }
 
   }

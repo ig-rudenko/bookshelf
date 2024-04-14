@@ -1,20 +1,24 @@
 <template>
 
   <div class="card-plate">
-    <div class="flex mr-2">
-      <img @click="showBook" style="height: 400px" class="border-round-xl cursor-pointer" alt="book" :src="book.previewImage"/>
+    <div class="flex mr-1">
+      <img @click="showBook" :src="book.previewImage" :style="{'max-height': isMobile?'100%':'400px', 'max-width': '300px', width: '16rem'}" class="border-round-xl cursor-pointer" alt="book"/>
     </div>
 
     <div class="book-about px-2">
-      <h2 @click="showBook" class="book-title">
-        <span>{{book.title}}</span>
+      <h2 class="book-title">
+        <a class="no-underline text-primary" :href="'/book/'+book.id">{{book.title}}</a>
       </h2>
-      <div class="mx-1 mt-3">
+      <div class="m-2">
         <span>Издательство <i class="pi pi-building mr-2"/></span>
-        <a :href="`/?publisher=${book.publisher.name}`" class="text-primary">{{book.publisher.name}}</a>
+        <span @click="$emit('select:publisher', book.publisher.name)" class="text-primary cursor-pointer">{{book.publisher.name}}</span>
         <span class="ml-2">{{book.year}} г.</span>
       </div>
-      <div class="m-3 text-center">
+      <div class="m-2">
+        Язык книги: {{book.language}}
+        <img :alt="book.language" :src="`https://flagcdn.com/${getLanguagePairByLabel(book.language).code}.svg`" style="width: 18px" />
+      </div>
+      <div class="m-2 text-center">
         <i class="pi pi-users"/>
         {{book.authors}}
       </div>
@@ -33,13 +37,14 @@
 import {defineComponent} from 'vue'
 import {Book} from "@/books.ts";
 import {formatBytes} from "../formatter.ts";
+import {getLanguagePairByLabel} from "@/languages.ts";
 
 export default defineComponent({
   name: "BookCard",
   props: {
     book: {required: true, type: Book},
   },
-  emits: ['select:tag'],
+  emits: ['select:tag', 'select:publisher'],
   data() {
       return {
         windowWidth: window.innerWidth,
@@ -56,6 +61,7 @@ export default defineComponent({
     },
   },
   methods: {
+    getLanguagePairByLabel,
     formatBytes,
     showBook() {
       document.location.href = `/book/${this.book.id}`
@@ -71,6 +77,7 @@ export default defineComponent({
 
 <style scoped>
 .card-plate {
+  width: 45rem;
   display: -webkit-box!important;
   display: -ms-flexbox!important;
   display: flex!important;
@@ -101,7 +108,7 @@ export default defineComponent({
 
 .book-title {
   cursor: pointer!important;
-  margin-bottom: 1rem!important;
+  margin-bottom: 0.5rem!important;
   display: -webkit-box!important;
   display: -ms-flexbox!important;
   display: flex!important;
@@ -112,7 +119,8 @@ export default defineComponent({
 }
 
 .book-about {
-  max-width: 24rem;
+  max-width: 28rem;
+  width: 100%;
   display: -webkit-box!important;
   display: -ms-flexbox!important;
   display: flex!important;

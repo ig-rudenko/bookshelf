@@ -1,7 +1,7 @@
 <template>
   <Card class="m-1 border-1 border-100" style="max-width: 45rem; width: 100%">
     <template #subtitle>
-      <div class="flex align-items-center justify-content-between">
+      <div class="flex align-items-center justify-content-between text-900">
         <div class="flex align-items-center">
           <Avatar size="normal" :image="'https://ui-avatars.com/api/?size=32&name='+comment.user.username+'&font-size=0.33&background=random&rounded=true'"/>
           <span class="mx-2">{{comment.user.username}}</span>
