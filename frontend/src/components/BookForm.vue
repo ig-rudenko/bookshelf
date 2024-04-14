@@ -1,6 +1,10 @@
 <template>
 <div class="flex flex-wrap flex-column align-content-center">
 
+  <div v-if="loading && bookFile">
+    <MeterGroup :value="[{label: 'Загрузка файла', value: uploadProgress}]"/>
+  </div>
+
   <div class="flex flex-wrap justify-content-center pb-3 align-items-center">
     <div id="drag-drop-area">
       <div class="flex align-content-center">
@@ -37,8 +41,9 @@
     </div>
     <div>
       <div class="flex flex-column gap-2 mt-4">
-        <Button v-if="editMode" severity="success" label="Обновить" @click="createBook" />
-        <Button v-else-if="bookFile" severity="success" label="Создать" @click="createBook" />
+        <Button v-if="editMode && !loading" severity="success" label="Обновить" @click="createBook" />
+        <Button v-else-if="bookFile && !loading" severity="success" label="Создать" @click="createBook" />
+        <Button v-else-if="loading" disabled severity="success" icon="pi pi-spin pi-spinner" label="Загрузка..." />
 
         <div class="flex flex-column gap-2 pb-2 w-25rem w-full">
           <label for="book.title">Название книги</label>
@@ -115,7 +120,7 @@
 import {defineComponent} from 'vue'
 import {Book, CreateBook} from "@/books";
 import api from "@/services/api.ts";
-import {AxiosResponse} from "axios";
+import {AxiosProgressEvent, AxiosResponse} from "axios";
 import {AutoCompleteCompleteEvent} from "primevue/autocomplete";
 import {getLanguagePairByLabel, languagesList} from "@/languages";
 
@@ -133,6 +138,8 @@ export default defineComponent({
         languages: languagesList,
         windowWidth: window.innerWidth,
         publishersList: [] as string[],
+        loading: false,
+        uploadProgress: 0,
       }
   },
   mounted() {
@@ -230,6 +237,7 @@ export default defineComponent({
       }
 
       if (this.editMode) {
+        this.loading = true;
         // Редактирование книги
         api.put(`/books/${this.editBookId}`, data)
             .then(
@@ -237,31 +245,51 @@ export default defineComponent({
                   if (value.status == 200 && this.bookFile) {
                     this.uploadBookFile(value.data);
                   } else if (value.status == 200) {
-                    this.$router.push("/book/"+this.editBookId);
+                    document.location.href = "/book/"+this.editBookId;
                   }
                 }
             )
+            .catch(() => {this.loading = false;})
       } else {
         // Создание новой книги
         if (!this.bookFile) return;
+        this.loading = true;
         api.post("/books", data)
             .then(
                 (value: AxiosResponse<Book>) => {
-                  if (value.status == 201) this.uploadBookFile(value.data);
+                  if (value.status == 201) {
+                    this.uploadBookFile(value.data);
+                  } else {
+                    this.loading = false;
+                  }
                 }
             )
+            .catch(() => {this.loading = false;})
       }
     },
 
     uploadBookFile(bookData: Book) {
       const form = new FormData()
       form.append("file", (<Blob>this.bookFile))
-      api.post("/books/"+bookData.id+"/upload", form, {headers: {"Content-Type": "multipart/form-data"}})
+      console.log("UPLOAD")
+      api.post("/books/"+bookData.id+"/upload", form,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+            onUploadProgress: (progressEvent: AxiosProgressEvent) => {
+              // this.uploadProgress = Math.round( (progressEvent.loaded * 100) / progressEvent.total! ); // вычисляем и сохраняем прогресс в процентах
+              this.uploadProgress = (progressEvent.progress||0) * 100;
+            },
+          }
+      )
           .then(
               (value: AxiosResponse<any>) => {
                 if (value.status == 200) this.$router.push("/book/"+bookData.id);
+                this.loading = false;
               },
           )
+          .catch(() => {this.loading = false;})
     },
 
     getEditBook() {

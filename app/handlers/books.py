@@ -1,8 +1,11 @@
 import pathlib
-from typing import Optional, Generator
+import re
+from typing import Optional, AsyncIterable
 
+import aiofiles
 from fastapi import APIRouter, UploadFile, HTTPException, Depends, status, Query
 from fastapi.responses import StreamingResponse
+from slugify import slugify
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..crud.books import create_book, get_filtered_books_list, update_book, get_book, QueryParams
@@ -166,10 +169,11 @@ async def upload_book_file(
     return BookSchema.model_validate(book)
 
 
-@router.get("/{book_id}/show", response_class=StreamingResponse)
+@router.get("/{book_id}/download", response_class=StreamingResponse)
 async def download_book_file(
     book_id: int,
     user: Optional[User] = Depends(get_user_or_none),
+    as_file: bool = Query(False, alias="as-file"),
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Скачивание файла книги"""
@@ -180,11 +184,20 @@ async def download_book_file(
             detail="У вас нет прав на скачивание файла данной книги",
         )
 
-    def get_data_from_file(file_path: pathlib.Path) -> Generator:
-        with file_path.open("rb") as file:
-            yield file.read()
+    async def get_data_from_file(file_path: pathlib.Path) -> AsyncIterable[bytes]:
+        async with aiofiles.open(file_path, "rb") as f:
+            while content := await f.read(1024 * 1024):
+                yield content
+
+    headers = {
+        "Cache-Control": "max-age=86400",
+    }
+    if as_file:
+        filename = re.search(r"\S+/(?P<file_name>.+?)\.pdf$", book.file).group("file_name")
+        headers["Content-Disposition"] = f'attachment; filename="{slugify(filename)}.pdf"'
 
     return StreamingResponse(
         content=get_data_from_file(settings.media_root / book.file),
-        media_type="application/pdf",
+        media_type="application/octet-stream",
+        headers=headers,
     )

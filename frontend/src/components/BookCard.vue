@@ -16,7 +16,7 @@
       </div>
       <div class="m-2">
         Язык книги: {{book.language}}
-        <img :alt="book.language" :src="`https://flagcdn.com/${getLanguagePairByLabel(book.language).code}.svg`" style="width: 18px" />
+        <img :alt="book.language" :src="`https://flagcdn.com/${getLanguagePairByLabel(book.language).code}.svg`" class="border-1 border-500" style="width: 18px" />
       </div>
       <div class="m-2 text-center">
         <i class="pi pi-users"/>

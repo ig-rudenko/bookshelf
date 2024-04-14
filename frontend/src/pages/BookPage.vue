@@ -2,7 +2,7 @@
   <Menu/>
 
   <div v-if="book" class="flex flex-wrap justify-content-center align-items-center">
-    <a :href="'/api/v1/books/'+book.id+'/show'" target="_blank" class="flex flex-column">
+    <a :href="'/book/'+book.id+'/show'" target="_blank" class="flex flex-column">
       <img style="width: 100%" class="border-round-xl" alt="book" :src="book.previewImage"/>
     </a>
 
@@ -21,13 +21,15 @@
       </div>
       <div class="m-2">
         Язык книги: {{book.language}}
-        <img :alt="book.language" :src="`https://flagcdn.com/${getLanguagePairByLabel(book.language).code}.svg`" style="width: 18px" />
+        <img :alt="book.language" :src="`https://flagcdn.com/${getLanguagePairByLabel(book.language).code}.svg`" class="border-1 border-500" style="width: 18px" />
       </div>
       <div class="m-2">
         <i class="pi pi-users"/> {{book.authors}}
       </div>
       <div class="m-2">
-        <i class="pi pi-book"/> {{book.pages}} стр. <i class="pi pi-file mx-2"/>{{formatBytes(book.size)}}
+        <i class="pi pi-book"/> {{book.pages}} стр.
+        <i class="pi pi-file mx-2"/>{{formatBytes(book.size)}}
+        <i @click="downloadBook" class="cursor-pointer pi pi-download mx-2"/>
       </div>
       <div class="m-2 chips">
         <Chip class="m-1" style="font-size: 0.9rem;" v-for="(tag, index) in book.tags" icon="pi pi-tag" :key="index" :label="tag.name" />
@@ -136,6 +138,9 @@ export default defineComponent({
                 }
               }
           )
+    },
+    downloadBook() {
+      if (this.book) document.location.href = '/api/v1/books/'+this.book.id+'/download?as-file=true'
     }
   }
 })

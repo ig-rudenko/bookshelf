@@ -6,6 +6,7 @@ import Home from "@/pages/Home.vue";
 import CreateBook from "@/pages/CreateBook.vue";
 import BookPage from "@/pages/BookPage.vue";
 import UpdateBook from "@/pages/UpdateBook.vue";
+import ShowBook from "@/pages/ShowBook.vue";
 
 
 const beforeEnter = (to: RouteLocationNormalized, _: RouteLocationNormalized, next: NavigationGuardNext) => {
@@ -24,6 +25,7 @@ const routes: RouteRecordRaw[] = [
     { path: "/create-book", component: CreateBook },
     { path: "/book/:id", component: BookPage, beforeEnter: beforeEnter },
     { path: "/book/:id/edit", component: UpdateBook, beforeEnter: beforeEnter },
+    { path: "/book/:id/show", component: ShowBook, beforeEnter: beforeEnter },
 ]
 
 export default function createAppRouter() {

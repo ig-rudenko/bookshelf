@@ -1,8 +1,10 @@
 import re
 
+import aiofiles
 import fitz
 from fastapi import UploadFile, status
 from fastapi.exceptions import HTTPException
+from slugify import slugify
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Book
@@ -13,9 +15,9 @@ async def set_file(session: AsyncSession, file: UploadFile, book: Book):
     """
     Создаем для книги файл, а также превью для его просмотра.
     """
-    file_name = file.filename or f"book_{book.id}.pdf"
     # Фильтруем запрещенные символы
-    file_name = re.sub(r"[<>#%\"|^\[\]`;?:@&=+$ ]+", "_", file_name)
+    file_name = re.search(r"(?P<file_name>.+)\.pdf$", file.filename).group("file_name") or f"book_{book.id}"
+    file_name = slugify(file_name) + ".pdf"
     # Создаем директорию для хранения книги
     book_folder = settings.media_root / "books" / str(book.id)
     preview_folder = settings.media_root / "previews" / str(book.id)
@@ -26,10 +28,9 @@ async def set_file(session: AsyncSession, file: UploadFile, book: Book):
     for old_file in book_folder.glob("*.pdf"):
         old_file.unlink()
 
-    # Открытие файла в бинарном режиме.
-    with (book_folder / file_name).open("wb") as upload_file:
-        # Чтение файла по частям, а затем его запись.
-        upload_file.write(file.file.read())  # Записываем файл
+    async with aiofiles.open(book_folder / file_name, "wb") as f:
+        while content := await file.read(1024):
+            await f.write(content)
 
     # Получаем расширение файла
     book_file_path = book_folder / file_name

@@ -81,6 +81,7 @@ async def _get_or_create_publisher(session: AsyncSession, publisher_name: str) -
     if publisher is None:
         publisher = Publisher(name=publisher_name)
         session.add(publisher)
+        await session.commit()
         await session.refresh(publisher)
 
     return publisher
@@ -151,7 +152,7 @@ async def get_filtered_books_list(
             return q.where(Book.private.is_(False) | (Book.private.is_(True) & (Book.user_id == user.id)))
         return q.where(Book.private.is_(False))
 
-    query = filter_query_by_params(select(Book), query_params)
+    query = filter_query_by_params(select(Book).order_by(Book.id.desc()), query_params)
     query = filter_query_by_user(query)
 
     result = await session.execute(query)
