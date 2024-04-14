@@ -1,7 +1,7 @@
 <template>
   <Menu/>
 
-  <div v-if="book" class="flex flex-wrap justify-content-center align-items-center">
+  <div v-if="book" class="flex flex-wrap justify-content-center align-items-center mt-4">
     <a :href="'/book/'+book.id+'/show'" target="_blank" class="flex flex-column">
       <img style="width: 100%" class="border-round-xl" alt="book" :src="book.previewImage"/>
     </a>
@@ -29,7 +29,7 @@
       <div class="m-2">
         <i class="pi pi-book"/> {{book.pages}} стр.
         <i class="pi pi-file mx-2"/>{{formatBytes(book.size)}}
-        <i @click="downloadBook" class="cursor-pointer pi pi-download mx-2"/>
+        <span @click="downloadBook" class="cursor-pointer hover:text-purple-400"><i class="pi pi-download mx-2"/>Загрузить</span>
       </div>
       <div class="m-2 chips">
         <Chip class="m-1" style="font-size: 0.9rem;" v-for="(tag, index) in book.tags" icon="pi pi-tag" :key="index" :label="tag.name" />

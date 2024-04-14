@@ -2,7 +2,7 @@
 
   <div class="card-plate">
     <div class="flex mr-1">
-      <img @click="showBook" :src="book.previewImage" :style="{'max-height': isMobile?'100%':'400px', 'max-width': '300px', width: '16rem'}" class="border-round-xl cursor-pointer" alt="book"/>
+      <img @click="showBook" :src="book.previewImage" :style="{'max-height': isMobile?'100%':'400px', 'max-width': isMobile?'100%':'300px', width: isMobile?'100%':'16rem'}" class="border-round-xl cursor-pointer" alt="book"/>
     </div>
 
     <div class="book-about px-2">
