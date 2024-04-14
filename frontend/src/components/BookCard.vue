@@ -9,10 +9,14 @@
       <h2 @click="showBook" class="book-title">
         <span>{{book.title}}</span>
       </h2>
-      <div class="m-1">
+      <div class="mx-1 mt-3">
         <span>Издательство <i class="pi pi-building mr-2"/></span>
-        <a :href="`/publisher/${book.publisher.id}`" class="text-primary">{{book.publisher.name}}</a>
+        <a :href="`/?publisher=${book.publisher.name}`" class="text-primary">{{book.publisher.name}}</a>
         <span class="ml-2">{{book.year}} г.</span>
+      </div>
+      <div class="m-3 text-center">
+        <i class="pi pi-users"/>
+        {{book.authors}}
       </div>
       <div class="m-2">
         <i class="pi pi-book mx-2"/>{{book.pages}} стр. <i class="pi pi-file mx-2"/>{{formatBytes(book.size)}}
@@ -28,6 +32,7 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
 import {Book} from "@/books.ts";
+import {formatBytes} from "../formatter.ts";
 
 export default defineComponent({
   name: "BookCard",
@@ -51,20 +56,14 @@ export default defineComponent({
     },
   },
   methods: {
+    formatBytes,
     showBook() {
-      this.$router.push(`/book/${this.book.id}`)
+      document.location.href = `/book/${this.book.id}`
     },
     selectTag(tag: {id: number, name: string}) {
       this.$emit('select:tag', tag)
     },
-    formatBytes(bytes: number, decimals = 2) {
-      if (!+bytes) return '0 Bytes'
-      const k = 1024
-      const dm = decimals < 0 ? 0 : decimals
-      const sizes = ['Б', 'КБ', 'МБ', 'ГБ']
-      const i = Math.floor(Math.log(bytes) / Math.log(k))
-      return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
-    }
+
   }
 })
 

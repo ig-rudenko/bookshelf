@@ -33,9 +33,9 @@ async def check_non_private_or_owner_book_permission(
     """
     if isinstance(book, int):
         query = select(Book.user_id, Book.private).where(Book.id == book)
-        result = (await session.execute(query)).scalar_one_or_none()
-        if result is not None:
-            book_owner_id, book_private = result
+        result = list(await session.execute(query))
+        if result:
+            book_owner_id, book_private = result[0]
         else:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Книга не найдена")
     elif isinstance(book, Book):

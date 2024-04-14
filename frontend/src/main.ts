@@ -5,6 +5,8 @@ import "@/assets/styles.min.css"
 import 'primeicons/primeicons.css'
 
 import AutoComplete from "primevue/autocomplete/AutoComplete.vue";
+import Accordion from "primevue/accordion";
+import AccordionTab from "primevue/accordiontab";
 import Avatar from "primevue/avatar";
 import Badge from "primevue/badge";
 import Button from "primevue/button";
@@ -43,6 +45,8 @@ app.use(store);
 app.use(createRouter());
 
 app.component('AutoComplete', AutoComplete);
+app.component('Accordion', Accordion);
+app.component('AccordionTab', AccordionTab);
 app.component('Avatar', Avatar);
 app.component('Badge', Badge);
 app.component('Button', Button);

@@ -6,6 +6,7 @@ from .base import CamelSerializerModel, CamelAliasModel
 
 
 class UserSchema(CamelSerializerModel):
+    id: int
     username: str = Field(..., min_length=2, max_length=150)
     email: EmailStr = Field(..., max_length=254)
     first_name: str | None = Field(None, max_length=150)

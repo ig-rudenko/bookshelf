@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Query
 from fastapi.exceptions import HTTPException
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,34 +6,62 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.crud.comments import get_comments, create_comment
 from app.models import Book, Comment
 from app.orm.session_manager import get_session
-from app.schemas.comments import CommentCreateUpdateSchema, CommentSchema, CommentUserSchema
+from app.schemas.comments import (
+    CommentCreateUpdateSchema,
+    CommentSchema,
+    CommentUserSchema,
+    UserSchema,
+    CommentsListSchema,
+)
 from app.services.auth import get_user_or_none, get_current_user
 from app.services.permissions import check_non_private_or_owner_book_permission
 
 router = APIRouter(prefix="/comments", tags=["comments"])
 
 
-@router.get("/book/{book_id}", response_model=list[CommentUserSchema])
+def comments_query_params(
+    page: int = Query(1, gt=0, description="Номер страницы"),
+    per_page: int = Query(25, gte=1, alias="per-page", description="Количество элементов на странице"),
+):
+    return {"page": page, "per_page": per_page}
+
+
+@router.get("/book/{book_id}", response_model=CommentsListSchema)
 async def get_book_comments_view(
     book_id: int,
+    query_params: dict = Depends(comments_query_params),
     session: AsyncSession = Depends(get_session),
     user=Depends(get_user_or_none),
-) -> list[CommentUserSchema]:
+):
     await check_non_private_or_owner_book_permission(session, user, book_id)
-    return await get_comments(session, book_id)
+    comments_schema, total_count = await get_comments(session, book_id, query_params)
+
+    return CommentsListSchema(
+        comments=comments_schema,
+        total_count=total_count,
+        current_page=query_params["page"],
+        max_pages=total_count // query_params["per_page"] or 1,
+        per_page=query_params["per_page"],
+    )
 
 
-@router.post("/book/{book_id}", status_code=status.HTTP_201_CREATED, response_model=CommentSchema)
+@router.post("/book/{book_id}", status_code=status.HTTP_201_CREATED, response_model=CommentUserSchema)
 async def create_book_comment_view(
     book_id: int,
     comment_data: CommentCreateUpdateSchema,
     session: AsyncSession = Depends(get_session),
     user=Depends(get_current_user),
-) -> Comment:
+):
     if not await Book.exists(session, id=book_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Книга не найдена")
 
-    return await create_comment(session, comment_data, book_id, user.id)
+    comment = await create_comment(session, comment_data, book_id, user.id)
+    return CommentUserSchema(
+        id=comment.id,
+        text=comment.text,
+        created_at=comment.created_at,
+        user=UserSchema.model_validate(user),
+    )
 
 
 @router.put("/{comment_id}", response_model=CommentSchema)

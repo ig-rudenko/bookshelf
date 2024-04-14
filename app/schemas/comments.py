@@ -1,10 +1,12 @@
 from datetime import datetime
 
+from pydantic import Field
+
 from .base import CamelSerializerModel, CamelAliasModel
 
 
 class CommentCreateUpdateSchema(CamelAliasModel):
-    text: str
+    text: str = Field(..., min_length=1, max_length=1024)
 
 
 class CommentSchema(CamelSerializerModel):
@@ -24,3 +26,11 @@ class CommentUserSchema(CamelSerializerModel):
     text: str
     created_at: datetime
     user: UserSchema
+
+
+class CommentsListSchema(CamelSerializerModel):
+    comments: list[CommentUserSchema]
+    total_count: int
+    current_page: int
+    max_pages: int
+    per_page: int

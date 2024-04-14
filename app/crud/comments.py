@@ -1,4 +1,7 @@
-from sqlalchemy import select
+from functools import reduce
+from typing import TypeVar
+
+from sqlalchemy import select, Select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Comment, User
@@ -13,13 +16,27 @@ async def create_comment(
     return comment
 
 
-async def get_comments(session: AsyncSession, book_id: int) -> list[CommentUserSchema]:
+QT = TypeVar("QT", bound=Select)
+
+
+def filter_params(query: QT, query_params: dict):
+    if query_params["page"] and query_params["per_page"]:
+        per_page = query_params["per_page"]
+        page = query_params["page"]
+        query = query.offset((page - 1) * per_page).limit(per_page)
+    return query
+
+
+async def get_comments(
+    session: AsyncSession, book_id: int, query_params: dict
+) -> tuple[list[CommentUserSchema], int]:
     query = (
         select(Comment, User.username)
         .join(User)
         .where(Comment.book_id == book_id)
         .order_by(Comment.created_at.desc())
     )
+    query = filter_params(query, query_params)
     result = []
     for comment, username in await session.execute(query):
         result.append(
@@ -30,4 +47,16 @@ async def get_comments(session: AsyncSession, book_id: int) -> list[CommentUserS
                 user=UserSchema(id=comment.user_id, username=username),
             )
         )
-    return result
+    comments_count = await _get_comments_count_for_query(
+        session,
+        filter_params(select(func.count(Comment.id)), query_params),
+    )
+    return result, comments_count
+
+
+async def _get_comments_count_for_query(session: AsyncSession, query) -> int:
+    """Определяет количество книг для запроса"""
+    count_query = query.limit(None).offset(None)
+    count_result = await session.execute(count_query)
+    counts_list = list(count_result.scalars())
+    return reduce(lambda x, y: x + y, counts_list) if counts_list else 0
