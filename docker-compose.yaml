@@ -39,7 +39,7 @@ services:
     volumes:
       - "./pg_data:/var/lib/postgresql/data"
     healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'"]
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U dbuser -d bookshelf'"]
       start_period: 5s
       timeout: 10s
       interval: 5s
