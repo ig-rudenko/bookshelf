@@ -1,7 +1,7 @@
 <template>
   <Menu/>
   <div class="p-3" v-if="user?.isStaff">
-    <BookForm :editBookId="$route.params.id"/>
+    <BookForm :editBookId="Number($route.params.id)"/>
   </div>
 </template>
 

@@ -2,7 +2,7 @@
 <div class="flex flex-wrap flex-column align-content-center">
 
   <div v-if="loading && bookFile">
-    <MeterGroup :value="[{label: 'Загрузка файла', value: uploadProgress}]"/>
+    <MeterGroup :value="[{label: 'Загрузка файла', value: uploadProgress, color: 'primary', icon: '' }]"/>
   </div>
 
   <div class="flex flex-wrap justify-content-center pb-3 align-items-center">
