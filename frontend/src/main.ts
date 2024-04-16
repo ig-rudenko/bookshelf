@@ -30,6 +30,7 @@ import OverlayPanel from "primevue/overlaypanel";
 import Paginator from "primevue/paginator";
 import Password from "primevue/password";
 import Textarea from "primevue/textarea";
+import Tooltip from 'primevue/tooltip';
 import ScrollPanel from "primevue/scrollpanel";
 
 import App from '@/App.vue';
@@ -42,6 +43,7 @@ setupInterceptors(store);
 const app = createApp(App);
 app.use(PrimeVue, { ripple: true });
 app.use(ToastService);
+app.directive('tooltip', Tooltip);
 app.use(store);
 app.use(createRouter());
 

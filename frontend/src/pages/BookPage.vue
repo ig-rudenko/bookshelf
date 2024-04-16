@@ -1,7 +1,7 @@
 <template>
   <Menu/>
 
-  <div v-if="book" class="flex flex-wrap justify-content-center align-items-center mt-4">
+  <div v-if="book" class="flex flex-wrap justify-content-center align-items-center my-4">
     <a :href="'/book/'+book.id+'/show'" target="_blank" class="flex flex-column">
       <img style="width: 100%" class="border-round-xl" alt="book" :src="book.previewImage"/>
     </a>
@@ -16,12 +16,12 @@
 
       <div class="m-2">
         <span>Издательство <i class="pi pi-building mr-2"/></span>
-        <span class="text-primary">{{book.publisher.name}}</span>
-        <span class="ml-2">{{book.year}} г.</span>
+        <a :href="'/?publisher='+book.publisher.name" class="text-primary no-underline" v-tooltip.bottom="'Фильтр по издателю'">{{book.publisher.name}}</a>
+        <span class="ml-2" v-tooltip="'Год публикации оригинала'">{{book.year}} г.</span>
       </div>
       <div class="m-2">
-        Язык книги: {{book.language}}
-        <img :alt="book.language" :src="`https://flagcdn.com/${getLanguagePairByLabel(book.language).code}.svg`" class="border-1 border-500" style="width: 18px" />
+        <span>Язык книги: {{book.language}}</span>
+        <img :alt="book.language" :src="`https://flagcdn.com/${getLanguagePairByLabel(book.language).code}.svg`" class="ml-1 border-1 border-500" style="width: 18px" />
       </div>
       <div class="m-2">
         <i class="pi pi-users"/> {{book.authors}}
@@ -32,14 +32,16 @@
         <span @click="downloadBook" class="cursor-pointer hover:text-purple-400"><i class="pi pi-download mx-2"/>Загрузить</span>
       </div>
       <div class="m-2 chips">
-        <Chip class="m-1" style="font-size: 0.9rem;" v-for="(tag, index) in book.tags" icon="pi pi-tag" :key="index" :label="tag.name" />
+        <a :href="'/?tags='+tag.name" v-for="(tag, index) in book.tags" >
+          <Chip v-tooltip.bottom="'Найти похожие'" class="m-1" icon="pi pi-tag" :key="index" :label="tag.name" />
+        </a>
       </div>
-      <div class="p-3" v-html="book.description"></div>
+      <div class="p-3 w-full" v-html="textToHtml(book.description)"></div>
     </div>
   </div>
 
   <div v-if="book?.id && canCreateComment" class="flex justify-content-center">
-    <CreateComment @created="getComments" :book-id="book.id"/>
+    <CreateComment @created="getComments(1)" :book-id="book.id"/>
   </div>
 
   <div class="flex flex-wrap flex-column align-items-center" v-if="results">
@@ -74,7 +76,7 @@ import Menu from "@/components/Menu.vue";
 import {Book} from "@/books.ts";
 import api from "@/services/api.ts";
 import {AxiosResponse} from "axios";
-import {formatBytes} from "../formatter.ts";
+import {formatBytes, textToHtml} from "../formatter.ts";
 import CreateComment from "@/components/CreateComment.vue";
 import {mapState} from "vuex";
 import Comment from "@/components/Comment.vue";
@@ -109,6 +111,7 @@ export default defineComponent({
     }
   },
   methods: {
+    textToHtml,
     getLanguagePairByLabel,
     formatBytes,
     getBook() {
@@ -123,7 +126,7 @@ export default defineComponent({
     },
     getComments(page: number) {
       let url = `/comments/book/${this.bookIdParam}?page=${page}`
-      if (this.results) url += `&per-page=${this.results.perPage}`
+      if (this.results?.perPage) url += `&per-page=${this.results.perPage}`
       api.get(url).then(
               (value: AxiosResponse<CommentResult>) => this.results = value.data
           )

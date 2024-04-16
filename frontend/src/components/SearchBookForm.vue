@@ -1,6 +1,9 @@
 <template>
   <div class="w-full">
     <div class="py-2 flex w-full justify-content-center">
+      <Button :icon="compactView?'pi pi-stop':'pi pi-th-large'" text
+              v-tooltip.bottom="compactView?'Полный вид':'Компактный вид'"
+              @click="toggleCompactView" />
       <IconField class="max-w-30rem w-full" iconPosition="left">
         <InputIcon class="pi pi-search"/>
         <InputText class="w-full" v-model="filterData.search" placeholder="Поиск" @keydown.enter="$emit('filtered', filterData)"/>
@@ -68,13 +71,14 @@ import {FilterBook} from "@/filters.ts";
 
 export default defineComponent({
   name: "SearchBookForm",
-  emits: ["filtered"],
+  emits: ["filtered", "compactView"],
   props: {
     filterData: {required: true, type: FilterBook},
   },
   data() {
       return {
-        currentTag: ""
+        currentTag: "",
+        compactView: false,
       }
   },
   methods: {
@@ -99,6 +103,10 @@ export default defineComponent({
     removeTag(index: number) {
       this.filterData.tags.splice(index, 1);
     },
+    toggleCompactView() {
+      this.compactView = !this.compactView;
+      this.$emit("compactView", this.compactView);
+    }
   },
 })
 </script>

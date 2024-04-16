@@ -1,11 +1,11 @@
 <template>
 
-  <div class="card-plate">
+  <div class="card-plate" :style="{width: compactView?'16rem':'45rem'}">
     <div class="flex mr-1">
-      <img @click="showBook" :src="book.previewImage" :style="{'max-height': isMobile?'100%':'400px', 'max-width': isMobile?'100%':'300px', width: isMobile?'100%':'16rem'}" class="border-round-xl cursor-pointer" alt="book"/>
+      <img @click="showBook" :src="book.previewImage" :style="{'max-height': isMobile?'100%':'400px', 'max-width': isMobile?'100%':'300px', width: '16rem'}" class="border-round-xl cursor-pointer" alt="book"/>
     </div>
 
-    <div class="book-about px-2">
+    <div class="book-about px-2" v-if="!compactView">
       <h2 class="book-title">
         <a class="no-underline text-primary" :href="'/book/'+book.id">{{book.title}}</a>
       </h2>
@@ -43,6 +43,7 @@ export default defineComponent({
   name: "BookCard",
   props: {
     book: {required: true, type: Book},
+    compactView: {required: false, type: Boolean, default: false},
   },
   emits: ['select:tag', 'select:publisher'],
   data() {

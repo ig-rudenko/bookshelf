@@ -2,15 +2,21 @@
   <Menu/>
 
   <div class="flex flex-wrap justify-content-center p-2">
-    <SearchBookForm :filterData="filters" @filtered="(f) => {filters = f; getBooksList(1, f)}" />
+    <SearchBookForm
+        @compactView="v => compactView = v"
+        :filterData="filters" @filtered="(f) => {filters = f; getBooksList(1, f)}" />
   </div>
 
   <div v-if="results" class="flex flex-wrap justify-content-center align-content-center">
     <BookCard
         @select:tag="(t: any) => selectTag(t.name)"
         @select:publisher="selectPublisher"
-        class="m-2" v-for="(book, index) in results.books" :key="index" :book="book"/>
+        v-for="(book, index) in results.books" :key="index"
+        :compactView="compactView"
+        :book="book"
+        class="m-2"/>
   </div>
+
   <Paginator v-if="results"
       @page="(event: any) => getBooksList(event.page+1, filters)"
       @update:rows="(value: number) => results!.perPage = value"
@@ -50,7 +56,8 @@ export default defineComponent({
   data() {
       return {
         results: null as BookResult|null,
-        filters: new FilterBook()
+        filters: new FilterBook(),
+        compactView: false,
       }
   },
   mounted() {

@@ -15,7 +15,8 @@
             <Button icon="pi pi-file-pdf" label="Обновить файл книги" @click="() => {(<HTMLInputElement>$refs.inputFile).click()}"/>
           </div>
           <div>
-            <img :src="editBookPreview" class="border-round-3xl w-full" alt="preview"/>
+            <img v-if="editBookPreview" :src="editBookPreview" class="border-round-3xl w-full" alt="preview"/>
+            <div v-else class="border-round-3xl" style="padding: 18rem 15rem; background-color: rgba(204,204,204,0.09);"></div>
           </div>
         </div>
 
@@ -59,7 +60,8 @@
         </div>
         <div class="flex flex-column gap-2 pb-2">
           <label for="book.year">Год издания</label>
-          <InputNumber input-class="w-6rem" id="book.year" v-model="book.year" suffix=" г." :useGrouping="false"/>
+          <InputNumber input-class="w-6rem" id="book.year" v-model="book.year" suffix=" г." :useGrouping="false" aria-describedby="book.year-help"/>
+          <small id="book.year-help">Укажите год публикации оригинала</small>
         </div>
 
         <div class="flex flex-column gap-2 pb-2">

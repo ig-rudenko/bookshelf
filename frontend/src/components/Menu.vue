@@ -75,7 +75,7 @@ export default defineComponent({
         data.push(
             {
               label: this.user?.username,
-              avatarImage: "https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png",
+              avatarImage: 'https://ui-avatars.com/api/?size=32&name='+this.user?.username+'&font-size=0.33&background=random&rounded=true',
               items: [
                 {
                   label: "Профиль",
