@@ -3,7 +3,7 @@
     <Menubar :model="menuItems">
       <template #start>
         <a href="/">
-          <Avatar class="mx-2" image="/public/bookshelf_icon.png" size="large" shape="square" />
+          <Avatar class="mx-2" image="/img/bookshelf_icon.png" size="large" shape="square" />
         </a>
       </template>
       <template #item="{ item, props, hasSubmenu, root }">
