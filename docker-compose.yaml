@@ -13,6 +13,8 @@ services:
       - "/etc/letsencrypt/live/it-bookshelf.ru/fullchain.pem:/etc/ssl/fullchain.pem:ro"
       - "/etc/letsencrypt/live/it-bookshelf.ru/privkey.pem:/etc/ssl/privkey.pem:ro"
       - "/etc/letsencrypt/ssl-dhparams.pem:/etc/ssl/ssl-dhparams.pem:ro"
+    depends_on:
+      - api-1
 
   api-1:
     build: .
@@ -23,6 +25,9 @@ services:
       - "./app:/app/app"
     environment:
       DATABASE_URL: postgresql+asyncpg://dbuser:dbpassword@database:5432/bookshelf
+    depends_on:
+      database:
+        condition: service_healthy
 
   database:
     image: postgres:16.2
@@ -35,6 +40,11 @@ services:
       - "./pg_data:/var/lib/postgresql/data"
     ports:
       - "55555:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "${DB_NAME}", "-U", "${DB_USER}" ]
+      timeout: 45s
+      interval: 10s
+      retries: 10
 
   pgadmin4:
     image: elestio/pgadmin:latest
@@ -44,5 +54,7 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin_password
       PGADMIN_LISTEN_PORT: 8080
     ports:
-    - "8080:8080"
-
+      - "8080:8080"
+    depends_on:
+      database:
+        condition: service_healthy
