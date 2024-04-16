@@ -84,7 +84,7 @@ export default defineComponent({
 
       <div class="mb-5">
         <FloatLabel>
-          <Password @keydown.enter="handleRegister" v-model="user.password" id="password-input" :input-class="getClassesFor(user.valid.password)" class="w-full" />
+          <InputText @keydown.enter="handleRegister" v-model="user.password" id="password-input" type="password" :class="getClassesFor(user.valid.password)" />
           <label for="password-input" class="block text-900 mb-2">Password</label>
         </FloatLabel>
         <InlineMessage v-if="!user.valid.password" severity="error">{{user.valid.passwordError}}</InlineMessage>

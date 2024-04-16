@@ -79,7 +79,7 @@ export default defineComponent({
       <div class="mb-5">
         <FloatLabel>
           <label for="password-input" class="block text-900 mb-2">Password</label>
-          <Password @keydown.enter="handleLogin" v-model="user.password" id="password-input" :input-class="getClassesFor(user.valid.password)" class="w-full" />
+          <InputText @keydown.enter="handleLogin" v-model="user.password" id="password-input" type="password" :class="getClassesFor(user.valid.password)" />
         </FloatLabel>
       </div>
 
