@@ -198,6 +198,6 @@ async def download_book_file(
 
     return StreamingResponse(
         content=get_data_from_file(settings.media_root / book.file),
-        media_type="application/octet-stream",
+        media_type="application/pdf",
         headers=headers,
     )
