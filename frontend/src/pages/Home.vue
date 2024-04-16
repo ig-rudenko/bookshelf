@@ -16,6 +16,9 @@
       @update:rows="(value: number) => results!.perPage = value"
       v-model="results.currentPage"
       :rows="results.perPage" :totalRecords="results.totalCount" :rowsPerPageOptions="[10, 25, 50]" />
+
+  <Footer/>
+
 </template>
 
 <script lang="ts">
@@ -27,6 +30,7 @@ import api from "@/services/api.ts";
 import {AxiosResponse} from "axios";
 import SearchBookForm from "@/components/SearchBookForm.vue";
 import {FilterBook, createFilterBook} from "@/filters.ts";
+import Footer from "@/components/Footer.vue";
 
 
 class BookResult {
@@ -42,7 +46,7 @@ class BookResult {
 
 export default defineComponent({
   name: "Home",
-  components: {SearchBookForm, BookCard, Menu},
+  components: {Footer, SearchBookForm, BookCard, Menu},
   data() {
       return {
         results: null as BookResult|null,

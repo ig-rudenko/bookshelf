@@ -12,7 +12,7 @@
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
     <data-source source="LOCAL" name="db" uuid="96b084ab-ca2a-4c2c-be61-2508046badd4">
-      <driver-ref>sqlite.xerial</driver-ref>
+      <driver-ref>9c34c1a5-435e-416c-b414-31070936cb6c</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:E:\PycharmProjects\bookshelf\db.sqlite3</jdbc-url>

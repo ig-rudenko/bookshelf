@@ -63,6 +63,9 @@
       <Button type="button" severity="danger" label="Выйти" @click="deleteBook"></Button>
     </div>
   </Dialog>
+
+  <Footer/>
+
 </template>
 
 <script lang="ts">
@@ -77,10 +80,11 @@ import {mapState} from "vuex";
 import Comment from "@/components/Comment.vue";
 import {CommentResult} from "@/comment"
 import {getLanguagePairByLabel} from "@/languages.ts";
+import Footer from "@/components/Footer.vue";
 
 export default defineComponent({
   name: "BookPage",
-  components: {Comment, CreateComment, Menu,},
+  components: {Footer, Comment, CreateComment, Menu,},
   data() {
       return {
         book: null as Book|null,

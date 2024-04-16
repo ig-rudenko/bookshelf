@@ -1,6 +1,11 @@
 <template>
   <div class="card">
     <Menubar :model="menuItems">
+      <template #start>
+        <a href="/">
+          <Avatar class="mx-2" image="/src/assets/bookshelf_icon.png" size="large" shape="square" />
+        </a>
+      </template>
       <template #item="{ item, props, hasSubmenu, root }">
         <a :href="item.href||'#'" class="flex align-items-center" v-bind="props.action">
           <Avatar :class="{ 'ml-auto': !root, 'ml-2': root }" v-if="item.avatarImage" :image="item.avatarImage" shape="circle" />
