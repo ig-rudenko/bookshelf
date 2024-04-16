@@ -2,7 +2,8 @@ version: "3.11"
 
 services:
   nginx:
-    image: nginx:1.25.4-alpine
+    image: bookshelf-nginx:0.1
+    build: frontend
     ports:
       - "80:80"
       - "443:443"
