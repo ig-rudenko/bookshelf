@@ -68,7 +68,7 @@ export default defineComponent({
 
       <div class="mb-5">
         <FloatLabel>
-          <InputText @keydown.enter="handleRegister" v-model="user.username" id="username-input" type="text" :class="getClassesFor(user.valid.username)" />
+          <InputText @keydown.enter="handleRegister" v-model="user.username" id="username-input" type="text" autofocus :class="getClassesFor(user.valid.username)" />
           <label for="username-input" class="block text-900 mb-2">Username</label>
         </FloatLabel>
         <InlineMessage v-if="!user.valid.username" severity="error">{{user.valid.usernameError}}</InlineMessage>
