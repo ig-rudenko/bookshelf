@@ -25,6 +25,8 @@ class Book {
         public size: number,
         public year: number,
         public private_: boolean,
+        public favorite: boolean,
+        public read: boolean,
         public language: string,
         public tags: {id: number, name: string}[],
         public publisher: {id: number, name: string},

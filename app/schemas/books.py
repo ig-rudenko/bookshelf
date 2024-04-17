@@ -37,6 +37,8 @@ class BookSchema(CamelSerializerModel):
     size: int
     year: int
     private: bool
+    favorite: bool = Field(False)
+    read: bool = Field(False)
     language: str = Field(..., max_length=128)
     tags: list[TagSchema]
     publisher: PublisherSchema

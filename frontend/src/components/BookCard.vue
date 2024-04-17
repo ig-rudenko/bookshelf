@@ -38,9 +38,11 @@ import {defineComponent} from 'vue'
 import {Book} from "@/books.ts";
 import {formatBytes} from "../formatter.ts";
 import {getLanguagePairByLabel} from "@/languages.ts";
+import MarkFavorite from "@/components/Bookmarks.vue";
 
 export default defineComponent({
   name: "BookCard",
+  components: {MarkFavorite},
   props: {
     book: {required: true, type: Book},
     compactView: {required: false, type: Boolean, default: false},

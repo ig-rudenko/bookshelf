@@ -74,8 +74,7 @@ async def get_books_view(
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Просмотр всех книг"""
-    books, total_count = await get_filtered_books_list(session, current_user, query_params)
-    books_schema = [BookSchema.model_validate(book) for book in books]
+    books_schema, total_count = await get_filtered_books_list(session, current_user, query_params)
 
     return BooksListSchema(
         books=books_schema,

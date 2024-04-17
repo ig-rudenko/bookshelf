@@ -9,9 +9,14 @@
     <div class="flex flex-column m-3 w-full" style="max-width: 40rem;">
       <h2 class="p-2">{{book.title}}</h2>
 
-      <div v-if="user && user.id == book.userId" class="pl-2 mb-3">
-        <Button @click="showEditBook" icon="pi pi-pencil" label="Редактировать" rounded outlined severity="warning"/>
-        <Button @click="displayDeleteBookDialog = true" icon="pi pi-trash" label="Удалить" rounded outlined severity="danger"/>
+      <div class="pl-2 mb-3">
+        <Bookmarks class="mr-2" type="favorite" :bookId="book.id" :mark="book.favorite" @updated="v => book!.favorite = v" />
+        <Bookmarks class="mr-2" type="read" :bookId="book.id" :mark="book.read" @updated="v => book!.read = v" />
+
+        <template v-if="user && user.id == book.userId">
+          <Button @click="showEditBook" icon="pi pi-pencil" label="Редактировать" rounded outlined severity="warning"/>
+          <Button @click="displayDeleteBookDialog = true" icon="pi pi-trash" label="Удалить" rounded outlined severity="danger"/>
+        </template>
       </div>
 
       <div class="m-2">
@@ -83,10 +88,11 @@ import Comment from "@/components/Comment.vue";
 import {CommentResult} from "@/comment"
 import {getLanguagePairByLabel} from "@/languages.ts";
 import Footer from "@/components/Footer.vue";
+import Bookmarks from "@/components/Bookmarks.vue";
 
 export default defineComponent({
   name: "BookPage",
-  components: {Footer, Comment, CreateComment, Menu,},
+  components: {Bookmarks, Footer, Comment, CreateComment, Menu,},
   data() {
       return {
         book: null as Book|null,
