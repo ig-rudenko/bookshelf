@@ -7,14 +7,21 @@
         :filterData="filters" @filtered="(f) => {filters = f; getBooksList(1, f)}" />
   </div>
 
-  <div v-if="results" class="flex flex-wrap justify-content-center align-content-center">
-    <BookCard
-        @select:tag="(t: any) => selectTag(t.name)"
-        @select:publisher="selectPublisher"
-        v-for="(book, index) in results.books" :key="index"
-        :compactView="compactView"
-        :book="book"
-        class="m-2"/>
+  <div class="flex flex-wrap justify-content-center align-content-center">
+    <template v-if="results">
+      <BookCard
+          @select:tag="(t: any) => selectTag(t.name)"
+          @select:publisher="selectPublisher"
+          v-for="(book, index) in results.books" :key="index"
+          :compactView="compactView"
+          :book="book"
+          class="m-2"/>
+    </template>
+
+    <template v-else>
+      <!--Заглушка-->
+      <Skeleton v-for="i in [1,2,3,4]" :key="i" width="45rem" height="23.5rem" class="m-2 border-round-2xl shadow-2"></Skeleton>
+    </template>
   </div>
 
   <Paginator v-if="results"

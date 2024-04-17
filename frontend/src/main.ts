@@ -30,6 +30,7 @@ import MeterGroup from "primevue/metergroup";
 import OverlayPanel from "primevue/overlaypanel";
 import Paginator from "primevue/paginator";
 import Password from "primevue/password";
+import Skeleton from 'primevue/skeleton';
 import Textarea from "primevue/textarea";
 import Tooltip from 'primevue/tooltip';
 import ScrollPanel from "primevue/scrollpanel";
@@ -74,6 +75,7 @@ app.component('MeterGroup', MeterGroup);
 app.component('OverlayPanel', OverlayPanel );
 app.component('Paginator', Paginator);
 app.component('Password', Password);
+app.component('Skeleton', Skeleton);
 app.component('Textarea', Textarea);
 app.component('ScrollPanel', ScrollPanel);
 
