@@ -23,7 +23,7 @@
         </a>
         <a v-else class="p-2 flex flex-wrap px-4 cursor-pointer text-900 no-underline" :href="'/?'+item.param+'='+item.label">
           <div>
-            <img :src="item.image" height="20" :alt="item.label"/>
+            <img :src="item.image" height="20" :alt="String(item.label)"/>
           </div>
           <span v-if="item.subtext" class="ml-2 text-lg">{{ item.subtext }}</span>
         </a>
