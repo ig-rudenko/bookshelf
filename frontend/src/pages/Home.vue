@@ -35,15 +35,17 @@
 </template>
 
 <script lang="ts">
-import Menu from "@/components/Menu.vue";
-import {defineComponent} from 'vue'
-import BookCard from "@/components/BookCard.vue";
-import {Book} from "@/books.ts";
-import api from "@/services/api.ts";
+import {defineComponent} from 'vue';
 import {AxiosResponse} from "axios";
-import SearchBookForm from "@/components/SearchBookForm.vue";
-import {FilterBook, createFilterBook} from "@/filters.ts";
+
+import Menu from "@/components/Menu.vue";
 import Footer from "@/components/Footer.vue";
+import BookCard from "@/components/BookCard.vue";
+import SearchBookForm from "@/components/SearchBookForm.vue";
+
+import {Book} from "@/books";
+import api from "@/services/api";
+import {FilterBook, createFilterBook} from "@/filters";
 
 
 class BookResult {

@@ -8,11 +8,24 @@ from fastapi.responses import StreamingResponse
 from slugify import slugify
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..crud.books import create_book, get_filtered_books_list, update_book, get_book, QueryParams
+from ..crud.books import (
+    create_book,
+    get_filtered_books_list,
+    update_book,
+    get_book,
+    QueryParams,
+    get_book_detail,
+)
 from ..crud.publishers import get_publishers
 from ..models import User
 from ..orm.session_manager import get_session
-from ..schemas.books import BookSchema, CreateBookSchema, BooksListSchema
+from ..schemas.books import (
+    BookSchema,
+    CreateBookSchema,
+    BooksListSchema,
+    BookSchemaDetail,
+    BookSchemaWithDesc,
+)
 from ..services.auth import get_current_user, get_user_or_none
 from ..services.books import set_file
 from ..services.permissions import check_book_owner_permission
@@ -74,7 +87,8 @@ async def get_books_view(
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Просмотр всех книг"""
-    books_schema, total_count = await get_filtered_books_list(session, current_user, query_params)
+    books, total_count = await get_filtered_books_list(session, current_user, query_params)
+    books_schema = [BookSchema.model_validate(book) for book in books]
 
     return BooksListSchema(
         books=books_schema,
@@ -85,7 +99,7 @@ async def get_books_view(
     )
 
 
-@router.post("", response_model=BookSchema, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=BookSchemaWithDesc, status_code=status.HTTP_201_CREATED)
 async def create_book_view(
     book_data: CreateBookSchema,
     current_user: User = Depends(get_current_user),
@@ -100,15 +114,14 @@ async def create_book_view(
     return book
 
 
-@router.get("/{book_id}", response_model=BookSchema)
+@router.get("/{book_id}", response_model=BookSchemaDetail)
 async def get_book_view(
     book_id: int,
     current_user: Optional[User] = Depends(get_user_or_none),
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Просмотр книги"""
-    book = await get_book(session, book_id)
-    book_schema = BookSchema.model_validate(book)
+    book_schema = await get_book_detail(session, book_id, current_user)
 
     if not book_schema.private or (
         book_schema.private and current_user is not None and current_user.id == book_schema.user_id
@@ -121,7 +134,7 @@ async def get_book_view(
     )
 
 
-@router.put("/{book_id}", response_model=BookSchema)
+@router.put("/{book_id}", response_model=BookSchemaWithDesc)
 async def update_book_view(
     book_id: int,
     book_data: CreateBookSchema,
@@ -132,7 +145,7 @@ async def update_book_view(
     book = await get_book(session, book_id)
     await check_book_owner_permission(session, current_user.id, book)
     book = await update_book(session, book, book_data)
-    return BookSchema.model_validate(book)
+    return BookSchemaWithDesc.model_validate(book)
 
 
 @router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)

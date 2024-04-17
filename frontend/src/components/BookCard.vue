@@ -34,17 +34,18 @@
 </template>
 
 <script lang="ts">
-import {defineComponent} from 'vue'
-import {Book} from "@/books.ts";
-import {formatBytes} from "../formatter.ts";
-import {getLanguagePairByLabel} from "@/languages.ts";
+import {defineComponent, PropType} from 'vue';
+
+import {Book} from "@/books";
+import {formatBytes} from "../formatter";
+import {getLanguagePairByLabel} from "@/languages";
 import MarkFavorite from "@/components/Bookmarks.vue";
 
 export default defineComponent({
   name: "BookCard",
   components: {MarkFavorite},
   props: {
-    book: {required: true, type: Book},
+    book: {required: true, type: Object as PropType<Book>},
     compactView: {required: false, type: Boolean, default: false},
   },
   emits: ['select:tag', 'select:publisher'],
@@ -54,23 +55,21 @@ export default defineComponent({
       }
   },
   mounted() {
-    window.addEventListener('resize', () => {
-      this.windowWidth = window.innerWidth
-    })
+    window.addEventListener('resize', () => this.windowWidth = window.innerWidth);
   },
   computed: {
     isMobile() {
-      return this.windowWidth <= 768
+      return this.windowWidth <= 768;
     },
   },
   methods: {
     getLanguagePairByLabel,
     formatBytes,
     showBook() {
-      document.location.href = `/book/${this.book.id}`
+      document.location.href = `/book/${this.book.id}`;
     },
     selectTag(tag: {id: number, name: string}) {
-      this.$emit('select:tag', tag)
+      this.$emit('select:tag', tag);
     },
 
   }

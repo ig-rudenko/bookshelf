@@ -2,17 +2,48 @@ from functools import reduce
 from typing import TypedDict, TypeVar
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, func, Select
+from sqlalchemy import select, func, Select, ScalarResult
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import Publisher, Tag, Book, User, favorite_books_association, books_read_association
-from ..schemas.books import CreateBookSchema, BookSchema
+from ..schemas.books import CreateBookSchema, BookSchemaDetail
 
 
 async def get_book(session: AsyncSession, book_id: int) -> Book:
     try:
         return await Book.get(session, id=book_id)
+    except NoResultFound:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Книга не найдена")
+
+
+async def get_book_detail(session: AsyncSession, book_id: int, user: User | None) -> BookSchemaDetail:
+    try:
+        query = select(Book, favorite_books_association.columns.id, books_read_association.columns.id).where(
+            Book.id == book_id
+        )
+        query = query.outerjoin(
+            favorite_books_association,
+            (
+                (Book.id == favorite_books_association.columns.book_id)
+                & (favorite_books_association.columns.user_id == (user.id if user else None))
+            ),
+        ).outerjoin(
+            books_read_association,
+            (
+                (Book.id == books_read_association.columns.book_id)
+                & (books_read_association.columns.user_id == (user.id if user else None))
+            ),
+        )
+        result = await session.execute(query)
+        result.unique()
+
+        data = result.first()
+        schema = BookSchemaDetail.model_validate(data[0])
+        schema.favorite = data[1] is not None
+        schema.read = data[2] is not None
+        return schema
+
     except NoResultFound:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Книга не найдена")
 
@@ -144,51 +175,27 @@ async def get_filtered_books_list(
     session: AsyncSession,
     user: User | None,
     query_params: QueryParams,
-) -> tuple[list[BookSchema], int]:
+) -> tuple[ScalarResult[Book], int]:
     """Возвращает список книг и количество, которые являются публичными"""
 
     def filter_query_by_user(q: QT) -> QT:
         if user is not None:
-            q = q.where(Book.private.is_(False) | (Book.private.is_(True) & (Book.user_id == user.id)))
-        else:
-            q = q.where(Book.private.is_(False))
+            return q.where(Book.private.is_(False) | (Book.private.is_(True) & (Book.user_id == user.id)))
+        return q.where(Book.private.is_(False))
 
-        return q.outerjoin(
-            favorite_books_association,
-            (
-                (Book.id == favorite_books_association.columns.book_id)
-                & (favorite_books_association.columns.user_id == (user.id if user else None))
-            ),
-        ).outerjoin(
-            books_read_association,
-            (
-                (Book.id == books_read_association.columns.book_id)
-                & (books_read_association.columns.user_id == (user.id if user else None))
-            ),
-        )
-
-    query = select(Book, favorite_books_association.columns.id, books_read_association.columns.id).order_by(
-        Book.id.desc()
-    )
-    query = filter_query_by_params(query, query_params)
+    query = filter_query_by_params(select(Book).order_by(Book.id.desc()), query_params)
     query = filter_query_by_user(query)
 
     result = await session.execute(query)
     result.unique()
-
-    books_schemas = []
-    for book, favorite, read in result:
-        schema = BookSchema.model_validate(book)
-        schema.favorite = favorite is not None
-        schema.read = read is not None
-        books_schemas.append(schema)
+    books = result.scalars()
 
     books_count: int = await _get_books_count_for_query(
         session,
         filter_query_by_user(select(func.count(Book.id))),
         query_params,
     )
-    return books_schemas, books_count
+    return books, books_count
 
 
 async def _get_books_count_for_query(session: AsyncSession, query, query_params: QueryParams) -> int:

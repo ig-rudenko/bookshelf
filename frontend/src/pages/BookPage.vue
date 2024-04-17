@@ -76,26 +76,28 @@
 </template>
 
 <script lang="ts">
-import {defineComponent} from 'vue'
-import Menu from "@/components/Menu.vue";
-import {Book} from "@/books.ts";
-import api from "@/services/api.ts";
 import {AxiosResponse} from "axios";
-import {formatBytes, textToHtml} from "../formatter.ts";
-import CreateComment from "@/components/CreateComment.vue";
+import {defineComponent} from 'vue'
 import {mapState} from "vuex";
-import Comment from "@/components/Comment.vue";
-import {CommentResult} from "@/comment"
-import {getLanguagePairByLabel} from "@/languages.ts";
-import Footer from "@/components/Footer.vue";
+
+import CreateComment from "@/components/CreateComment.vue";
 import Bookmarks from "@/components/Bookmarks.vue";
+import Comment from "@/components/Comment.vue";
+import Footer from "@/components/Footer.vue";
+import Menu from "@/components/Menu.vue";
+
+import api from "@/services/api";
+import {BookDetail} from "@/books";
+import {CommentResult} from "@/comment"
+import {getLanguagePairByLabel} from "@/languages";
+import {formatBytes, textToHtml} from "../formatter";
 
 export default defineComponent({
   name: "BookPage",
   components: {Bookmarks, Footer, Comment, CreateComment, Menu,},
   data() {
       return {
-        book: null as Book|null,
+        book: null as BookDetail|null,
         results: null as CommentResult|null,
         displayDeleteBookDialog: false,
       }
@@ -124,7 +126,7 @@ export default defineComponent({
       if (this.book) return;
       api.get(`/books/${this.bookIdParam}`)
           .then(
-              (value: AxiosResponse<Book>) => {
+              (value: AxiosResponse<BookDetail>) => {
                 this.book = value.data;
                 document.title = this.book.title;
               }
@@ -145,10 +147,8 @@ export default defineComponent({
     deleteBook() {
       api.delete(`/books/${this.bookIdParam}`)
           .then(
-              (value: AxiosResponse<Book>) => {
-                if (value.status == 204) {
-                  document.location.href = "/"
-                }
+              (value: AxiosResponse) => {
+                if (value.status == 204) document.location.href = "/";
               }
           )
     },
