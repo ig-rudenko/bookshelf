@@ -122,15 +122,12 @@ export default defineComponent({
       ]
 
       if (this.loggedIn) {
+
+        data.push({ label: "Избранное", icon: "pi pi-heart", href: "/favorites", root: true})
+        data.push({ label: "Прочитанные", icon: "pi pi-bookmark", href: "/read", root: true})
+
         if (this.user?.isStaff) {
-          data.push(
-              {
-                label: "Добавить книгу",
-                icon: "pi pi-plus pi-book",
-                href: "/create-book",
-                root: true,
-              }
-          )
+          data.push({ label: "Добавить книгу", icon: "pi pi-plus", href: "/create-book", root: true })
         }
 
       } else {

@@ -26,8 +26,11 @@ export default defineComponent({
 </script>
 
 <template>
-  <Button v-if="type=='favorite'" v-tooltip.bottom="mark?'Убрать из избранного':'Добавить в избранное'" @click="toggle" icon="pi pi-heart" raised :outlined="!mark" rounded/>
-  <Button v-if="type=='read'" v-tooltip.bottom="mark?'Убрать из прочитанного':'Пометить прочитанным'" @click="toggle" icon="pi pi-book" raised severity="warning" :outlined="!mark" rounded/>
+  <Button class="mx-1" v-if="type=='favorite'"
+          v-tooltip.bottom="mark?'Убрать из избранного':'Добавить в избранное'" @click="toggle" icon="pi pi-heart" raised :outlined="!mark" rounded/>
+
+  <Button class="mx-1" v-if="type=='read'"
+          v-tooltip.bottom="mark?'Убрать из прочитанного':'Пометить прочитанным'" @click="toggle" icon="pi pi-book" raised severity="info" :outlined="!mark" rounded/>
 </template>
 
 <style scoped>
