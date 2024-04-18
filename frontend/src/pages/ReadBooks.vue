@@ -36,6 +36,7 @@ import SearchBookForm from "@/components/SearchBookForm.vue";
 import {Book} from "@/books";
 import api from "@/services/api";
 import {FilterBook} from "@/filters";
+import {mapState} from "vuex";
 
 
 export default defineComponent({
@@ -49,7 +50,14 @@ export default defineComponent({
     }
   },
   mounted() {
+    document.title = "Прочитанные книги";
+    if (!this.loggedIn) this.$router.push("/login");
     this.getBooksList(1);
+  },
+  computed: {
+    ...mapState({
+      loggedIn: (state: any) => state.auth.status.loggedIn,
+    }),
   },
   methods: {
     getBooksList(page: number) {
