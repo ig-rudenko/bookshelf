@@ -23,6 +23,8 @@ services:
     volumes:
       - "./media:/app/media"
       - "./app:/app/app"
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgresql+asyncpg://dbuser:dbpassword@database:5432/bookshelf
     depends_on:
