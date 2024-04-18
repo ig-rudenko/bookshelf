@@ -1,4 +1,11 @@
-import {createRouter, createWebHistory, NavigationGuardNext, RouteLocationNormalized, RouteRecordRaw} from "vue-router";
+import {
+    createRouter,
+    createWebHistory,
+    NavigationGuardNext,
+    RouteLocationNormalized,
+    Router,
+    RouteRecordRaw
+} from "vue-router";
 
 import Login from "@/pages/Login.vue";
 import Register from "@/pages/Register.vue";
@@ -32,9 +39,9 @@ const routes: RouteRecordRaw[] = [
     { path: "/book/:id/show", component: ShowBook, beforeEnter: beforeEnter },
 ]
 
-export default function createAppRouter() {
-    return createRouter({
-        history: createWebHistory(),
-        routes,
-    });
-}
+const router: Router = createRouter({
+    history: createWebHistory(),
+    routes,
+});
+
+export default router;
