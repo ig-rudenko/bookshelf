@@ -32,7 +32,6 @@ class BookSchema(CamelSerializerModel):
     title: str = Field(..., max_length=254)
     preview_image: str = Field(..., max_length=128)
     authors: str = Field(..., max_length=254)
-    description: str
     pages: int
     size: int
     year: int
@@ -40,6 +39,16 @@ class BookSchema(CamelSerializerModel):
     language: str = Field(..., max_length=128)
     tags: list[TagSchema]
     publisher: PublisherSchema
+
+
+class BookSchemaWithDesc(BookSchema):
+    description: str
+
+
+class BookSchemaDetail(BookSchema):
+    description: str
+    favorite: bool = Field(False)
+    read: bool = Field(False)
 
 
 class BooksListSchema(CamelSerializerModel):

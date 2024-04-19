@@ -1,5 +1,5 @@
 
-class CreateBook {
+export class CreateBook {
     constructor(
         public title: string = "",
         public authors: string = "",
@@ -13,27 +13,27 @@ class CreateBook {
 }
 
 
-class Book {
-    constructor(
-        public id: number,
-        public userId: number,
-        public title: string,
-        public previewImage: string,
-        public authors: string,
-        public description: string,
-        public pages: number,
-        public size: number,
-        public year: number,
-        public private_: boolean,
-        public language: string,
-        public tags: {id: number, name: string}[],
-        public publisher: {id: number, name: string},
-    ) {}
-
-    get private() {
-        return this.private_;
-    }
+export interface Book {
+    id: number
+    userId: number
+    title: string
+    previewImage: string
+    authors: string
+    pages: number
+    size: number
+    year: number
+    private: boolean
+    language: string
+    tags: {id: number, name: string}[]
+    publisher: {id: number, name: string}
 }
 
+export interface BookWithDesc extends Book {
+    description: string
+}
 
-export { CreateBook, Book };
+export interface BookDetail extends Book {
+    description: string
+    favorite: boolean
+    read: boolean
+}

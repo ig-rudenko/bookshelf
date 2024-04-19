@@ -30,15 +30,17 @@ import MeterGroup from "primevue/metergroup";
 import OverlayPanel from "primevue/overlaypanel";
 import Paginator from "primevue/paginator";
 import Password from "primevue/password";
+import Skeleton from 'primevue/skeleton';
 import Textarea from "primevue/textarea";
 import Tooltip from 'primevue/tooltip';
 import ScrollPanel from "primevue/scrollpanel";
+import {Router} from "vue-router";
 
 import App from '@/App.vue';
 import store from "@/store";
 import ToastService from 'primevue/toastservice';
 import setupInterceptors from '@/services/setupInterceptors';
-import createRouter from "@/router";
+import router from "@/router";
 
 setupInterceptors(store);
 const app = createApp(App);
@@ -46,7 +48,8 @@ app.use(PrimeVue, { ripple: true });
 app.use(ToastService);
 app.directive('tooltip', Tooltip);
 app.use(store);
-app.use(createRouter());
+app.use(router);
+app.config.globalProperties.$router = router as Router;
 
 app.component('AutoComplete', AutoComplete);
 app.component('Accordion', Accordion);
@@ -74,6 +77,7 @@ app.component('MeterGroup', MeterGroup);
 app.component('OverlayPanel', OverlayPanel );
 app.component('Paginator', Paginator);
 app.component('Password', Password);
+app.component('Skeleton', Skeleton);
 app.component('Textarea', Textarea);
 app.component('ScrollPanel', ScrollPanel);
 

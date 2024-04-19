@@ -2,17 +2,48 @@ from functools import reduce
 from typing import TypedDict, TypeVar
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, ScalarResult, func, Select
+from sqlalchemy import select, func, Select, ScalarResult
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models import Publisher, Tag, Book, User
-from ..schemas.books import CreateBookSchema
+from ..models import Publisher, Tag, Book, User, favorite_books_association, books_read_association
+from ..schemas.books import CreateBookSchema, BookSchemaDetail
 
 
 async def get_book(session: AsyncSession, book_id: int) -> Book:
     try:
         return await Book.get(session, id=book_id)
+    except NoResultFound:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Книга не найдена")
+
+
+async def get_book_detail(session: AsyncSession, book_id: int, user: User | None) -> BookSchemaDetail:
+    try:
+        query = select(Book, favorite_books_association.columns.id, books_read_association.columns.id).where(
+            Book.id == book_id
+        )
+        query = query.outerjoin(
+            favorite_books_association,
+            (
+                (Book.id == favorite_books_association.columns.book_id)
+                & (favorite_books_association.columns.user_id == (user.id if user else None))
+            ),
+        ).outerjoin(
+            books_read_association,
+            (
+                (Book.id == books_read_association.columns.book_id)
+                & (books_read_association.columns.user_id == (user.id if user else None))
+            ),
+        )
+        result = await session.execute(query)
+        result.unique()
+
+        data = result.first()
+        schema = BookSchemaDetail.model_validate(data[0])
+        schema.favorite = data[1] is not None
+        schema.read = data[2] is not None
+        return schema
+
     except NoResultFound:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Книга не найдена")
 

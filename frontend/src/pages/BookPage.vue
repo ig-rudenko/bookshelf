@@ -9,9 +9,16 @@
     <div class="flex flex-column m-3 w-full" style="max-width: 40rem;">
       <h2 class="p-2">{{book.title}}</h2>
 
-      <div v-if="user && user.id == book.userId" class="pl-2 mb-3">
-        <Button @click="showEditBook" icon="pi pi-pencil" label="Редактировать" rounded outlined severity="warning"/>
-        <Button @click="displayDeleteBookDialog = true" icon="pi pi-trash" label="Удалить" rounded outlined severity="danger"/>
+      <div class="pl-2 mb-3 flex flex-wrap align-items-center">
+        <template v-if="loggedIn && user">
+          <Bookmarks type="favorite" :bookId="book.id" :mark="book.favorite" @updated="v => book!.favorite = v" />
+          <Bookmarks type="read" :bookId="book.id" :mark="book.read" @updated="v => book!.read = v" />
+        </template>
+
+        <template v-if="loggedIn && user && user.id == book.userId">
+          <Button @click="showEditBook" v-tooltip.bottom="'Редактировать'" icon="pi pi-pencil" raised rounded outlined severity="warning" class="mx-1"/>
+          <Button @click="displayDeleteBookDialog = true" v-tooltip.bottom="'Удалить'" icon="pi pi-trash" raised rounded outlined severity="danger" class="mx-1"/>
+        </template>
       </div>
 
       <div class="m-2">
@@ -71,25 +78,28 @@
 </template>
 
 <script lang="ts">
-import {defineComponent} from 'vue'
-import Menu from "@/components/Menu.vue";
-import {Book} from "@/books.ts";
-import api from "@/services/api.ts";
 import {AxiosResponse} from "axios";
-import {formatBytes, textToHtml} from "../formatter.ts";
-import CreateComment from "@/components/CreateComment.vue";
+import {defineComponent} from 'vue'
 import {mapState} from "vuex";
+
+import CreateComment from "@/components/CreateComment.vue";
+import Bookmarks from "@/components/Bookmarks.vue";
 import Comment from "@/components/Comment.vue";
-import {CommentResult} from "@/comment"
-import {getLanguagePairByLabel} from "@/languages.ts";
 import Footer from "@/components/Footer.vue";
+import Menu from "@/components/Menu.vue";
+
+import api from "@/services/api";
+import {BookDetail} from "@/books";
+import {CommentResult} from "@/comment"
+import {getLanguagePairByLabel} from "@/languages";
+import {formatBytes, textToHtml} from "../formatter";
 
 export default defineComponent({
   name: "BookPage",
-  components: {Footer, Comment, CreateComment, Menu,},
+  components: {Bookmarks, Footer, Comment, CreateComment, Menu,},
   data() {
       return {
-        book: null as Book|null,
+        book: null as BookDetail|null,
         results: null as CommentResult|null,
         displayDeleteBookDialog: false,
       }
@@ -118,7 +128,7 @@ export default defineComponent({
       if (this.book) return;
       api.get(`/books/${this.bookIdParam}`)
           .then(
-              (value: AxiosResponse<Book>) => {
+              (value: AxiosResponse<BookDetail>) => {
                 this.book = value.data;
                 document.title = this.book.title;
               }
@@ -139,10 +149,8 @@ export default defineComponent({
     deleteBook() {
       api.delete(`/books/${this.bookIdParam}`)
           .then(
-              (value: AxiosResponse<Book>) => {
-                if (value.status == 204) {
-                  document.location.href = "/"
-                }
+              (value: AxiosResponse) => {
+                if (value.status == 204) document.location.href = "/";
               }
           )
     },

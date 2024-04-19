@@ -7,14 +7,21 @@
         :filterData="filters" @filtered="(f) => {filters = f; getBooksList(1, f)}" />
   </div>
 
-  <div v-if="results" class="flex flex-wrap justify-content-center align-content-center">
-    <BookCard
-        @select:tag="(t: any) => selectTag(t.name)"
-        @select:publisher="selectPublisher"
-        v-for="(book, index) in results.books" :key="index"
-        :compactView="compactView"
-        :book="book"
-        class="m-2"/>
+  <div class="flex flex-wrap justify-content-center align-content-center">
+    <template v-if="results">
+      <BookCard
+          @select:tag="(t: any) => selectTag(t.name)"
+          @select:publisher="selectPublisher"
+          v-for="(book, index) in results.books" :key="index"
+          :compactView="compactView"
+          :book="book"
+          class="m-2"/>
+    </template>
+
+    <template v-else>
+      <!--Заглушка-->
+      <Skeleton v-for="i in [1,2,3,4]" :key="i" width="45rem" height="23.5rem" class="m-2 border-round-2xl shadow-2"></Skeleton>
+    </template>
   </div>
 
   <Paginator v-if="results"
@@ -28,15 +35,17 @@
 </template>
 
 <script lang="ts">
-import Menu from "@/components/Menu.vue";
-import {defineComponent} from 'vue'
-import BookCard from "@/components/BookCard.vue";
-import {Book} from "@/books.ts";
-import api from "@/services/api.ts";
+import {defineComponent} from 'vue';
 import {AxiosResponse} from "axios";
-import SearchBookForm from "@/components/SearchBookForm.vue";
-import {FilterBook, createFilterBook} from "@/filters.ts";
+
+import Menu from "@/components/Menu.vue";
 import Footer from "@/components/Footer.vue";
+import BookCard from "@/components/BookCard.vue";
+import SearchBookForm from "@/components/SearchBookForm.vue";
+
+import {Book} from "@/books";
+import api from "@/services/api";
+import {FilterBook, createFilterBook} from "@/filters";
 
 
 class BookResult {

@@ -119,11 +119,12 @@
 </template>
 
 <script lang="ts">
-import {defineComponent} from 'vue'
-import {Book, CreateBook} from "@/books";
-import api from "@/services/api.ts";
+import {defineComponent} from 'vue';
 import {AxiosProgressEvent, AxiosResponse} from "axios";
 import {AutoCompleteCompleteEvent} from "primevue/autocomplete";
+
+import api from "@/services/api";
+import {BookDetail, BookWithDesc, CreateBook} from "@/books";
 import {getLanguagePairByLabel, languagesList} from "@/languages";
 
 export default defineComponent({
@@ -243,7 +244,7 @@ export default defineComponent({
         // Редактирование книги
         api.put(`/books/${this.editBookId}`, data)
             .then(
-                (value: AxiosResponse<Book>) => {
+                (value: AxiosResponse<BookWithDesc>) => {
                   if (value.status == 200 && this.bookFile) {
                     this.uploadBookFile(value.data);
                   } else if (value.status == 200) {
@@ -258,7 +259,7 @@ export default defineComponent({
         this.loading = true;
         api.post("/books", data)
             .then(
-                (value: AxiosResponse<Book>) => {
+                (value: AxiosResponse<BookWithDesc>) => {
                   if (value.status == 201) {
                     this.uploadBookFile(value.data);
                   } else {
@@ -270,17 +271,15 @@ export default defineComponent({
       }
     },
 
-    uploadBookFile(bookData: Book) {
+    uploadBookFile(bookData: BookWithDesc) {
       const form = new FormData()
       form.append("file", (<Blob>this.bookFile))
-      console.log("UPLOAD")
       api.post("/books/"+bookData.id+"/upload", form,
           {
             headers: {
               "Content-Type": "multipart/form-data",
             },
             onUploadProgress: (progressEvent: AxiosProgressEvent) => {
-              // this.uploadProgress = Math.round( (progressEvent.loaded * 100) / progressEvent.total! ); // вычисляем и сохраняем прогресс в процентах
               this.uploadProgress = (progressEvent.progress||0) * 100;
             },
           }
@@ -297,7 +296,7 @@ export default defineComponent({
     getEditBook() {
       api.get("/books/"+this.editBookId)
           .then(
-              (response: AxiosResponse<Book>) => {
+              (response: AxiosResponse<BookDetail>) => {
                 if (response.status !== 200) return;
                 const tags = []
                 for (const tag of response.data.tags) {
@@ -309,7 +308,7 @@ export default defineComponent({
                     response.data.publisher.name,
                     response.data.description,
                     response.data.year,
-                    response.data.private_,
+                    response.data.private,
                     tags,
                     getLanguagePairByLabel(response.data.language),
                 );

@@ -9,22 +9,19 @@
 
       <template #item="{ item }">
         <a :href="item.href" v-if="item.root" class="text-900 no-underline flex align-items-center cursor-pointer px-3 py-2">
-          <Avatar v-if="item.avatarImage" :image="item.avatarImage"/>
           <span :class="item.icon" />
           <span class="ml-2">{{ item.label }}</span>
           <i v-if="item.items" :class="['pi pi-angle-down', { 'pi-angle-down ml-2': item.root, 'pi-angle-right ml-auto': !item.root }]"></i>
         </a>
-        <a v-else-if="!item.image" class="flex align-items-center cursor-pointer p-3">
-          <i :class="item.icon"></i>
-          <span class="inline-flex flex-column px-2">
-              <span class="text-900">{{ item.label }}</span>
-              <span class="white-space-nowrap">{{ item.subtext }}</span>
+        <a v-else-if="!item.image" :href="'/?'+item.param+'='+item.label" class="flex align-items-center cursor-pointer p-2 text-900 no-underline">
+          <i v-if="item.icon" :class="item.icon"></i>
+          <span class="inline-flex flex-column px-4">
+            <span class="text-900">{{ item.label }}</span>
+            <span v-if="item.subtext" class="white-space-nowrap">{{ item.subtext }}</span>
           </span>
         </a>
-        <a v-else class="p-2 flex flex-wrap px-4 cursor-pointer text-900 no-underline" :href="'/?'+item.param+'='+item.label">
-          <div>
-            <img :src="item.image" height="20" :alt="String(item.label)"/>
-          </div>
+        <a v-else class="p-2 flex flex-wrap align-items-center px-4 cursor-pointer text-900 no-underline" :href="'/?'+item.param+'='+item.label">
+          <img :src="item.image" height="20" :alt="String(item.label)"/>
           <span v-if="item.subtext" class="ml-2 text-lg">{{ item.subtext }}</span>
         </a>
       </template>
@@ -109,20 +106,28 @@ export default defineComponent({
                 ]
               }
             ],
+            [
+              {
+                label: "Популярные направления",
+                items: [
+                  { label: "DevOps", param: "tags"},
+                  { label: "Архитектура", param: "tags"},
+                  { label: "Микросервисы", param: "tags"},
+                  { label: "Контейнеризация", param: "tags"},
+                ]
+              }
+            ],
           ]
         }
       ]
 
       if (this.loggedIn) {
+
+        data.push({ label: "Избранное", icon: "pi pi-heart", href: "/favorites", root: true})
+        data.push({ label: "Прочитанные", icon: "pi pi-bookmark", href: "/read", root: true})
+
         if (this.user?.isStaff) {
-          data.push(
-              {
-                label: "Добавить книгу",
-                icon: "pi pi-plus pi-book",
-                href: "/create-book",
-                root: true,
-              }
-          )
+          data.push({ label: "Добавить книгу", icon: "pi pi-plus", href: "/create-book", root: true })
         }
 
       } else {
