@@ -56,7 +56,8 @@ async def get_filtered_books(
 ) -> BooksSchemaPaginated:
     """Возвращает список книг и количество, которые являются публичными"""
 
-    query = _filter_books_query_by_params(select(Book).order_by(Book.id.desc()), query_params)
+    query = select(Book).order_by(Book.id.desc()).group_by(Book.id)
+    query = _filter_books_query_by_params(query, query_params)
 
     if user is not None:
         query = query.where(Book.private.is_(False) | (Book.private.is_(True) & (Book.user_id == user.id)))
@@ -138,5 +139,5 @@ def _filter_books_query_by_params(query: _QT, query_params: QueryParams) -> _QT:
         query = query.where(Book.private.is_(True))
     if query_params["tags"]:
         tags = list(map(lambda x: x.lower(), query_params["tags"]))
-        query = query.join(Book.tags).where(func.lower(Tag.name).in_(tags)).group_by(Book.id)
+        query = query.join(Book.tags).where(func.lower(Tag.name).in_(tags))
     return query
