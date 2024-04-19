@@ -1,24 +1,42 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.books import get_book
 from app.models import User, Book
 from app.orm.session_manager import get_session
-from app.schemas.books import BookSchema
+from app.schemas.books import BooksSchemaPaginated
 from app.services.auth import get_current_user
-from app.services.bookmarks import mark_favorite, mark_read
+from app.services.bookmarks import get_favorite_books, mark_favorite, mark_read, get_read_books
 
 router = APIRouter(prefix="/bookmarks", tags=["bookmarks"])
 
 
-@router.get("/favorite", status_code=status.HTTP_200_OK, response_model=list[BookSchema])
-async def get_favorite_books(user: User = Depends(get_current_user)):
-    return await user.await_attr.favorites
+def paginator_query(
+    page: int = Query(1, gt=0, description="Номер страницы"),
+    per_page: int = Query(25, gte=1, alias="per-page", description="Количество элементов на странице"),
+):
+    return {
+        "page": page,
+        "per_page": per_page,
+    }
 
 
-@router.get("/read", status_code=status.HTTP_200_OK, response_model=list[BookSchema])
-async def get_favorite_books(user: User = Depends(get_current_user)):
-    return await user.await_attr.books_read
+@router.get("/favorite", status_code=status.HTTP_200_OK, response_model=BooksSchemaPaginated)
+async def get_favorite_books_view(
+    paginator: dict = Depends(paginator_query),
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    return await get_favorite_books(user_id=user.id, session=session, paginator=paginator)
+
+
+@router.get("/read", status_code=status.HTTP_200_OK, response_model=BooksSchemaPaginated)
+async def get_read_books_view(
+    paginator: dict = Depends(paginator_query),
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    return await get_read_books(user_id=user.id, session=session, paginator=paginator)
 
 
 @router.post("/{book_id}/favorite", status_code=status.HTTP_200_OK)

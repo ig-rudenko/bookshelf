@@ -51,7 +51,7 @@ class BookSchemaDetail(BookSchema):
     read: bool = Field(False)
 
 
-class BooksListSchema(CamelSerializerModel):
+class BooksSchemaPaginated(CamelSerializerModel):
     books: list[BookSchema]
     total_count: int
     current_page: int

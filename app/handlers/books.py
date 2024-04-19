@@ -10,10 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..crud.books import (
     create_book,
-    get_filtered_books_list,
     update_book,
     get_book,
-    QueryParams,
     get_book_detail,
 )
 from ..crud.publishers import get_publishers
@@ -22,12 +20,12 @@ from ..orm.session_manager import get_session
 from ..schemas.books import (
     BookSchema,
     CreateBookSchema,
-    BooksListSchema,
+    BooksSchemaPaginated,
     BookSchemaDetail,
     BookSchemaWithDesc,
 )
 from ..services.auth import get_current_user, get_user_or_none
-from ..services.books import set_file
+from ..services.books import set_file, QueryParams, get_filtered_books
 from ..services.permissions import check_book_owner_permission
 from ..settings import settings
 
@@ -80,23 +78,14 @@ def books_query_params(
     }
 
 
-@router.get("", response_model=BooksListSchema)
+@router.get("", response_model=BooksSchemaPaginated)
 async def get_books_view(
     query_params: QueryParams = Depends(books_query_params),
     current_user: Optional[User] = Depends(get_user_or_none),
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Просмотр всех книг"""
-    books, total_count = await get_filtered_books_list(session, current_user, query_params)
-    books_schema = [BookSchema.model_validate(book) for book in books]
-
-    return BooksListSchema(
-        books=books_schema,
-        total_count=total_count,
-        current_page=query_params["page"],
-        max_pages=total_count // query_params["per_page"] or 1,
-        per_page=query_params["per_page"],
-    )
+    return await get_filtered_books(session, current_user, query_params)
 
 
 @router.post("", response_model=BookSchemaWithDesc, status_code=status.HTTP_201_CREATED)
