@@ -37,3 +37,12 @@ export interface BookDetail extends Book {
     favorite: boolean
     read: boolean
 }
+
+
+export interface PaginatedBookResult {
+    books: Book[],
+    totalCount: number,
+    currentPage: number,
+    maxPages: number,
+    perPage: number
+}

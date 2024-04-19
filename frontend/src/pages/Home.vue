@@ -43,20 +43,9 @@ import Footer from "@/components/Footer.vue";
 import BookCard from "@/components/BookCard.vue";
 import SearchBookForm from "@/components/SearchBookForm.vue";
 
-import {Book} from "@/books";
+import {PaginatedBookResult} from "@/books";
 import api from "@/services/api";
-import {FilterBook, createFilterBook} from "@/filters";
-
-
-class BookResult {
-  constructor(
-      public books: Book[],
-      public totalCount: number,
-      public currentPage: number,
-      public maxPages: number,
-      public perPage: number
-  ) {}
-}
+import {createFilterBook, FilterBook} from "@/filters";
 
 
 export default defineComponent({
@@ -64,7 +53,7 @@ export default defineComponent({
   components: {Footer, SearchBookForm, BookCard, Menu},
   data() {
       return {
-        results: null as BookResult|null,
+        results: null as PaginatedBookResult|null,
         filters: new FilterBook(),
         compactView: false,
       }
@@ -83,7 +72,7 @@ export default defineComponent({
 
       api.get("/books" + urlParams)
           .then(
-              (value: AxiosResponse<BookResult>) => this.results = value.data
+              (value: AxiosResponse<PaginatedBookResult>) => this.results = value.data
           )
     },
 
