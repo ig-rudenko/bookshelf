@@ -50,10 +50,10 @@
     </div>
 
     <div class="flex justify-content-center">
-      <Chip v-if="filterData.authors" icon="pi pi-users" :label="'Издатель: '+filterData.authors" class="mr-1" removable>
+      <Chip v-if="filterData.authors" icon="pi pi-users" :label="'Авторы: '+filterData.authors" class="mr-1" removable>
         <template #removeicon><i @click="()=>{filterData.authors='';doFilter()}" class="pi pi-times cursor-pointer ml-2"/></template>
       </Chip>
-      <Chip v-if="filterData.publisher" icon="pi pi-building" :label="'Издатель: '+filterData.publisher" class="mr-1" removable>
+      <Chip v-if="filterData.publisher" icon="pi pi-building" :label="'Издательство: '+filterData.publisher" class="mr-1" removable>
         <template #removeicon><i @click="()=>{filterData.publisher='';doFilter()}" class="pi pi-times cursor-pointer ml-2"/></template>
       </Chip>
       <Chip v-for="(tag, index) in filterData.tags" :key="index" :label="tag" icon="pi pi-tag" class="mr-1" removable>

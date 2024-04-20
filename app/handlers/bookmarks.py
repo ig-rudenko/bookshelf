@@ -6,7 +6,14 @@ from app.models import User, Book
 from app.orm.session_manager import get_session
 from app.schemas.books import BooksSchemaPaginated
 from app.services.auth import get_current_user
-from app.services.bookmarks import get_favorite_books, mark_favorite, mark_read, get_read_books
+from app.services.bookmarks import (
+    get_favorite_books,
+    mark_favorite,
+    mark_read,
+    get_read_books,
+    get_favorite_books_count,
+    get_read_books_count,
+)
 
 router = APIRouter(prefix="/bookmarks", tags=["bookmarks"])
 
@@ -30,6 +37,14 @@ async def get_favorite_books_view(
     return await get_favorite_books(user_id=user.id, session=session, paginator=paginator)
 
 
+@router.get("/favorite/count", status_code=status.HTTP_200_OK, response_model=int)
+async def get_favorite_books_count_view(
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    return await get_favorite_books_count(user_id=user.id, session=session)
+
+
 @router.get("/read", status_code=status.HTTP_200_OK, response_model=BooksSchemaPaginated)
 async def get_read_books_view(
     paginator: dict = Depends(paginator_query),
@@ -37,6 +52,14 @@ async def get_read_books_view(
     session: AsyncSession = Depends(get_session),
 ):
     return await get_read_books(user_id=user.id, session=session, paginator=paginator)
+
+
+@router.get("/read/count", status_code=status.HTTP_200_OK, response_model=int)
+async def get_read_books_count_view(
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    return await get_read_books_count(user_id=user.id, session=session)
 
 
 @router.post("/{book_id}/favorite", status_code=status.HTTP_200_OK)

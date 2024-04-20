@@ -9,7 +9,7 @@
 
       <template #item="{ item }">
         <a :href="item.href" v-if="item.root" class="text-900 no-underline flex align-items-center cursor-pointer px-3 py-2">
-          <span :class="item.icon" />
+          <i :style="{color: item.iconColor}" :class="item.icon" />
           <span class="ml-2">{{ item.label }}</span>
           <i v-if="item.items" :class="['pi pi-angle-down', { 'pi-angle-down ml-2': item.root, 'pi-angle-right ml-auto': !item.root }]"></i>
         </a>
@@ -56,6 +56,8 @@ import {defineComponent} from "vue";
 import themeSwitch from "@/theming";
 import {mapActions, mapState} from "vuex";
 import Menu from "primevue/menu";
+import api from "@/services/api.ts";
+import {AxiosResponse} from "axios";
 
 
 export default defineComponent({
@@ -63,7 +65,14 @@ export default defineComponent({
     return {
       themeIcon: themeSwitch.current.includes("light")?"pi pi-moon":"pi pi-sun",
       logoutDialogVisible: false,
+      favoriteCount: 0,
+      readCount: 0,
     };
+  },
+
+  mounted() {
+      this.getFavoriteCount();
+      this.getReadCount();
   },
 
   computed: {
@@ -71,6 +80,26 @@ export default defineComponent({
       loggedIn: (state: any) => state.auth.status.loggedIn,
       user: (state: any) => state.auth.user,
     }),
+
+    favoriteItem() {
+      return {
+        label: this.favoriteCount>0?`Избранные: ${this.favoriteCount}`:"Избранное",
+        icon: this.favoriteCount>0?"pi pi-heart-fill":"pi pi-heart",
+        iconColor: "red",
+        href: "/favorites",
+        root: true,
+      }
+    },
+
+    readItem() {
+      return {
+        label: this.readCount>0?`Прочитанные: ${this.readCount}`:"Прочитанное",
+        icon: "pi pi-check-square",
+        iconColor: "var(--primary-400)",
+        href: "/read",
+        root: true,
+      }
+    },
 
     menuItems() {
       let data: any[] = [
@@ -123,8 +152,8 @@ export default defineComponent({
 
       if (this.loggedIn) {
 
-        data.push({ label: "Избранное", icon: "pi pi-heart", href: "/favorites", root: true})
-        data.push({ label: "Прочитанные", icon: "pi pi-bookmark", href: "/read", root: true})
+        data.push(this.favoriteItem)
+        data.push(this.readItem)
 
         if (this.user?.isStaff) {
           data.push({ label: "Добавить книгу", icon: "pi pi-plus", href: "/create-book", root: true })
@@ -194,6 +223,14 @@ export default defineComponent({
 
     toggleUserMenu(event: Event) {
       (<Menu>this.$refs.userMenu).toggle(event)
+    },
+
+    getFavoriteCount() {
+      api.get("/bookmarks/favorite/count").then((value: AxiosResponse<number>) => this.favoriteCount = value.data)
+    },
+
+    getReadCount() {
+      api.get("/bookmarks/read/count").then((value: AxiosResponse<number>) => this.readCount = value.data)
     }
 
   }
