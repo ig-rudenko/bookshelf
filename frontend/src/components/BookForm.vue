@@ -1,7 +1,7 @@
 <template>
 <div class="flex flex-wrap flex-column align-content-center">
 
-  <div v-if="loading && bookFile">
+  <div v-if="loading && bookFile" class="py-3">
     <MeterGroup :value="[{label: 'Загрузка файла', value: uploadProgress, color: 'primary', icon: '' }]"/>
   </div>
 
