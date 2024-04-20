@@ -27,7 +27,7 @@ class Manager:
     @classmethod
     async def exists(cls, session: AsyncSession, /, **kwargs) -> bool:
         filters = [getattr(cls, key) == value for key, value in kwargs.items()]
-        query = select(cls.id).where(*filters)
+        query = select(getattr(cls, "id")).where(*filters)
         result = await session.execute(query)
         return result.scalar_one_or_none() is not None
 

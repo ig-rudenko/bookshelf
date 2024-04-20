@@ -34,7 +34,7 @@ class AwaitAttrs:
     @property
     def await_attr(self) -> Self:
         """provide awaitable attribute access"""
-        return AwaitAttrs._AwaitAttrGetitem(self)
+        return AwaitAttrs._AwaitAttrGetitem(self)  # type: ignore
 
 
 class OrmBase(AwaitAttrs, DeclarativeBase):

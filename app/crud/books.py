@@ -35,7 +35,7 @@ async def get_book_detail(session: AsyncSession, book_id: int, user: User | None
         result = await session.execute(query)
         result.unique()
 
-        data = result.first()
+        data = result.one()
         schema = BookSchemaDetail.model_validate(data[0])
         schema.favorite = data[1] is not None
         schema.read = data[2] is not None

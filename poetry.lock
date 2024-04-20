@@ -1647,6 +1647,17 @@ files = [
 ]
 
 [[package]]
+name = "types-aiofiles"
+version = "23.2.0.20240403"
+description = "Typing stubs for aiofiles"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-aiofiles-23.2.0.20240403.tar.gz", hash = "sha256:1ffcf8f5f72b81f71139f754ea2610ab0017f27ba4fd771e187b07840ee49c0f"},
+    {file = "types_aiofiles-23.2.0.20240403-py3-none-any.whl", hash = "sha256:adeeb4b999f19fda2dfe91c07857ff54701b6ee9b227b523a5a7be92125a2c5f"},
+]
+
+[[package]]
 name = "types-passlib"
 version = "1.7.7.20240327"
 description = "Typing stubs for passlib"
@@ -1817,4 +1828,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "2ee57a69037fb3773ae7d143f911701238e4ac168ed41f924cc042d214a607ed"
+content-hash = "652ba2d430605d62057fdb868bce44db74c400139381361bedbad48f6ee2b422"

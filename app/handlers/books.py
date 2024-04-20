@@ -1,5 +1,4 @@
 import pathlib
-import re
 from typing import Optional, AsyncIterable
 
 import aiofiles
@@ -194,8 +193,7 @@ async def download_book_file(
         "Cache-Control": "max-age=86400",
     }
     if as_file:
-        filename = re.search(r"\S+/(?P<file_name>.+?)\.pdf$", book.file).group("file_name")
-        headers["Content-Disposition"] = f'attachment; filename="{slugify(filename)}.pdf"'
+        headers["Content-Disposition"] = f'attachment; filename="{slugify(book.title)}.pdf"'
 
     return StreamingResponse(
         content=get_data_from_file(settings.media_root / book.file),
