@@ -8,7 +8,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - "./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro"
+      - "./nginx/frontend.conf:/etc/nginx/conf.d/default.conf:ro"
       - "./media/previews:/var/www/media/previews:ro"
       - "/etc/letsencrypt/live/it-bookshelf.ru/fullchain.pem:/etc/ssl/fullchain.pem:ro"
       - "/etc/letsencrypt/live/it-bookshelf.ru/privkey.pem:/etc/ssl/privkey.pem:ro"
@@ -49,13 +49,31 @@ services:
       interval: 5s
       retries: 5
 
+  pgadmin-balancer:
+    image: nginx:1.25.4-alpine
+    ports:
+      - "8080:8080"
+    volumes:
+      - "./nginx/pgadmin.conf:/etc/nginx/conf.d/default.conf:ro"
+      - "/etc/letsencrypt/live/it-bookshelf.ru/fullchain.pem:/etc/ssl/fullchain.pem:ro"
+      - "/etc/letsencrypt/live/it-bookshelf.ru/privkey.pem:/etc/ssl/privkey.pem:ro"
+      - "/etc/letsencrypt/ssl-dhparams.pem:/etc/ssl/ssl-dhparams.pem:ro"
+    depends_on:
+      pgadmin4:
+        condition: service_healthy
+
+
   pgadmin4:
     image: elestio/pgadmin:latest
     restart: always
     env_file:
       - config/env/pgadmin
-    ports:
-      - "8080:8080"
     depends_on:
       database:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -O - http://localhost:8080/misc/ping"]
+      start_period: 5s
+      timeout: 10s
+      interval: 5s
+      retries: 5
