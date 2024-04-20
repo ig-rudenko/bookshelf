@@ -77,10 +77,14 @@ class TestFavoriteBooks(BaseBookTest):
             headers={"Authorization": f"Bearer {token_pair.access_token}"},
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            [BookSchema.model_validate(self.book_1).model_dump(by_alias=True)],
-            response.json(),
-        )
+        valid = {
+            "books": [BookSchema.model_validate(self.book_1).model_dump(by_alias=True)],
+            "currentPage": 1,
+            "maxPages": 1,
+            "perPage": 25,
+            "totalCount": 1,
+        }
+        self.assertEqual(valid, response.json())
 
 
 # noinspection PyArgumentList
@@ -150,7 +154,11 @@ class TestReadBooks(BaseBookTest):
             headers={"Authorization": f"Bearer {token_pair.access_token}"},
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            [BookSchema.model_validate(self.book_1).model_dump(by_alias=True)],
-            response.json(),
-        )
+        valid = {
+            "books": [BookSchema.model_validate(self.book_1).model_dump(by_alias=True)],
+            "currentPage": 1,
+            "maxPages": 1,
+            "perPage": 25,
+            "totalCount": 1,
+        }
+        self.assertEqual(valid, response.json())

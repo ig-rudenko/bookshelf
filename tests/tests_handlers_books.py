@@ -11,7 +11,7 @@ from app.crud.books import create_book
 from app.handlers.books import router
 from app.models import Publisher, User, Tag, Book, book_tag_association
 from app.orm.session_manager import db_manager
-from app.schemas.books import BookSchema, CreateBookSchema
+from app.schemas.books import BookSchema, CreateBookSchema, BookSchemaWithDesc
 from app.services.auth import create_jwt_token_pair
 from app.settings import settings
 from tests.init import TEST_DB_URL
@@ -101,6 +101,11 @@ class CreateBookTest(BaseBookTest):
         }
 
     async def test_create_book(self):
+        # Меняем статус пользователя, чтобы он мог добавлять книги.
+        async with db_manager.session() as session:
+            self.user_1.is_staff = True
+            await self.user_1.save(session)
+
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
 
         response = self.client.post(
@@ -112,10 +117,27 @@ class CreateBookTest(BaseBookTest):
         self.assertEqual(response.status_code, 201)
         async with db_manager.session() as session:
             new_book = await Book.get(session, title="book_3")
-        valid_response = BookSchema.model_validate(new_book).model_dump(by_alias=True)
+        valid_response = BookSchemaWithDesc.model_validate(new_book).model_dump(by_alias=True)
         self.assertEqual(valid_response, response.json())
 
+    async def test_create_book_not_staff_user(self):
+        """Пользователь не является администратором."""
+        token_pair = create_jwt_token_pair(user_id=self.user_1.id)
+
+        with self.assertRaises(HTTPException) as context:
+            self.client.post(
+                "/books",
+                headers={"Authorization": f"Bearer {token_pair.access_token}"},
+                json=self.book_valid_data,
+            )
+        self.assertEqual(context.exception.status_code, 403)
+
     async def test_create_book_with_same_publisher(self):
+        """Поверка, что с уже имеющимся издателем новая книга добавится без проблем"""
+        # Меняем статус пользователя, чтобы он мог добавлять книги.
+        async with db_manager.session() as session:
+            self.user_1.is_staff = True
+            await self.user_1.save(session)
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
         self.book_valid_data["publisher"] = "Another Publisher"
         response = self.client.post(
@@ -132,11 +154,13 @@ class CreateBookTest(BaseBookTest):
         self.assertEqual(response.status_code, 201)
 
     async def test_create_book_without_auth(self):
+        """Неавторизованный пользователь не может добавлять книги"""
         with self.assertRaises(HTTPException) as context:
             self.client.post("/books", json=self.book_valid_data)
         self.assertEqual(context.exception.status_code, 401)
 
     async def test_create_book_invalid_data(self):
+        """Без издателя книгу не получится создать"""
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
         with self.assertRaises(RequestValidationError):
             self.client.post(
@@ -188,10 +212,14 @@ class ListBooksTest(BaseBookTest):
 
         self.assertEqual(response.status_code, 200)
         valid_data = {
-            "books": [
-                BookSchema.model_validate(self.book_1).model_dump(by_alias=True),
-                BookSchema.model_validate(self.book_private).model_dump(by_alias=True),
-            ],
+            "books": sorted(
+                [
+                    BookSchema.model_validate(self.book_1).model_dump(by_alias=True),
+                    BookSchema.model_validate(self.book_private).model_dump(by_alias=True),
+                ],
+                key=lambda book: book["id"],
+                reverse=True,
+            ),
             "currentPage": 1,
             "maxPages": 1,
             "perPage": 25,
@@ -260,7 +288,7 @@ class UpdateBookTest(BaseBookTest):
             self.assertEqual(response.status_code, 200)
 
             self.book_private = await Book.get(session, title="new title")  # проверка изменения
-            valid_response = BookSchema.model_validate(self.book_private).model_dump(by_alias=True)
+            valid_response = BookSchemaWithDesc.model_validate(self.book_private).model_dump(by_alias=True)
             self.assertEqual(valid_response, response.json())
 
             # Проверка изменения тегов
@@ -371,7 +399,9 @@ class UploadBookFileTest(BaseBookTest):
 
         async with db_manager.session() as session:
             self.book_1 = await Book.get(session, id=self.book_1.id)  # refresh book from db
-        self.assertEqual(self.book_1.preview_image, f"previews/{self.book_1.id}/preview.png")
+        self.assertEqual(
+            self.book_1.preview_image, f"{settings.media_url}/previews/{self.book_1.id}/preview.png"
+        )
         self.assertEqual(self.book_1.file, f"books/{self.book_1.id}/sample-pdf-file.pdf")
         self.assertEqual(self.book_1.size, self.file_path.stat().st_size)
 

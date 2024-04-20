@@ -57,8 +57,8 @@ book_tag_association = Table(
     "book_tag_association",
     OrmBase.metadata,
     Column("id", Integer, primary_key=True),
-    Column("book_id", Integer, ForeignKey("books.id")),
-    Column("tag_id", Integer, ForeignKey("tag.id")),
+    Column("book_id", Integer, ForeignKey("books.id", ondelete="CASCADE")),
+    Column("tag_id", Integer, ForeignKey("tag.id", ondelete="CASCADE")),
 )
 
 
@@ -104,7 +104,7 @@ class Book(OrmBase, Manager):
         "User", secondary="favorite_books", back_populates="favorites", lazy="select"
     )
     read_by_users = relationship("User", secondary="books_read", back_populates="books_read", lazy="select")
-    comments = relationship("Comment", back_populates="book", lazy="select")
+    comments = relationship("Comment", back_populates="book", cascade="all, delete-orphan", lazy="select")
 
     # Define a check constraint
     __table_args__ = (
@@ -138,8 +138,8 @@ favorite_books_association = Table(
     "favorite_books",
     OrmBase.metadata,
     Column("id", Integer, primary_key=True),
-    Column("book_id", Integer, ForeignKey("books.id")),
-    Column("user_id", Integer, ForeignKey("users.id")),
+    Column("book_id", Integer, ForeignKey("books.id", ondelete="CASCADE")),
+    Column("user_id", Integer, ForeignKey("users.id", ondelete="CASCADE")),
 )
 
 
@@ -148,6 +148,6 @@ books_read_association = Table(
     "books_read",
     OrmBase.metadata,
     Column("id", Integer, primary_key=True),
-    Column("book_id", Integer, ForeignKey("books.id")),
-    Column("user_id", Integer, ForeignKey("users.id")),
+    Column("book_id", Integer, ForeignKey("books.id", ondelete="CASCADE")),
+    Column("user_id", Integer, ForeignKey("users.id", ondelete="CASCADE")),
 )

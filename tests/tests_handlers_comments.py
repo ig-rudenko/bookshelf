@@ -4,8 +4,8 @@ from fastapi.testclient import TestClient
 from app.handlers.comments import router
 from app.orm.session_manager import db_manager
 from app.services.auth import create_jwt_token_pair
-from . import TEST_DB_URL
-from .tests_handlers_books import BaseBookTest
+from tests import TEST_DB_URL
+from tests.tests_handlers_books import BaseBookTest
 
 
 class TestComments(BaseBookTest):
@@ -24,7 +24,7 @@ class TestComments(BaseBookTest):
         )
         self.assertEqual(response.status_code, 201)
         self.assertListEqual(
-            ["id", "text", "createdAt", "bookId"],
+            ["id", "text", "createdAt", "user"],
             list(response.json().keys()),
         )
 
