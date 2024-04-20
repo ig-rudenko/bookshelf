@@ -156,7 +156,7 @@ async def upload_book_file(
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Загрузка файла книги"""
-    if file.filename is None or not file.filename.endswith(".pdf"):
+    if file.filename is None or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Формат файла должен быть только '.pdf'"
         )
