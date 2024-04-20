@@ -24,9 +24,7 @@ services:
     volumes:
       - "./media:/app/media"
     env_file:
-      - .env
-    environment:
-      DATABASE_URL: postgresql+asyncpg://dbuser:dbpassword@database:5432/bookshelf
+      - config/env/api
     depends_on:
       database:
         condition: service_healthy
@@ -40,10 +38,8 @@ services:
   database:
     image: postgres:16.2
     restart: always
-    environment:
-      POSTGRES_USER: dbuser
-      POSTGRES_PASSWORD: dbpassword
-      POSTGRES_DB: bookshelf
+    env_file:
+      - config/env/postgres
     volumes:
       - "./pg_data:/var/lib/postgresql/data"
     healthcheck:
@@ -56,10 +52,8 @@ services:
   pgadmin4:
     image: elestio/pgadmin:latest
     restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@mail.com
-      PGADMIN_DEFAULT_PASSWORD: admin_password
-      PGADMIN_LISTEN_PORT: 8080
+    env_file:
+      - config/env/pgadmin
     ports:
       - "8080:8080"
     depends_on:

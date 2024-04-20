@@ -1,5 +1,9 @@
 .venv
-.env
+
+config/env/api
+config/env/postgres
+config/env/pgadmin
+
 db.sqlite3
 media
 test.db

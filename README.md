@@ -18,10 +18,9 @@
 
 ### Запуск
 
-Переменные окружения:
+Примеры требуемых переменных окружения сервисов находятся в папке `config/env`.
 
-    DATABASE_URL=    # С асинхронным драйвером
-    JWT_SECRET_KEY=  # Ключ шифрования для JWT
+Для каждого сервиса имеется свой файл с переменными окружения.
 
 Применение миграций
 
@@ -40,7 +39,7 @@ uvicorn main:app
 Миграции для тестовой базы
 
 ```shell
-export DATABASE_URL=sqlite:///test.db;
+export DATABASE_URL=sqlite+aiosqlite:///test.db;
 alembic upgrade head;
 ```
 
