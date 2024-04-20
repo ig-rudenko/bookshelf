@@ -14,7 +14,8 @@ services:
       - "/etc/letsencrypt/live/it-bookshelf.ru/privkey.pem:/etc/ssl/privkey.pem:ro"
       - "/etc/letsencrypt/ssl-dhparams.pem:/etc/ssl/ssl-dhparams.pem:ro"
     depends_on:
-      - api-1
+      api-1:
+        condition: service_healthy
 
   api-1:
     build: .
@@ -22,7 +23,6 @@ services:
     command: /bin/sh run.sh
     volumes:
       - "./media:/app/media"
-      - "./app:/app/app"
     env_file:
       - .env
     environment:
@@ -30,6 +30,12 @@ services:
     depends_on:
       database:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:8000/ping"]
+      start_period: 5s
+      timeout: 10s
+      interval: 5s
+      retries: 5
 
   database:
     image: postgres:16.2
