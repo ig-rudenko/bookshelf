@@ -56,7 +56,7 @@ async def get_filtered_books(
 ) -> BooksSchemaPaginated:
     """Возвращает список книг и количество, которые являются публичными"""
 
-    query = select(Book).order_by(Book.id.desc()).group_by(Book.id)
+    query = select(Book).order_by(Book.year.desc(), Book.id.desc()).group_by(Book.id)
     query = _filter_books_query_by_params(query, query_params)
 
     if user is not None:

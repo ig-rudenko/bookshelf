@@ -10,11 +10,16 @@ from app.services.books import get_paginated_books
 
 async def get_favorite_books(user_id: int, session: AsyncSession, paginator: dict) -> BooksSchemaPaginated:
     """Возвращает список избранных книг"""
+    fb = favorite_books_association
     query = (
-        select(Book, favorite_books_association.columns.id)
-        .join(favorite_books_association)
-        .where(favorite_books_association.columns.user_id == user_id)
+        select(Book, fb.columns.id)
+        .group_by(Book.id)
+        .group_by(fb.columns.id)
+        .order_by(fb.columns.id.desc())
+        .join(fb)
+        .where(fb.columns.user_id == user_id)
     )
+
     return await get_paginated_books(session, query, paginator)
 
 
@@ -30,10 +35,14 @@ async def get_favorite_books_count(user_id: int, session: AsyncSession) -> int:
 
 async def get_read_books(user_id: int, session: AsyncSession, paginator: dict) -> BooksSchemaPaginated:
     """Возвращает список прочитанных книг"""
+    br = books_read_association
     query = (
-        select(Book, books_read_association.columns.id)
-        .join(books_read_association)
-        .where(books_read_association.columns.user_id == user_id)
+        select(Book, br.columns.id)
+        .group_by(Book.id)
+        .group_by(br.columns.id)
+        .order_by(br.columns.id.desc())
+        .join(br)
+        .where(br.columns.user_id == user_id)
     )
     return await get_paginated_books(session, query, paginator)
 
