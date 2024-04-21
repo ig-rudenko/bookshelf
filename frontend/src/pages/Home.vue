@@ -29,10 +29,11 @@
   </div>
 
   <Paginator v-if="results"
-      @page="(event: any) => getBooksList(event.page+1, filters)"
-      @update:rows="(value: number) => results!.perPage = value"
-      v-model="results.currentPage"
-      :rows="results.perPage" :totalRecords="results.totalCount" :rowsPerPageOptions="[10, 25, 50]" />
+             @page="(event: any) => getBooksList(event.page+1, filters)"
+             @update:rows="(value: number) => results!.perPage = value"
+             :pages="3"
+             v-model="results.currentPage"
+             :rows="results.perPage" :totalRecords="results.totalCount" :rowsPerPageOptions="[10, 25, 50]" />
 
   <Footer/>
 

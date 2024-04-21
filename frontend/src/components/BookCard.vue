@@ -1,33 +1,50 @@
 <template>
 
-  <div class="card-plate" :style="{width: compactView?'16rem':'45rem'}">
+  <div class="card-plate" :style="cardStyle">
     <div class="flex">
-      <img @click="showBook" :src="book.previewImage" :style="{'max-height': isMobile?'100%':'400px', 'max-width': isMobile?'100%':'300px', width: '16rem'}" class="border-round-xl cursor-pointer" alt="book"/>
+      <img @click="showBook" :src="book.previewImage" class="book-image cursor-pointer" alt="book"/>
     </div>
 
-    <div class="book-about px-2" v-if="!compactView">
+    <div class="book-about px-2" v-if="!compactView" style="font-size: 0.83rem;">
       <h2 class="book-title">
-        <a class="no-underline text-primary" :href="'/book/'+book.id">{{book.title}}</a>
+        <a class="no-underline text-900" :href="'/book/'+book.id">{{book.title}}</a>
       </h2>
       <div class="m-2">
-        <span>Издательство <i class="pi pi-building mr-2"/></span>
+        <span v-if="!isMobile" class="mr-2">Издательство</span><i class="pi pi-building mr-2"/>
         <span @click="$emit('select:publisher', book.publisher.name)" class="text-primary cursor-pointer">{{book.publisher.name}}</span>
         <span class="ml-2">{{book.year}} г.</span>
       </div>
-      <div class="m-2">
-        Язык книги: {{book.language}}
-        <img :alt="book.language" :src="`https://flagcdn.com/${getLanguagePairByLabel(book.language).code}.svg`" class="border-1 border-500" style="width: 18px" />
+
+      <div class="flex align-items-center" :style="{'flex-direction': isMobile?'row':'column'}">
+
+        <div v-if="isMobile" class="m-2 chips">
+          <i class="pi pi-tag" @click="toggleTagsOverlay"/>
+          <OverlayPanel ref="tags">
+            <Chip v-for="(tag, index) in book.tags" :key="index" :label="tag.name" @click="selectTag(tag)" class="m-1 cursor-pointer" style="font-size: 0.7rem;" icon="pi pi-tag" />
+          </OverlayPanel>
+        </div>
+        <div class="m-2">
+          <span v-if="!isMobile" class="mr-2">Язык книги: {{book.language}}</span>
+          <img :alt="book.language" :src="`https://flagcdn.com/${getLanguagePairByLabel(book.language).code}.svg`" class="border-1 border-500" style="width: 18px" />
+        </div>
+
       </div>
-      <div class="m-2 text-center">
-        <i class="pi pi-users"/>
-        {{book.authors}}
+
+      <div v-if="!isMobile" class="flex flex-column align-items-center">
+
+        <div class="m-2 text-center flex flex-row align-items-center">
+          <i class="pi pi-users mr-2"/>
+          <span>{{book.authors}}</span>
+        </div>
+
+        <div class="m-2 text-center">
+          <i class="pi pi-book mx-2"/>{{book.pages}} стр. <i class="pi pi-file mx-2"/>{{formatBytes(book.size)}}
+        </div>
+        <div class="m-2 chips">
+          <Chip v-for="(tag, index) in book.tags" :key="index" :label="tag.name" @click="selectTag(tag)" class="m-1 cursor-pointer" style="font-size: 0.8rem;" icon="pi pi-tag" />
+        </div>
       </div>
-      <div class="m-2">
-        <i class="pi pi-book mx-2"/>{{book.pages}} стр. <i class="pi pi-file mx-2"/>{{formatBytes(book.size)}}
-      </div>
-      <div class="m-2 chips">
-        <Chip @click="selectTag(tag)" class="m-1 cursor-pointer" style="font-size: 0.9rem;" v-for="(tag, index) in book.tags" icon="pi pi-tag" :key="index" :label="tag.name" />
-      </div>
+
     </div>
   </div>
 
@@ -40,6 +57,7 @@ import {Book} from "@/books";
 import {formatBytes} from "../formatter";
 import {getLanguagePairByLabel} from "@/languages";
 import MarkFavorite from "@/components/Bookmarks.vue";
+import OverlayPanel from "primevue/overlaypanel";
 
 export default defineComponent({
   name: "BookCard",
@@ -52,6 +70,7 @@ export default defineComponent({
   data() {
       return {
         windowWidth: window.innerWidth,
+        showTagsOverlay: false
       }
   },
   mounted() {
@@ -61,6 +80,15 @@ export default defineComponent({
     isMobile() {
       return this.windowWidth <= 768;
     },
+    cardStyle() {
+      const style = {
+        width: this.compactView?'16rem':'45rem'
+      }
+      if (this.compactView && this.isMobile) {
+        style.width = '6rem'
+      }
+      return style;
+    }
   },
   methods: {
     getLanguagePairByLabel,
@@ -71,6 +99,10 @@ export default defineComponent({
     selectTag(tag: {id: number, name: string}) {
       this.$emit('select:tag', tag);
     },
+
+    toggleTagsOverlay(event: Event) {
+      (<OverlayPanel>this.$refs.tags).toggle(event);
+    }
 
   }
 })
@@ -109,6 +141,8 @@ export default defineComponent({
 }
 
 .book-title {
+  font-size: 1.4rem;
+  padding: 1.5rem 0;
   cursor: pointer!important;
   margin-bottom: 0.5rem!important;
   display: -webkit-box!important;
@@ -135,15 +169,38 @@ export default defineComponent({
   align-items: center!important;
 }
 
-@media (width < 600px) {
+.book-image {
+  border-radius:.75rem!important;
+  max-height: 400px;
+  max-width: 300px;
+  width: 15.9rem;
+}
+
+@media (width < 768px) {
   .card-plate {
+    padding-left: 0.5rem;
+    flex-wrap: nowrap!important;
     border: none!important;
-    padding-bottom: 2rem!important;
     box-shadow: none!important;
+    flex-direction: row;
+  }
+
+  .book-title {
+    font-size: 0.7rem;
+    margin: 0;
+    padding: 0;
   }
 
   .book-about {
+    font-size: 0.7rem;
     max-width: none;
+    flex-wrap: wrap;
+  }
+
+  .book-image {
+    border-radius: 0!important;
+    max-height: 120px;
+    max-width: 80px;
   }
 
 }
