@@ -20,8 +20,10 @@
             <span v-if="item.subtext" class="white-space-nowrap">{{ item.subtext }}</span>
           </span>
         </a>
-        <a v-else class="p-2 flex flex-wrap align-items-center px-4 cursor-pointer text-900 no-underline" :href="'/?'+item.param+'='+item.label">
-          <img :src="item.image" height="20" :alt="String(item.label)"/>
+        <a v-else class="p-1 flex flex-wrap align-items-center px-4 cursor-pointer text-900 no-underline" :href="'/?'+item.param+'='+item.label">
+          <div class="p-1 px-3 border-round-md" :class="item.classes">
+            <img :src="item.image" height="20" :alt="String(item.label)"/>
+          </div>
           <span v-if="item.subtext" class="ml-2 text-lg">{{ item.subtext }}</span>
         </a>
       </template>
@@ -118,9 +120,12 @@ export default defineComponent({
               {
                 label: "Популярные издатели",
                 items: [
-                  { label: "O'Reilly", param: "publisher", image: "https://cdn.oreillystatic.com/images/sitewide-headers/oreilly_logo_mark_red.svg"},
-                  { label: 'Manning Publications', param: "publisher", image: "https://www.manning.com/assets/manningLettersBlack-0ebe3f78d807742e74e80ce85f130096.svg"},
-                  { label: 'Packt', param: "publisher", image: "https://www.packtpub.com/images/logo-new.svg"},
+                  { label: "O'Reilly", param: "publisher", classes: ['bg-white'], image: "https://cdn.oreillystatic.com/images/sitewide-headers/oreilly_logo_mark_red.svg"},
+                  { label: 'Manning Publications', param: "publisher", classes: ['bg-white'], image: "https://www.manning.com/assets/manningLettersBlack-0ebe3f78d807742e74e80ce85f130096.svg"},
+                  { label: 'Packt', param: "publisher", classes: ['bg-white'], image: "https://www.packtpub.com/images/logo-new.svg"},
+                  { label: 'БХВ-Петербург', param: "publisher", classes: ['bg-white'], image: "https://textarchive.ru/images/716/1430749/6b3cdbad.gif"},
+                  { label: 'No Starch Press Inc.', param: "publisher", classes: ['bg-black-alpha-90'], image: "https://nostarch.com/sites/all/themes/nostarch/logo.png"},
+                  { label: 'Питер', param: "publisher", classes: ['bg-white'], image: "https://segment.ru/upload/usersImg/ab0/Piter.jpg"},
                 ]
               }
             ],
@@ -132,6 +137,9 @@ export default defineComponent({
                   { label: 'Go', param: "tags", subtext: "Go", image: 'https://www.vectorlogo.zone/logos/golang/golang-official.svg' },
                   { label: 'Java Script', param: "tags", subtext: "Java Script", image: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg" },
                   { label: 'Java', param: "tags", subtext: "Java", image: "https://www.vectorlogo.zone/logos/java/java-icon.svg" },
+                  { label: 'R-lang', param: "tags", subtext: "R-lang", image: "https://www.vectorlogo.zone/logos/r-project/r-project-official.svg" },
+                  { label: 'C%2B%2B', param: "tags", subtext: "C++", image: "https://www.vectorlogo.zone/logos/isocpp/isocpp-icon.svg" },
+                  { label: 'Kotlin', param: "tags", subtext: "Kotlin", image: "https://www.vectorlogo.zone/logos/kotlinlang/kotlinlang-icon.svg" },
                 ]
               }
             ],
@@ -143,6 +151,9 @@ export default defineComponent({
                   { label: "Архитектура", param: "tags"},
                   { label: "Микросервисы", param: "tags"},
                   { label: "Контейнеризация", param: "tags"},
+                  { label: "Databases", param: "tags"},
+                  { label: "Machine Learning", param: "tags"},
+                  { label: "Cloud Native", param: "tags"},
                 ]
               }
             ],
