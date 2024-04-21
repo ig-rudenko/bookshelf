@@ -12,6 +12,7 @@ from ..crud.books import (
     update_book,
     get_book,
     get_book_detail,
+    get_last_books,
 )
 from ..crud.publishers import get_publishers
 from ..models import User
@@ -29,6 +30,15 @@ from ..services.permissions import check_book_owner_permission
 from ..settings import settings
 
 router = APIRouter(prefix="/books", tags=["books"])
+
+
+@router.get("/recent", response_model=list[BookSchema])
+async def get_recent_books_view(
+    session: AsyncSession = Depends(get_session, use_cache=True),
+):
+    """Последние добавленные книги"""
+    books = await get_last_books(session, 10)
+    return [BookSchema.model_validate(book) for book in books]
 
 
 @router.get("/publishers", response_model=list[str])

@@ -7,6 +7,13 @@ from ..models import Publisher, Tag, Book, User, favorite_books_association, boo
 from ..schemas.books import CreateBookSchema, BookSchemaDetail
 
 
+async def get_last_books(session: AsyncSession, limit: int) -> list[Book]:
+    query = select(Book).order_by(Book.id.desc()).limit(limit)
+    result = await session.execute(query)
+    result.unique()
+    return list(result.scalars().all())
+
+
 async def get_book(session: AsyncSession, book_id: int) -> Book:
     try:
         return await Book.get(session, id=book_id)
