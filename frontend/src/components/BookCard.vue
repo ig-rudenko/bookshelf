@@ -9,7 +9,7 @@
       <h2 class="book-title">
         <a class="no-underline text-900" :href="'/book/'+book.id">{{book.title}}</a>
       </h2>
-      <div class="m-2">
+      <div class="align-items-end flex m-2" :style="{'font-size': isMobile?'0.7rem':'1rem'}">
         <span v-if="!isMobile" class="mr-2">Издательство</span><i class="pi pi-building mr-2"/>
         <span @click="$emit('select:publisher', book.publisher.name)" class="text-primary cursor-pointer">{{book.publisher.name}}</span>
         <span class="ml-2">{{book.year}} г.</span>
@@ -17,15 +17,16 @@
 
       <div class="flex align-items-center" :style="{'flex-direction': isMobile?'row':'column'}">
 
-        <div v-if="isMobile" class="m-2 chips">
+        <div v-if="isMobile" class="chips">
           <i class="pi pi-tag" @click="toggleTagsOverlay"/>
           <OverlayPanel ref="tags">
             <Chip v-for="(tag, index) in book.tags" :key="index" :label="tag.name" @click="selectTag(tag)" class="m-1 cursor-pointer" style="font-size: 0.7rem;" icon="pi pi-tag" />
           </OverlayPanel>
         </div>
-        <div class="m-2">
+
+        <div class="m-2 flex flex-row align-items-center">
           <span v-if="!isMobile" class="mr-2">Язык книги: {{book.language}}</span>
-          <img :alt="book.language" :src="`https://flagcdn.com/${getLanguagePairByLabel(book.language).code}.svg`" class="border-1 border-500" style="width: 18px" />
+          <img :alt="book.language" :src="`https://flagcdn.com/${getLanguagePairByLabel(book.language).code}.svg`" class="border-1 border-500" style="width: 24px" />
         </div>
 
       </div>
@@ -186,9 +187,9 @@ export default defineComponent({
   }
 
   .book-title {
-    font-size: 0.7rem;
-    margin: 0;
-    padding: 0;
+    font-size: 0.8rem;
+    margin: 0!important;
+    padding: 0!important;
   }
 
   .book-about {
