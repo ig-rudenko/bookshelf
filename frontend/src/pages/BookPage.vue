@@ -43,7 +43,7 @@
           <Chip v-tooltip.bottom="'Найти похожие'" class="m-1" icon="pi pi-tag" :key="index" :label="tag.name" />
         </a>
       </div>
-      <div class="p-3 w-full" v-html="textToHtml(book.description)"></div>
+      <div class="p-3 w-full text-justify" v-html="textToHtml(book.description)"></div>
     </div>
   </div>
 

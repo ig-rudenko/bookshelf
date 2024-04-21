@@ -2,8 +2,8 @@
 
   <div style="padding-bottom: 150px;">
     <div class="border-300 border-top-1 footer w-full">
-      <div class="flex justify-content-center my-5 align-items-center">
-        <Avatar image="/img/bookshelf_icon.png" size="normal" shape="square" />
+      <div class="flex justify-content-center m-5 align-items-center">
+        <div class="mr-3"><Avatar image="/img/bookshelf_icon.png" size="normal" shape="square" /></div>
         <div class="mr-5">
           <span class="px-2">&copy; 2024</span>
           Книги для IT специалистов

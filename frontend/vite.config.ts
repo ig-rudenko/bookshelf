@@ -14,12 +14,12 @@ export default defineConfig({
   server: {
     proxy: {
       '/api/v1': {
-        target: 'http://127.0.0.1:8000',
+        target: 'https://it-bookshelf.ru',
         changeOrigin: true,
         secure: false,
         ws: true,
       },
-      '/media': { target: 'http://127.0.0.1:8000', secure: false },
+      '/media': { target: 'https://it-bookshelf.ru', secure: false },
     }
   }
 })

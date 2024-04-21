@@ -1,7 +1,7 @@
 <template>
 
   <div class="card-plate" :style="{width: compactView?'16rem':'45rem'}">
-    <div class="flex mr-1">
+    <div class="flex">
       <img @click="showBook" :src="book.previewImage" :style="{'max-height': isMobile?'100%':'400px', 'max-width': isMobile?'100%':'300px', width: '16rem'}" class="border-round-xl cursor-pointer" alt="book"/>
     </div>
 

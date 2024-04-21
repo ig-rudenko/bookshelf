@@ -1,6 +1,10 @@
 <template>
   <Menu/>
 
+  <div class="mt-4">
+    <RecentBooks/>
+  </div>
+
   <div class="flex flex-wrap justify-content-center p-2">
     <SearchBookForm
         @compactView="v => compactView = v"
@@ -46,11 +50,12 @@ import SearchBookForm from "@/components/SearchBookForm.vue";
 import {PaginatedBookResult} from "@/books";
 import api from "@/services/api";
 import {createFilterBook, FilterBook} from "@/filters";
+import RecentBooks from "@/components/RecentBooks.vue";
 
 
 export default defineComponent({
   name: "Home",
-  components: {Footer, SearchBookForm, BookCard, Menu},
+  components: {RecentBooks, Footer, SearchBookForm, BookCard, Menu},
   data() {
       return {
         results: null as PaginatedBookResult|null,
