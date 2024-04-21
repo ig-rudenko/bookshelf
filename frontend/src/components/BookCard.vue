@@ -200,8 +200,8 @@ export default defineComponent({
 
   .book-image {
     border-radius: 0!important;
-    max-height: 120px;
-    max-width: 80px;
+    max-height: 150px;
+    max-width: 95px;
   }
 
 }
