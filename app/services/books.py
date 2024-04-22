@@ -96,32 +96,38 @@ async def set_file(session: AsyncSession, file: UploadFile, book: Book):
     await book.save(session)
 
 
-async def create_book_preview(book_id: int) -> None:
-    # Создаем директорию для хранения книги
-    book_folder = settings.media_root / "books" / str(book_id)
-    preview_folder = settings.media_root / "previews" / str(book_id)
-    preview_folder.mkdir(parents=True, exist_ok=True)
+async def create_book_preview(book_id: int) -> str:
+    try:
+        # Создаем директорию для хранения книги
+        book_folder = settings.media_root / "books" / str(book_id)
+        preview_folder = settings.media_root / "previews" / str(book_id)
+        preview_folder.mkdir(parents=True, exist_ok=True)
 
-    # Получаем расширение файла
-    file_name = ""
-    for file in book_folder.glob("*.pdf"):
-        file_name = file.name
-    if not file_name:
-        return
+        # Получаем расширение файла
+        file_name = ""
+        for file in book_folder.glob("*"):
+            file_name = file.name
+        if not file_name:
+            return "Book file not found"
 
-    book_file_path = book_folder.glob("*.pdf")
-    book_preview_path = preview_folder / "preview.png"
+        book_file_path = book_folder / file_name
+        book_preview_path = preview_folder / "preview.png"
 
-    doc = fitz.Document(book_file_path.absolute())
-    page = doc.load_page(0)
-    pix = page.get_pixmap()
-    pix.save(book_preview_path.absolute())
+        doc = fitz.Document(book_file_path.absolute())
+        page = doc.load_page(0)
+        pix = page.get_pixmap()
+        pix.save(book_preview_path.absolute())
 
-    async with db_manager.session() as session:
-        book = await Book.get(session, id=book_id)
-        book.preview_image = f"{settings.media_url}/previews/{book_id}/preview.png"
-        book.pages = doc.page_count
-        await book.save(session)
+        async with db_manager.session() as session:
+            book = await Book.get(session, id=book_id)
+            book.preview_image = f"{settings.media_url}/previews/{book_id}/preview.png"
+            book.pages = doc.page_count
+            await book.save(session)
+
+        return "Done"
+
+    except Exception as exc:
+        return str(exc)
 
 
 _QT = TypeVar("_QT", bound=Select)

@@ -14,4 +14,4 @@ db_manager.init(settings.database_url)
 
 @celery.task(name="create_book_preview", ignore_result=True)
 def create_book_preview_task(book_id):
-    asyncio.run(create_book_preview(book_id))
+    print(asyncio.run(create_book_preview(book_id)))

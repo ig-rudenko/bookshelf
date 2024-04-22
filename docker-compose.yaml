@@ -45,6 +45,8 @@ services:
       - config/env/api
     environment:
       CELERY_BROKER_URL: "redis://celery-broker:6379/1"
+    volumes:
+      - "./media:/app/media"
     depends_on:
       celery-broker:
         condition: service_started
