@@ -1,4 +1,5 @@
 import re
+import shutil
 from typing import TypeVar, TypedDict
 
 import aiofiles
@@ -9,6 +10,7 @@ from sqlalchemy import select, func, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.base import query_count
+from app.crud.books import get_book
 from app.models import Book, User, Tag, Publisher
 from app.orm.session_manager import db_manager
 from app.schemas.books import BookSchema, BooksSchemaPaginated
@@ -168,3 +170,11 @@ def _filter_books_query_by_params(query: _QT, query_params: QueryParams) -> _QT:
         tags = list(map(lambda x: x.lower(), query_params["tags"]))
         query = query.join(Book.tags).where(func.lower(Tag.name).in_(tags))
     return query
+
+
+async def delete_book(session: AsyncSession, book_id: int) -> None:
+    """Удаление книги, её файла и всех превью"""
+    book = await get_book(session, book_id)
+    await book.delete(session)
+    shutil.rmtree(settings.media_root / 'books' / str(book_id))
+    shutil.rmtree(settings.media_root / 'previews' / str(book_id))

@@ -25,7 +25,7 @@ from ..schemas.books import (
     BookSchemaWithDesc,
 )
 from ..services.auth import get_current_user, get_user_or_none
-from ..services.books import set_file, QueryParams, get_filtered_books
+from ..services.books import set_file, QueryParams, get_filtered_books, delete_book
 from ..services.celery import create_book_preview_task
 from ..services.permissions import check_book_owner_permission
 from ..services.thumbnail import get_thumbnail
@@ -159,8 +159,7 @@ async def delete_book_view(
 ):
     """Удаление книги"""
     await check_book_owner_permission(session, current_user.id, book_id)
-    book = await get_book(session, book_id)
-    await book.delete(session)
+    await delete_book(session, book_id)
 
 
 @router.post("/{book_id}/upload", response_model=BookSchema)
