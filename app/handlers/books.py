@@ -26,6 +26,7 @@ from ..schemas.books import (
 )
 from ..services.auth import get_current_user, get_user_or_none
 from ..services.books import set_file, QueryParams, get_filtered_books
+from ..services.celery import create_book_preview_task
 from ..services.permissions import check_book_owner_permission
 from ..settings import settings
 
@@ -175,6 +176,7 @@ async def upload_book_file(
     await check_book_owner_permission(session, current_user.id, book)
 
     await set_file(session, file, book)
+    create_book_preview_task.delay(book.id)
 
     return BookSchema.model_validate(book)
 

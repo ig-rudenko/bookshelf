@@ -35,6 +35,23 @@ services:
       interval: 5s
       retries: 5
 
+  celery-worker:
+    build: .
+    image: bookshelf:0.1
+    command: celery -A app.services.celery worker --loglevel=info --logfile=logs/celery.log
+    env_file:
+      - config/env/api
+    environment:
+      CELERY_BROKER_URL: "redis://celery-broker:6379/1"
+    depends_on:
+      celery-broker:
+        condition: service_started
+      database:
+        condition: service_healthy
+
+  celery-broker:
+    image: redis:7.2.4-alpine
+
   database:
     image: postgres:16.2
     restart: always

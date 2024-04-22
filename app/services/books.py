@@ -3,14 +3,14 @@ from typing import TypeVar, TypedDict
 
 import aiofiles
 import fitz
-from fastapi import UploadFile, status
-from fastapi.exceptions import HTTPException
+from fastapi import UploadFile
 from slugify import slugify
 from sqlalchemy import select, func, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.base import query_count
 from app.models import Book, User, Tag, Publisher
+from app.orm.session_manager import db_manager
 from app.schemas.books import BookSchema, BooksSchemaPaginated
 from app.services.paginator import paginate
 from app.settings import settings
@@ -80,38 +80,48 @@ async def set_file(session: AsyncSession, file: UploadFile, book: Book):
     file_name = slugify(file_name) + ".pdf"
     # Создаем директорию для хранения книги
     book_folder = settings.media_root / "books" / str(book.id)
-    preview_folder = settings.media_root / "previews" / str(book.id)
     book_folder.mkdir(parents=True, exist_ok=True)
-    preview_folder.mkdir(parents=True, exist_ok=True)
+    book_file_path = book_folder / file_name
 
     # Удаляем старый файл книги
     for old_file in book_folder.glob("*.pdf"):
         old_file.unlink()
 
-    async with aiofiles.open(book_folder / file_name, "wb") as f:
-        while content := await file.read(1024):
+    async with aiofiles.open(book_file_path, "wb") as f:
+        while content := await file.read(1024 * 1024):
             await f.write(content)
 
+    book.file = f"books/{book.id}/{file_name}"
+    book.size = book_file_path.stat().st_size
+    await book.save(session)
+
+
+async def create_book_preview(book_id: int) -> None:
+    # Создаем директорию для хранения книги
+    book_folder = settings.media_root / "books" / str(book_id)
+    preview_folder = settings.media_root / "previews" / str(book_id)
+    preview_folder.mkdir(parents=True, exist_ok=True)
+
     # Получаем расширение файла
-    book_file_path = book_folder / file_name
+    file_name = ""
+    for file in book_folder.glob("*.pdf"):
+        file_name = file.name
+    if not file_name:
+        return
+
+    book_file_path = book_folder.glob("*.pdf")
     book_preview_path = preview_folder / "preview.png"
 
-    try:
-        doc = fitz.Document(book_file_path.absolute())
-    except fitz.FileDataError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Ошибка чтения файла, загрузите другой"
-        )
-
+    doc = fitz.Document(book_file_path.absolute())
     page = doc.load_page(0)
     pix = page.get_pixmap()
     pix.save(book_preview_path.absolute())
 
-    book.file = f"books/{book.id}/{file_name}"
-    book.preview_image = f"{settings.media_url}/previews/{book.id}/preview.png"
-    book.size = book_file_path.stat().st_size
-    book.pages = doc.page_count
-    await book.save(session)
+    async with db_manager.session() as session:
+        book = await Book.get(session, id=book_id)
+        book.preview_image = f"{settings.media_url}/previews/{book_id}/preview.png"
+        book.pages = doc.page_count
+        await book.save(session)
 
 
 _QT = TypeVar("_QT", bound=Select)
