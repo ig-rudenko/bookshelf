@@ -23,6 +23,8 @@ services:
     command: /bin/sh run.sh
     volumes:
       - "./media:/app/media"
+    environment:
+      CELERY_BROKER_URL: "redis://celery-broker:6379/1"
     env_file:
       - config/env/api
     depends_on:
@@ -38,7 +40,7 @@ services:
   celery-worker:
     build: .
     image: bookshelf:0.1
-    command: celery -A app.services.celery worker --loglevel=info --logfile=logs/celery.log
+    command: celery -A app.services.celery worker --loglevel=info
     env_file:
       - config/env/api
     environment:
