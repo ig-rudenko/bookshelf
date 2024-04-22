@@ -28,6 +28,7 @@ from ..services.auth import get_current_user, get_user_or_none
 from ..services.books import set_file, QueryParams, get_filtered_books
 from ..services.celery import create_book_preview_task
 from ..services.permissions import check_book_owner_permission
+from ..services.thumbnail import get_thumbnail
 from ..settings import settings
 
 router = APIRouter(prefix="/books", tags=["books"])
@@ -37,9 +38,12 @@ router = APIRouter(prefix="/books", tags=["books"])
 async def get_recent_books_view(
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
-    """Последние добавленные книги"""
-    books = await get_last_books(session, 10)
-    return [BookSchema.model_validate(book) for book in books]
+    """Последние 25 добавленных книг"""
+    books = await get_last_books(session, 25)
+    books_schemas = [BookSchema.model_validate(book) for book in books]
+    for book in books_schemas:
+        book.preview_image = get_thumbnail(book.preview_image, "small")
+    return books_schemas
 
 
 @router.get("/publishers", response_model=list[str])
