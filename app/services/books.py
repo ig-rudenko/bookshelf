@@ -26,7 +26,8 @@ async def get_paginated_books(session: AsyncSession, query, paginator) -> BooksS
     books = [BookSchema.model_validate(row) for row in res.scalars()]
 
     # Заменяем оригинальные картинки на миниатюры
-    books = list(map(lambda b: b.preview_image.replace(".png", "_thumb.png"), books))
+    for book in books:
+        book.preview_image = book.preview_image.replace(".png", "_thumb.png")
 
     return BooksSchemaPaginated(
         books=books,
