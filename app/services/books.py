@@ -13,6 +13,7 @@ from app.models import Book, User, Tag, Publisher
 from app.orm.session_manager import db_manager
 from app.schemas.books import BookSchema, BooksSchemaPaginated
 from app.services.paginator import paginate
+from app.services.thumbnail import create_thumbnail
 from app.settings import settings
 
 
@@ -23,6 +24,9 @@ async def get_paginated_books(session: AsyncSession, query, paginator) -> BooksS
     res.unique()
     count = await query_count(query, session)
     books = [BookSchema.model_validate(row) for row in res.scalars()]
+
+    # Заменяем оригинальные картинки на миниатюры
+    books = list(map(lambda b: b.preview_image.replace(".png", "_thumb.png"), books))
 
     return BooksSchemaPaginated(
         books=books,
@@ -123,6 +127,8 @@ async def create_book_preview(book_id: int) -> str:
             book.preview_image = f"{settings.media_url}/previews/{book_id}/preview.png"
             book.pages = doc.page_count
             await book.save(session)
+
+        create_thumbnail(book_preview_path, (260, 380))
 
         return "Done"
 
