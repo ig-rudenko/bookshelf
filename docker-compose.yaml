@@ -52,7 +52,7 @@ services:
     volumes:
       - "./media:/app/media"
     depends_on:
-      celery-broker:
+      redis:
         condition: service_started
       database:
         condition: service_healthy
