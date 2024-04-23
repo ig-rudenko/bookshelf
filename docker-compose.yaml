@@ -85,7 +85,7 @@ services:
       - "/etc/letsencrypt/ssl-dhparams.pem:/etc/ssl/ssl-dhparams.pem:ro"
     depends_on:
       pgadmin4:
-        condition: service_healthy
+        condition: service_started
 
 
   pgadmin4:
@@ -96,9 +96,3 @@ services:
     depends_on:
       database:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "wget -O - http://localhost:8080/misc/ping"]
-      start_period: 5s
-      timeout: 10s
-      interval: 5s
-      retries: 5
