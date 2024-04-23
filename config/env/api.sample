@@ -1,3 +1,4 @@
 DATABASE_URL=postgresql+asyncpg://dbuser:dbpassword@database:5432/bookshelf
 JWT_SECRET_KEY=kojfiajsidfasdifoamsdhfioahsdofhiophe890ry19028y9r081he9rw
 MEDIA_STORAGE=/app/media
+LOG_LEVEL=INFO
