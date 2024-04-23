@@ -62,11 +62,18 @@ export default defineComponent({
         results: null as PaginatedBookResult|null,
         filters: new FilterBook(),
         compactView: false,
+        windowWidth: window.innerWidth,
       }
   },
   mounted() {
     this.filters = createFilterBook(this.$route.query)
     this.getBooksList(1, this.filters);
+    window.addEventListener('resize', () => this.windowWidth = window.innerWidth);
+  },
+  computed: {
+    isMobile() {
+      return this.windowWidth <= 768;
+    },
   },
   methods: {
     getBooksList(page: number, filter: null|FilterBook=null) {
@@ -78,8 +85,17 @@ export default defineComponent({
 
       api.get("/books" + urlParams)
           .then(
-              (value: AxiosResponse<PaginatedBookResult>) => this.results = value.data
+              (value: AxiosResponse<PaginatedBookResult>) => this.results = this.replaceThumb(value.data)
           )
+    },
+
+    replaceThumb(data: PaginatedBookResult): PaginatedBookResult {
+      if (this.isMobile) {
+        for (const book of data.books) {
+          book.previewImage = book.previewImage.replace("medium.png", "small.png")
+        }
+      }
+      return data
     },
 
     selectTag(tag: string) {
