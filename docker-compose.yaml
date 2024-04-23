@@ -24,7 +24,9 @@ services:
     volumes:
       - "./media:/app/media"
     environment:
-      CELERY_BROKER_URL: "redis://celery-broker:6379/1"
+      CELERY_BROKER_URL: "redis://redis:6379/1"
+      REDIS_HOST: "redis"
+      REDIS_DB: 0
     env_file:
       - config/env/api
     depends_on:
@@ -44,7 +46,9 @@ services:
     env_file:
       - config/env/api
     environment:
-      CELERY_BROKER_URL: "redis://celery-broker:6379/1"
+      CELERY_BROKER_URL: "redis://redis:6379/1"
+      REDIS_HOST: "redis"
+      REDIS_DB: 0
     volumes:
       - "./media:/app/media"
     depends_on:
@@ -53,7 +57,7 @@ services:
       database:
         condition: service_healthy
 
-  celery-broker:
+  redis:
     image: redis:7.2.4-alpine
 
   database:

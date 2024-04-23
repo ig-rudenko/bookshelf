@@ -14,6 +14,7 @@ from app.crud.books import get_book
 from app.models import Book, User, Tag, Publisher
 from app.orm.session_manager import db_manager
 from app.schemas.books import BookSchema, BooksSchemaPaginated
+from app.services.cache import get_cache, cached
 from app.services.paginator import paginate
 from app.services.thumbnail import create_thumbnails, get_thumbnail
 from app.settings import settings
@@ -176,5 +177,21 @@ async def delete_book(session: AsyncSession, book_id: int) -> None:
     """Удаление книги, её файла и всех превью"""
     book = await get_book(session, book_id)
     await book.delete(session)
-    shutil.rmtree(settings.media_root / 'books' / str(book_id))
-    shutil.rmtree(settings.media_root / 'previews' / str(book_id))
+    shutil.rmtree(settings.media_root / "books" / str(book_id))
+    shutil.rmtree(settings.media_root / "previews" / str(book_id))
+
+
+@cached(60 * 60 * 24, "recent_books", variable_positions=[2])
+async def get_recent_books(session: AsyncSession, limit: int) -> list[BookSchema]:
+    query = select(Book).order_by(Book.id.desc()).limit(limit)
+    result = await session.execute(query)
+    result.unique()
+    books = result.scalars().all()
+    books_schemas = [BookSchema.model_validate(book) for book in books]
+    for book in books_schemas:
+        book.preview_image = get_thumbnail(book.preview_image, "small")
+    return books_schemas
+
+
+async def delete_recent_books_cache() -> None:
+    await get_cache().delete_namespace("recent_books")

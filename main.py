@@ -13,9 +13,9 @@ from app.settings import settings
 @asynccontextmanager
 async def startup(app_instance: FastAPI):
     db_manager.init(settings.database_url)
-    print("Database initialized")
+    settings.logger.info("Database initialized")
     yield
-    print("Database closed")
+    settings.logger.info("Database closed")
     await db_manager.close()
 
 

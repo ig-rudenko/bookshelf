@@ -12,7 +12,6 @@ from ..crud.books import (
     update_book,
     get_book,
     get_book_detail,
-    get_last_books,
 )
 from ..crud.publishers import get_publishers
 from ..models import User
@@ -25,10 +24,16 @@ from ..schemas.books import (
     BookSchemaWithDesc,
 )
 from ..services.auth import get_current_user, get_user_or_none
-from ..services.books import set_file, QueryParams, get_filtered_books, delete_book
+from ..services.books import (
+    set_file,
+    QueryParams,
+    get_filtered_books,
+    delete_book,
+    get_recent_books,
+    delete_recent_books_cache,
+)
 from ..services.celery import create_book_preview_task
 from ..services.permissions import check_book_owner_permission
-from ..services.thumbnail import get_thumbnail
 from ..settings import settings
 
 router = APIRouter(prefix="/books", tags=["books"])
@@ -39,11 +44,7 @@ async def get_recent_books_view(
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Последние 25 добавленных книг"""
-    books = await get_last_books(session, 25)
-    books_schemas = [BookSchema.model_validate(book) for book in books]
-    for book in books_schemas:
-        book.preview_image = get_thumbnail(book.preview_image, "small")
-    return books_schemas
+    return await get_recent_books(session, 25)
 
 
 @router.get("/publishers", response_model=list[str])
@@ -114,6 +115,8 @@ async def create_book_view(
             status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав для создания книги"
         )
     book = await create_book(session, current_user, book_data)
+    # Удаляем кэш недавно добавленных книг, потому что добавилась новая книга.
+    await delete_recent_books_cache()
     return book
 
 
@@ -148,6 +151,8 @@ async def update_book_view(
     book = await get_book(session, book_id)
     await check_book_owner_permission(session, current_user.id, book)
     book = await update_book(session, book, book_data)
+    # Удаляем кэш недавно добавленных книг, потому что могло поменять название книги
+    await delete_recent_books_cache()
     return BookSchemaWithDesc.model_validate(book)
 
 
@@ -160,6 +165,8 @@ async def delete_book_view(
     """Удаление книги"""
     await check_book_owner_permission(session, current_user.id, book_id)
     await delete_book(session, book_id)
+    # Удаляем кэш недавно добавленных книг, потому что могла удалиться новая книга
+    await delete_recent_books_cache()
 
 
 @router.post("/{book_id}/upload", response_model=BookSchema)
