@@ -60,6 +60,7 @@ export default defineComponent({
   data() {
       return {
         results: null as PaginatedBookResult|null,
+        lastUrlParams: "",
         filters: new FilterBook(),
         compactView: false,
         windowWidth: window.innerWidth,
@@ -82,6 +83,11 @@ export default defineComponent({
       if (filter?.urlParams) urlParams += `&${filter.urlParams}`;
 
       history.pushState({ path: urlParams }, '', urlParams);
+
+      if (this.lastUrlParams == urlParams) return;
+      this.lastUrlParams = urlParams
+
+      if (this.results) this.results.books = [];
 
       api.get("/books" + urlParams)
           .then(
