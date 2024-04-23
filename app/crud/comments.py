@@ -11,6 +11,7 @@ from app.schemas.comments import CommentUserSchema, CommentCreateUpdateSchema, U
 async def create_comment(
     session: AsyncSession, data: CommentCreateUpdateSchema, book_id: int, user_id: int
 ) -> Comment:
+    data.text = data.text.strip()
     comment = await Comment.create(session, **data.model_dump(), book_id=book_id, user_id=user_id)
     await session.commit()
     return comment

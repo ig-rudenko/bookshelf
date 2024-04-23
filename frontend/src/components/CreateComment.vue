@@ -19,7 +19,6 @@ export default defineComponent({
   },
   methods: {
     sendComment() {
-      this.text = this.text.replace(/\s/g, "");
       if (this.text.length < 1) return;
 
       api.post("/comments/book/"+this.bookId, {text: this.text})
