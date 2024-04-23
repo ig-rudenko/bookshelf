@@ -19,4 +19,5 @@ def create_book_preview_task(book_id):
         # Удаляем кэш недавно добавленных книг, потому что могла замениться обложка книги
         await delete_recent_books_cache()
 
-    print(asyncio.run(async_task()))
+    loop = asyncio.get_event_loop()
+    print(loop.run_until_complete(async_task()))
