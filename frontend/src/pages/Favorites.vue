@@ -9,6 +9,8 @@
     <template v-if="result">
       <BookCard
           v-for="(book, index) in result.books" :key="index"
+          @select:publisher="filterBooksByPublisher"
+          @select:tag="filterBooksByTag"
           :compactView="compactView"
           :book="book"
           class="m-2"/>
@@ -83,6 +85,8 @@ export default defineComponent({
       api.get("/bookmarks/favorite" + urlParams)
           .then((value: AxiosResponse<PaginatedBookResult>) => this.result = value.data)
     },
+    filterBooksByPublisher(publisher: string) { document.location.href = "/?publisher=" + publisher;},
+    filterBooksByTag(tag: string) { document.location.href = "/?tags=" + tag;},
 
   }
 })

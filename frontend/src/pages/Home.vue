@@ -14,7 +14,7 @@
   <div class="flex flex-wrap justify-content-center align-content-center">
     <template v-if="results">
       <BookCard
-          @select:tag="(t: any) => selectTag(t.name)"
+          @select:tag="selectTag"
           @select:publisher="selectPublisher"
           v-for="(book, index) in results.books" :key="index"
           :compactView="compactView"

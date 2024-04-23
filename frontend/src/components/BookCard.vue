@@ -20,7 +20,7 @@
         <div v-if="isMobile" class="chips">
           <i class="pi pi-tag" @click="toggleTagsOverlay"/>
           <OverlayPanel ref="tags">
-            <Chip v-for="(tag, index) in book.tags" :key="index" :label="tag.name" @click="selectTag(tag)" class="m-1 cursor-pointer" style="font-size: 0.7rem;" icon="pi pi-tag" />
+            <Chip v-for="(tag, index) in book.tags" :key="index" :label="tag.name" @click="selectTag(tag.name)" class="m-1 cursor-pointer" style="font-size: 0.7rem;" icon="pi pi-tag" />
           </OverlayPanel>
         </div>
 
@@ -42,7 +42,7 @@
           <i class="pi pi-book mx-2"/>{{book.pages}} стр. <i class="pi pi-file mx-2"/>{{formatBytes(book.size)}}
         </div>
         <div class="m-2 chips">
-          <Chip v-for="(tag, index) in book.tags" :key="index" :label="tag.name" @click="selectTag(tag)" class="m-1 cursor-pointer" style="font-size: 0.8rem;" icon="pi pi-tag" />
+          <Chip v-for="(tag, index) in book.tags" :key="index" :label="tag.name" @click="selectTag(tag.name)" class="m-1 cursor-pointer" style="font-size: 0.8rem;" icon="pi pi-tag" />
         </div>
       </div>
 
@@ -97,7 +97,7 @@ export default defineComponent({
     showBook() {
       document.location.href = `/book/${this.book.id}`;
     },
-    selectTag(tag: {id: number, name: string}) {
+    selectTag(tag: string) {
       this.$emit('select:tag', tag);
     },
 
