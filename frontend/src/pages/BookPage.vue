@@ -21,6 +21,10 @@
         </template>
       </div>
 
+      <div class="p-2 pb-4">
+        <BookViewStats :book="book" />
+      </div>
+
       <div class="m-2">
         <span>Издательство <i class="pi pi-building mr-2"/></span>
         <a :href="'/?publisher='+book.publisher.name" class="text-primary no-underline" v-tooltip.bottom="'Фильтр по издателю'">{{book.publisher.name}}</a>
@@ -93,10 +97,11 @@ import {BookDetail} from "@/books";
 import {CommentResult} from "@/comment"
 import {getLanguagePairByLabel} from "@/languages";
 import {formatBytes, textToHtml} from "../formatter";
+import BookViewStats from "@/components/BookViewStats.vue";
 
 export default defineComponent({
   name: "BookPage",
-  components: {Bookmarks, Footer, Comment, CreateComment, Menu,},
+  components: {BookViewStats, Bookmarks, Footer, Comment, CreateComment, Menu,},
   data() {
       return {
         book: null as BookDetail|null,

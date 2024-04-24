@@ -151,3 +151,12 @@ books_read_association = Table(
     Column("book_id", Integer, ForeignKey("books.id", ondelete="CASCADE")),
     Column("user_id", Integer, ForeignKey("users.id", ondelete="CASCADE")),
 )
+
+
+class UserData(OrmBase, Manager):
+    __tablename__ = "users_data"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    book_id: Mapped[int] = mapped_column(ForeignKey("books.id", ondelete="CASCADE"))
+
+    pdf_history: Mapped[str] = mapped_column(String(256), nullable=True)

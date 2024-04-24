@@ -258,7 +258,7 @@ export default defineComponent({
 
     async uploadBookFile(bookData: BookWithDesc) {
       const status = await bookService.uploadBookFile(bookData, (<Blob>this.bookFile), this.onUploadProgress);
-      if (status) document.location.href = "/book/"+this.editBookId;
+      if (status) document.location.href = "/book/"+(this.editBookId||bookData.id);
     },
 
     onUploadProgress(progressEvent: AxiosProgressEvent) {

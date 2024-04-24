@@ -128,7 +128,7 @@ export default defineComponent({
   align-items: center!important;
   -webkit-box-pack: center!important;
   -ms-flex-pack: center!important;
-  justify-content: center!important;
+  justify-content: space-between!important;
 }
 
 .chips {
