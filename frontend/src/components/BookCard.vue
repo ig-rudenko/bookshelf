@@ -9,7 +9,7 @@
       <h2 class="book-title">
         <a class="no-underline text-900" :href="'/book/'+book.id">{{book.title}}</a>
       </h2>
-      <div class="align-items-end flex m-2" :style="{'font-size': isMobile?'0.7rem':'1rem'}">
+      <div class="align-items-end flex m-2 flex-wrap justify-content-center gap-1" :style="{'font-size': isMobile?'0.7rem':'1rem'}">
         <span v-if="!isMobile" class="mr-2">Издательство</span><i class="pi pi-building mr-2"/>
         <span @click="$emit('select:publisher', book.publisher.name)" class="text-primary cursor-pointer">{{book.publisher.name}}</span>
         <span class="ml-2">{{book.year}} г.</span>

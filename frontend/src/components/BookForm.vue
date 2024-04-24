@@ -1,7 +1,7 @@
 <template>
 <div class="flex flex-wrap flex-column align-content-center">
 
-  <div v-if="loading && bookFile" class="py-3">
+  <div v-if="loading && bookFile" class="py-5 w-full p-5">
     <MeterGroup :value="[{label: 'Загрузка файла', value: uploadProgress, color: 'primary', icon: '' }]"/>
   </div>
 
@@ -48,45 +48,39 @@
 
         <div class="flex flex-column gap-2 pb-2 w-25rem w-full">
           <label for="book.title">Название книги</label>
-          <InputText id="book.title" class="w-full" v-model="book.title"/>
+          <InputText id="book.title" class="w-full" :class="validator.title?'':'p-invalid'" v-model="book.title"/>
+          <InlineMessage class="zoomin cursor-pointer" v-tooltip="'Проверить заново'" severity="error" v-if="!validator.title" @click="validator.validateTitle(book.title)">Укажите от 1 до 128 символов</InlineMessage>
         </div>
         <div class="flex flex-column gap-2 pb-2">
           <label for="book.authors">Авторы</label>
-          <InputText class="w-full" id="book.authors" v-model="book.authors" />
+          <InputText class="w-full" id="book.authors" v-model="book.authors" :class="validator.authors?'':'p-invalid'" />
+          <InlineMessage class="zoomin cursor-pointer" v-tooltip="'Проверить заново'" severity="error" v-if="!validator.authors" @click="validator.validateAuthors(book.authors)">Укажите от 1 до 254 символов</InlineMessage>
         </div>
         <div class="flex flex-column gap-2 pb-2">
           <label for="book.publisher">Издательство</label>
-          <AutoComplete input-class="w-full" id="book.authors" v-model="book.publisher" :suggestions="publishersList" @complete="searchPublishers" />
+          <AutoComplete input-class="w-full" :class="validator.publisher?'':'p-invalid'"
+                        id="book.authors" v-model="book.publisher" :suggestions="publishersList" @complete="searchPublishers" />
+          <InlineMessage class="zoomin cursor-pointer" v-tooltip="'Проверить заново'" severity="error" v-if="!validator.publisher" @click="validator.validatePublisher(book.publisher)">Укажите от 1 до 128 символов</InlineMessage>
         </div>
         <div class="flex flex-column gap-2 pb-2">
           <label for="book.year">Год издания</label>
-          <InputNumber input-class="w-6rem" id="book.year" v-model="book.year" suffix=" г." :useGrouping="false" aria-describedby="book.year-help"/>
+          <InputNumber input-class="w-6rem" :class="validator.year?'':'p-invalid'"
+                       id="book.year" v-model="book.year" suffix=" г." :useGrouping="false" aria-describedby="book.year-help"/>
           <small id="book.year-help">Укажите год публикации оригинала</small>
+          <InlineMessage class="zoomin cursor-pointer" v-tooltip="'Проверить заново'" severity="error" v-if="!validator.year" @click="validator.validateYear(book.year)">Укажите год в пределах от 1000 до {{new Date().getFullYear()+1}}</InlineMessage>
         </div>
 
         <div class="flex flex-column gap-2 pb-2">
           <label for="book.language">Язык книги</label>
-          <Dropdown id="book.language" v-model="book.language" :options="languages">
-            <template #option="slotProps">
-              <div class="flex align-items-center">
-                <img :alt="slotProps.option.label" :src="`https://flagcdn.com/${slotProps.option.code}.svg`" class="mr-2" style="width: 18px" />
-                <div>{{ slotProps.option.label }}</div>
-              </div>
-            </template>
-            <template #value="data">
-              <div v-if="data.value" class="flex align-items-center">
-                <img :alt="data.value.label" :src="`https://flagcdn.com/${data.value.code}.svg`" class="mr-2" style="width: 18px" />
-                <div>{{ data.value.label }}</div>
-              </div>
-            </template>
-          </Dropdown>
+          <LanguageDropdown :language="book.language" @update="l => book.language=l" :class="validator.language?'':'p-invalid'"/>
+          <InlineMessage class="zoomin cursor-pointer" v-tooltip="'Проверить заново'" severity="error" v-if="!validator.language" @click="validator.validateLanguage(book.language)">Укажите от 1 до 128 символов</InlineMessage>
         </div>
 
         <div class="pb-2">
-          <Button @click="book.private_=!book.private_"
-                  :severity="book.private_?'contrast':'primary'"
-                  :icon="book.private_?'pi pi-eye-slash':'pi pi-eye'"
-                  :label="book.private_?'Никто не увидит вашу книгу':'Книга будет доступна всем'" class="w-full" />
+          <Button @click="book.private=!book.private"
+                  :severity="book.private?'contrast':'primary'"
+                  :icon="book.private?'pi pi-eye-slash':'pi pi-eye'"
+                  :label="book.private?'Никто не увидит вашу книгу':'Книга будет доступна всем'" class="w-full" />
         </div>
 
         <div class="flex flex-column gap-2 pb-2">
@@ -95,6 +89,10 @@
             <InputText @keydown.enter="addTag" id="book.tags" v-cloak v-model="currentTag" separator="," aria-describedby="book.tags-help" />
             <Button icon="pi pi-plus" severity="success" @click="addTag" />
           </InputGroup>
+          <div class="flex flex-column zoomin cursor-pointer" v-tooltip="'Проверить заново'" @click="validator.validateTags(book.tags)">
+            <InlineMessage severity="error" v-if="!validator.tagsCount">Укажите от 1 до 20 тегов</InlineMessage>
+            <InlineMessage severity="error" v-if="!validator.tagLength">Название тега должно быть от 1 до 128 символов</InlineMessage>
+          </div>
         </div>
       </div>
 
@@ -112,7 +110,8 @@
 
   <div class="flex flex-column gap-2 pb-2">
     <label for="book.description">Описание книги</label>
-    <Textarea id="book.description" v-model="book.description" rows="6"/>
+    <Textarea id="book.description" v-model="book.description" rows="6" :class="validator.description?'':'p-invalid'"/>
+    <InlineMessage class="zoomin cursor-pointer" v-tooltip="'Проверить заново'" severity="error" @click="validator.validateDescription(book.description)" v-if="!validator.description">Укажите описание, но не более 4096 символов</InlineMessage>
   </div>
 
 </div>
@@ -124,11 +123,13 @@ import {AxiosProgressEvent, AxiosResponse} from "axios";
 import {AutoCompleteCompleteEvent} from "primevue/autocomplete";
 
 import api from "@/services/api";
-import {BookDetail, BookWithDesc, CreateBook} from "@/books";
-import {getLanguagePairByLabel, languagesList} from "@/languages";
+import {BookDetail, BookValidator, BookWithDesc, CreateBook} from "@/books";
+import LanguageDropdown from "@/components/LanguageDropdown.vue";
+import bookService from "@/services/books.ts";
 
 export default defineComponent({
   name: "CreateBook",
+  components: {LanguageDropdown},
   props: {
     editBookId: {required: false, type: Number, default: 0},
   },
@@ -137,8 +138,8 @@ export default defineComponent({
         bookFile: null as (File|null),
         editBookPreview: "",
         book: new CreateBook(),
+        validator: new BookValidator(),
         currentTag: "",
-        languages: languagesList,
         windowWidth: window.innerWidth,
         publishersList: [] as string[],
         loading: false,
@@ -175,6 +176,7 @@ export default defineComponent({
       if (this.currentTag.length > 0 && !this.book.tags.includes(this.currentTag)) {
         this.book.tags.push(this.currentTag);
         this.currentTag = "";
+        this.validator.validateTags(this.book.tags)
       }
     },
     removeTag(index: number) {
@@ -227,70 +229,40 @@ export default defineComponent({
       return `${start}...${end}`;
     },
 
-    createBook() {
-      const data = {
-        title: this.book.title,
-        authors: this.book.authors,
-        publisher: this.book.publisher,
-        description: this.book.description,
-        year: this.book.year,
-        private: this.book.private_,
-        language: this.book.language?.label,
-        tags: this.book.tags,
-      }
+    async createBook() {
+      this.validator.validate(this.book)
+      if (!this.validator.isValid) return;
 
       if (this.editMode) {
-        this.loading = true;
         // Редактирование книги
-        api.put(`/books/${this.editBookId}`, data)
-            .then(
-                (value: AxiosResponse<BookWithDesc>) => {
-                  if (value.status == 200 && this.bookFile) {
-                    this.uploadBookFile(value.data);
-                  } else if (value.status == 200) {
-                    document.location.href = "/book/"+this.editBookId;
-                  }
-                }
-            )
-            .catch(() => {this.loading = false;})
+        this.loading = true;
+        const book = await bookService.updateBook(this.editBookId, this.book)
+        if (book && this.bookFile) {
+          await this.uploadBookFile(book)
+        } else {
+          document.location.href = "/book/"+this.editBookId;
+        }
+        this.loading = false;
+
       } else {
         // Создание новой книги
         if (!this.bookFile) return;
         this.loading = true;
-        api.post("/books", data)
-            .then(
-                (value: AxiosResponse<BookWithDesc>) => {
-                  if (value.status == 201) {
-                    this.uploadBookFile(value.data);
-                  } else {
-                    this.loading = false;
-                  }
-                }
-            )
-            .catch(() => {this.loading = false;})
+        const book = await bookService.createBook(this.book)
+        if (book) {
+          await this.uploadBookFile(book);
+        }
+        this.loading = false;
       }
     },
 
-    uploadBookFile(bookData: BookWithDesc) {
-      const form = new FormData()
-      form.append("file", (<Blob>this.bookFile))
-      api.post("/books/"+bookData.id+"/upload", form,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-            onUploadProgress: (progressEvent: AxiosProgressEvent) => {
-              this.uploadProgress = (progressEvent.progress||0) * 100;
-            },
-          }
-      )
-          .then(
-              (value: AxiosResponse<any>) => {
-                if (value.status == 200) this.$router.push("/book/"+bookData.id);
-                this.loading = false;
-              },
-          )
-          .catch(() => {this.loading = false;})
+    async uploadBookFile(bookData: BookWithDesc) {
+      const status = await bookService.uploadBookFile(bookData, (<Blob>this.bookFile), this.onUploadProgress);
+      if (status) document.location.href = "/book/"+this.editBookId;
+    },
+
+    onUploadProgress(progressEvent: AxiosProgressEvent) {
+      this.uploadProgress = (progressEvent.progress||0) * 100;
     },
 
     getEditBook() {
@@ -310,7 +282,7 @@ export default defineComponent({
                     response.data.year,
                     response.data.private,
                     tags,
-                    getLanguagePairByLabel(response.data.language),
+                    response.data.language,
                 );
                 this.editBookPreview = response.data.previewImage;
               }

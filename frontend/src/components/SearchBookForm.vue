@@ -21,7 +21,8 @@
         </div>
         <div class="flex flex-column gap-2 pb-2">
           <label for="filter.publisher">Издательство</label>
-          <InputText input-class="w-full" id="filter.authors" @keydown.enter="doFilter" v-model="filterData.publisher" />
+          <AutoComplete input-class="w-full" id="filter.authors" @keydown.enter="doFilter" v-model="filterData.publisher"
+                        :suggestions="publishersList" @complete="searchPublishers" />
         </div>
         <div class="flex flex-column gap-2 pb-2">
           <label for="filter.year">Кол-во страниц</label>
@@ -32,6 +33,12 @@
             <InputNumber input-class="w-8rem" id="filter.pagesLt" @keydown.enter="doFilter" v-model="filterData.pagesLt" />
           </div>
         </div>
+
+        <div class="flex flex-column gap-2 pb-2">
+          <label for="book.language">Язык книги</label>
+          <LanguageDropdown :language="filterData.language" @update="l => filterData.language=l" :showClear="true"/>
+        </div>
+
         <div class="flex flex-column gap-2 pb-2">
           <label for="filter.tags">Теги</label>
           <InputGroup>
@@ -68,9 +75,14 @@
 import {defineComponent} from 'vue'
 import OverlayPanel from "primevue/overlaypanel";
 import {FilterBook} from "@/filters.ts";
+import {AutoCompleteCompleteEvent} from "primevue/autocomplete";
+import api from "@/services/api.ts";
+import {AxiosResponse} from "axios";
+import LanguageDropdown from "@/components/LanguageDropdown.vue";
 
 export default defineComponent({
   name: "SearchBookForm",
+  components: {LanguageDropdown},
   emits: ["filtered", "compactView"],
   props: {
     filterData: {required: true, type: FilterBook},
@@ -79,6 +91,7 @@ export default defineComponent({
       return {
         currentTag: "",
         compactView: false,
+        publishersList: [] as string[],
       }
   },
   methods: {
@@ -106,7 +119,16 @@ export default defineComponent({
     toggleCompactView() {
       this.compactView = !this.compactView;
       this.$emit("compactView", this.compactView);
-    }
+    },
+
+    searchPublishers(event: AutoCompleteCompleteEvent) {
+      api.get("/books/publishers?name="+event.query)
+          .then(
+              (value: AxiosResponse<string[]>) => {
+                this.publishersList = value.data;
+              }
+          )
+    },
   },
 })
 </script>

@@ -5,14 +5,14 @@
     <RecentBooks/>
   </div>
 
-  <div class="flex flex-wrap justify-content-center p-2">
+  <div id="search-block" class="flex flex-wrap justify-content-center p-2">
     <SearchBookForm
         @compactView="v => compactView = v"
         :filterData="filters" @filtered="(f) => {filters = f; getBooksList(1, f)}" />
   </div>
 
   <div class="flex flex-wrap justify-content-center align-content-center">
-    <template v-if="results">
+    <template v-if="results && !loadingBooks">
       <BookCard
           @select:tag="selectTag"
           @select:publisher="selectPublisher"
@@ -22,10 +22,11 @@
           class="m-2"/>
     </template>
 
-    <template v-else>
+    <template v-else-if="loadingBooks">
       <!--Заглушка-->
       <Skeleton v-for="i in [1,2,3,4]" :key="i" width="45rem" height="23.5rem" class="m-2 border-round-2xl shadow-2"></Skeleton>
     </template>
+
   </div>
 
   <Paginator v-if="results"
@@ -41,7 +42,6 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue';
-import {AxiosResponse} from "axios";
 
 import Menu from "@/components/Menu.vue";
 import Footer from "@/components/Footer.vue";
@@ -49,9 +49,9 @@ import BookCard from "@/components/BookCard.vue";
 import SearchBookForm from "@/components/SearchBookForm.vue";
 
 import {PaginatedBookResult} from "@/books";
-import api from "@/services/api";
 import {createFilterBook, FilterBook} from "@/filters";
 import RecentBooks from "@/components/RecentBooks.vue";
+import bookService from "@/services/books.ts";
 
 
 export default defineComponent({
@@ -64,6 +64,7 @@ export default defineComponent({
         filters: new FilterBook(),
         compactView: false,
         windowWidth: window.innerWidth,
+        loadingBooks: false,
       }
   },
   mounted() {
@@ -78,21 +79,14 @@ export default defineComponent({
   },
   methods: {
     getBooksList(page: number, filter: null|FilterBook=null) {
-      let urlParams = `?page=${page}`;
-      if (this.results) urlParams += `&per-page=${this.results.perPage}`;
-      if (filter?.urlParams) urlParams += `&${filter.urlParams}`;
-
-      history.pushState({ path: urlParams }, '', urlParams);
-
-      if (this.lastUrlParams == urlParams) return;
-      this.lastUrlParams = urlParams
-
-      if (this.results) this.results.books = [];
-
-      api.get("/books" + urlParams)
-          .then(
-              (value: AxiosResponse<PaginatedBookResult>) => this.results = this.replaceThumb(value.data)
-          )
+      this.loadingBooks = true
+      location.hash = "#search-block";
+      bookService.getBooksList(page, filter, this.results?.perPage).then(
+          (value: PaginatedBookResult|null) => {
+            if (value) this.results = this.replaceThumb(value);
+            this.loadingBooks = false;
+          }
+      ).catch(() => {this.loadingBooks = false})
     },
 
     replaceThumb(data: PaginatedBookResult): PaginatedBookResult {
