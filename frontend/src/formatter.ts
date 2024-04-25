@@ -18,7 +18,7 @@ function textToHtml(text: string): string {
 
 
 function wrapLinks(text: string): string {
-    let regex: RegExp = /\[(\S+?)]\((https?:\/\/\S+)\)/g;
+    let regex: RegExp = /\[([\S\s]+?)]\((https?:\/\/\S+)\)/g;
     text = text.replace(regex, '<a href="$2" target="_blank">$1</a>')
 
     // Создаем регулярное выражение для поиска ссылок
