@@ -5,7 +5,7 @@ class PDFHistorySchema(BaseModel):
     fingerprint: str
     sidebarView: int
     page: int
-    zoom: str
+    zoom: str | int
     scrollLeft: int
     scrollTop: int
     rotation: int

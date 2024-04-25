@@ -16,6 +16,7 @@ async def get_last_viewed_books(
         select(Book, UserData.pdf_history)
         .join(UserData)
         .where(UserData.user_id == user.id)
+        .group_by(UserData.id)
         .group_by(Book.id)
         .order_by(UserData.id.desc())
     )
