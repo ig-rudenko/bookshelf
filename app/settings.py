@@ -17,6 +17,7 @@ class _BaseSettings(BaseSettings):
     log_level: str = "INFO"
 
     # Путь к медиа хранилищу
+    media_storage_type: str = "local"
     media_storage: str = "./media"
     media_root: Path = Path(media_storage)
     media_root.mkdir(exist_ok=True, parents=True)

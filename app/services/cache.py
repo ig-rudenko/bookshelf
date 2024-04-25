@@ -7,21 +7,10 @@ from typing import Any, Optional, TypedDict, Callable
 
 from redis.asyncio import Redis
 
+from app.services.deco import singleton
 from app.settings import settings
 
 logger = logging.getLogger(__name__)
-
-
-def singleton(cls):
-    """Декоратор синглтона"""
-
-    @wraps(cls)
-    def wrapper(*args, **kwargs):
-        if not hasattr(cls, "_instance"):
-            cls._instance = cls(*args, **kwargs)
-        return cls._instance
-
-    return wrapper
 
 
 class AbstractCache(ABC):

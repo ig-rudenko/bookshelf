@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+from app.schemas.base import CamelAliasModel, CamelSerializerModel
 
 
 class PDFHistorySchema(BaseModel):
@@ -13,3 +15,12 @@ class PDFHistorySchema(BaseModel):
 
 class PDFHistoryFilesSchema(BaseModel):
     files: list[PDFHistorySchema]
+
+
+class CreatePdfJSHistorySchema(CamelAliasModel):
+    pdf_history: str = Field(..., max_length=256)
+
+
+class PdfJSHistorySchema(CamelSerializerModel):
+    id: int
+    pdf_history: str

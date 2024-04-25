@@ -372,8 +372,6 @@ class UploadBookFileTest(BaseBookTest):
     async def asyncSetUp(self):
         await super().asyncSetUp()
         self.file_path = pathlib.Path(__file__).parent / "sample-pdf-file.pdf"
-        settings.media_root = pathlib.Path(__file__).parent / "media-test"
-        settings.media_root.mkdir(parents=True, exist_ok=True)
 
     async def asyncTearDown(self):
         await super().asyncTearDown()

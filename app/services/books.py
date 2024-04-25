@@ -1,23 +1,20 @@
-import re
-import shutil
-from typing import TypeVar, TypedDict
+from typing import TypeVar, TypedDict, BinaryIO
 
-import aiofiles
 import fitz
 from fastapi import UploadFile
-from slugify import slugify
-from sqlalchemy import select, func, Select
+from sqlalchemy import select, func, Select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.crud.base import query_count
-from app.crud.books import get_book
-from app.models import Book, User, Tag, Publisher
-from app.orm.session_manager import db_manager
-from app.schemas.books import BookSchema, BooksSchemaPaginated
-from app.services.cache import get_cache, cached
-from app.services.paginator import paginate
-from app.services.thumbnail import create_thumbnails, get_thumbnail
-from app.settings import settings
+from ..crud.base import query_count
+from ..crud.books import get_book
+from ..media_storage import get_storage
+from ..models import Book, User, Tag, Publisher, UserData
+from ..orm.session_manager import db_manager
+from ..schemas.books import BookSchema, BooksSchemaPaginated
+from ..services.cache import get_cache, cached
+from ..services.paginator import paginate
+from ..services.thumbnail import create_thumbnails, get_thumbnail
+from ..settings import settings
 
 
 async def get_paginated_books(session: AsyncSession, query, paginator) -> BooksSchemaPaginated:
@@ -79,65 +76,33 @@ async def set_file(session: AsyncSession, file: UploadFile, book: Book):
     """
     Создаем для книги файл, а также превью для его просмотра.
     """
-    # Фильтруем запрещенные символы
-    if file_match := re.search(r"(?P<file_name>.+)\.pdf$", str(file.filename)):
-        file_name = file_match.group("file_name")
-    else:
-        file_name = f"book_{book.id}"
-
-    file_name = slugify(file_name) + ".pdf"
-    # Создаем директорию для хранения книги
-    book_folder = settings.media_root / "books" / str(book.id)
-    book_folder.mkdir(parents=True, exist_ok=True)
-    book_file_path = book_folder / file_name
-
-    # Удаляем старый файл книги
-    for old_file in book_folder.glob("*.pdf"):
-        old_file.unlink()
-
-    async with aiofiles.open(book_file_path, "wb") as f:
-        while content := await file.read(1024 * 1024):
-            await f.write(content)
-
-    book.file = f"books/{book.id}/{file_name}"
-    book.size = book_file_path.stat().st_size
+    storage = get_storage()
+    book.file = await storage.upload_book(file, book.id)
+    book.size = file.size or 0
     await book.save(session)
 
 
 async def create_book_preview(book_id: int) -> str:
-    try:
-        # Создаем директорию для хранения книги
-        book_folder = settings.media_root / "books" / str(book_id)
-        preview_folder = settings.media_root / "previews" / str(book_id)
-        preview_folder.mkdir(parents=True, exist_ok=True)
+    storage = get_storage()
+    with storage.get_book_binary(book_id) as file_data:  # type: BinaryIO
+        doc = fitz.Document(stream=file_data.read())
 
-        # Получаем расширение файла
-        file_name = ""
-        for file in book_folder.glob("*"):
-            file_name = file.name
-        if not file_name:
-            return "Book file not found"
+    page = doc.load_page(0)
+    pix: fitz.Pixmap = page.get_pixmap()
+    image: bytearray = pix.tobytes()
 
-        book_file_path = book_folder / file_name
-        book_preview_path = preview_folder / "preview.png"
+    preview_name = f"previews/{book_id}/preview.png"
+    await storage.upload_file(preview_name, image)
 
-        doc = fitz.Document(book_file_path.absolute())
-        page = doc.load_page(0)
-        pix = page.get_pixmap()
-        pix.save(book_preview_path.absolute())
+    async with db_manager.session() as session:
+        book = await Book.get(session, id=book_id)
+        book.preview_image = f"{settings.media_url}/{preview_name}"
+        book.pages = doc.page_count
+        await book.save(session)
 
-        async with db_manager.session() as session:
-            book = await Book.get(session, id=book_id)
-            book.preview_image = f"{settings.media_url}/previews/{book_id}/preview.png"
-            book.pages = doc.page_count
-            await book.save(session)
+    await create_thumbnails(storage, preview_name)
 
-        create_thumbnails(book_preview_path)
-
-        return "Done"
-
-    except Exception as exc:
-        return str(exc)
+    return "Done"
 
 
 _QT = TypeVar("_QT", bound=Select)
@@ -176,9 +141,10 @@ def _filter_books_query_by_params(query: _QT, query_params: QueryParams) -> _QT:
 async def delete_book(session: AsyncSession, book_id: int) -> None:
     """Удаление книги, её файла и всех превью"""
     book = await get_book(session, book_id)
+    # Удаляем пользовательские данные, которые связаны с этой книгой.
+    await session.execute(delete(UserData).where(UserData.book_id == book.id))
     await book.delete(session)
-    shutil.rmtree(settings.media_root / "books" / str(book_id))
-    shutil.rmtree(settings.media_root / "previews" / str(book_id))
+    await get_storage().delete_book(book.id)
 
 
 @cached(60 * 60 * 24, "recent_books", variable_positions=[2])

@@ -3,9 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import User
 from ..orm.session_manager import get_session
-from ..schemas.user_data import PdfJSHistorySchema, CreatePdfJSHistorySchema
+from ..schemas.pdf_history import CreatePdfJSHistorySchema, PdfJSHistorySchema
 from ..services.auth import get_current_user
-from ..services.user_data import get_pdf_history_data, set_pdf_history_data
+from ..services.pdf_history import get_pdf_history_data, set_pdf_history_data
 
 router = APIRouter(prefix="/user-data", tags=["user-data"])
 

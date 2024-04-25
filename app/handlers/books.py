@@ -1,7 +1,5 @@
-import pathlib
-from typing import Optional, AsyncIterable
+from typing import Optional
 
-import aiofiles
 from fastapi import APIRouter, UploadFile, HTTPException, Depends, status, Query
 from fastapi.responses import StreamingResponse
 from slugify import slugify
@@ -14,6 +12,7 @@ from ..crud.books import (
     get_book_detail,
 )
 from ..crud.publishers import get_publishers
+from ..media_storage import get_storage
 from ..models import User
 from ..orm.session_manager import get_session
 from ..schemas.books import (
@@ -37,7 +36,6 @@ from ..services.celery import create_book_preview_task
 from ..services.paginator import paginator_query
 from ..services.pdf_history import get_last_viewed_books
 from ..services.permissions import check_book_owner_permission
-from ..settings import settings
 
 router = APIRouter(prefix="/books", tags=["books"])
 
@@ -217,11 +215,7 @@ async def download_book_file(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="У вас нет прав на скачивание файла данной книги",
         )
-
-    async def get_data_from_file(file_path: pathlib.Path) -> AsyncIterable[bytes]:
-        async with aiofiles.open(file_path, "rb") as f:
-            while content := await f.read(1024 * 1024):
-                yield content
+    storage = get_storage()
 
     headers = {
         "Cache-Control": "max-age=86400",
@@ -229,8 +223,13 @@ async def download_book_file(
     if as_file:
         headers["Content-Disposition"] = f'attachment; filename="{slugify(book.title)}.pdf"'
 
+    try:
+        book_async_iterator = storage.get_book_iterator(book.id)
+    except storage.FileNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Файл книги не найден")
+
     return StreamingResponse(
-        content=get_data_from_file(settings.media_root / book.file),
+        content=book_async_iterator,
         media_type="application/pdf",
         headers=headers,
     )

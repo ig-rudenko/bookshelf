@@ -1,10 +1,12 @@
+from fastapi import HTTPException
 from sqlalchemy import select
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..crud.base import query_count
 from ..models import User, Book, UserData
 from ..schemas.books import BookWithReadPagesSchema, BooksWithReadPagesPaginatedSchema
-from ..schemas.pdf_history import PDFHistoryFilesSchema
+from ..schemas.pdf_history import PDFHistoryFilesSchema, PdfJSHistorySchema, CreatePdfJSHistorySchema
 from ..services.paginator import paginate
 from ..services.thumbnail import get_thumbnail
 
@@ -46,3 +48,27 @@ async def get_last_viewed_books(
         max_pages=count // paginator["per_page"] or 1,
         per_page=paginator["per_page"],
     )
+
+
+async def get_pdf_history_data(session: AsyncSession, user_id: int, book_id: int) -> PdfJSHistorySchema:
+    try:
+        user_data = await UserData.get(session, user_id=user_id, book_id=book_id)
+    except NoResultFound:
+        raise HTTPException(status_code=404, detail="Пользовательские данные не существуют")
+    return PdfJSHistorySchema.model_validate(user_data)
+
+
+async def set_pdf_history_data(
+    session: AsyncSession, user_id: int, book_id: int, data: CreatePdfJSHistorySchema
+) -> PdfJSHistorySchema:
+    try:
+        user_data = await UserData.get(session, user_id=user_id, book_id=book_id)
+    except NoResultFound:
+        user_data = await UserData.create(
+            session, pdf_history=data.pdf_history, user_id=user_id, book_id=book_id
+        )
+    else:
+        user_data.pdf_history = data.pdf_history
+        await user_data.save(session)
+
+    return PdfJSHistorySchema.model_validate(user_data)
