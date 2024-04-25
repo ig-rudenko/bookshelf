@@ -122,12 +122,12 @@ export default defineComponent({
               {
                 label: "Популярные издатели",
                 items: [
-                  { label: "O'Reilly", param: "publisher", classes: ['bg-white'], image: "https://cdn.oreillystatic.com/images/sitewide-headers/oreilly_logo_mark_red.svg"},
-                  { label: 'Manning Publications', param: "publisher", classes: ['bg-white'], image: "https://www.manning.com/assets/manningLettersBlack-0ebe3f78d807742e74e80ce85f130096.svg"},
-                  { label: 'Packt', param: "publisher", classes: ['bg-white'], image: "https://www.packtpub.com/images/logo-new.svg"},
-                  { label: 'БХВ-Петербург', param: "publisher", classes: ['bg-white'], image: "https://textarchive.ru/images/716/1430749/6b3cdbad.gif"},
-                  { label: 'No Starch Press Inc.', param: "publisher", classes: ['bg-black-alpha-90'], image: "https://nostarch.com/sites/all/themes/nostarch/logo.png"},
-                  { label: 'Питер', param: "publisher", classes: ['bg-white'], image: "https://segment.ru/upload/usersImg/ab0/Piter.jpg"},
+                  { label: "O'Reilly", param: "publisher", classes: ['bg-white'], image: "/img/menu/publishers/oreilly.png"},
+                  { label: 'Manning Publications', param: "publisher", classes: ['bg-white'], image: "/img/menu/publishers/manning.png"},
+                  { label: 'Packt', param: "publisher", classes: ['bg-white'], image: "/img/menu/publishers/packt.png"},
+                  { label: 'БХВ-Петербург', param: "publisher", classes: ['bg-white'], image: "/img/menu/publishers/bvh-piter.png"},
+                  { label: 'No Starch Press Inc.', param: "publisher", classes: ['bg-black-alpha-90'], image: "/img/menu/publishers/no-starch-press.png"},
+                  { label: 'Питер', param: "publisher", classes: ['bg-white'], image: "/img/menu/publishers/piter.png"},
                 ]
               }
             ],
@@ -135,13 +135,13 @@ export default defineComponent({
               {
                 label: "Языки программирования",
                 items: [
-                  { label: 'Python', param: "tags", subtext: "Python", image: "https://www.vectorlogo.zone/logos/python/python-icon.svg" },
-                  { label: 'Go', param: "tags", subtext: "Go", image: 'https://www.vectorlogo.zone/logos/golang/golang-official.svg' },
-                  { label: 'Java Script', param: "tags", subtext: "Java Script", image: "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg" },
-                  { label: 'Java', param: "tags", subtext: "Java", image: "https://www.vectorlogo.zone/logos/java/java-icon.svg" },
-                  { label: 'R-lang', param: "tags", subtext: "R-lang", image: "https://www.vectorlogo.zone/logos/r-project/r-project-official.svg" },
-                  { label: 'C%2B%2B', param: "tags", subtext: "C++", image: "https://www.vectorlogo.zone/logos/isocpp/isocpp-icon.svg" },
-                  { label: 'Kotlin', param: "tags", subtext: "Kotlin", image: "https://www.vectorlogo.zone/logos/kotlinlang/kotlinlang-icon.svg" },
+                  { label: 'Python', param: "tags", subtext: "Python", image: "/img/menu/langs/python.svg" },
+                  { label: 'Go', param: "tags", subtext: "Go", image: '/img/menu/langs/go.svg' },
+                  { label: 'Java Script', param: "tags", subtext: "Java Script", image: "/img/menu/langs/js.svg" },
+                  { label: 'Java', param: "tags", subtext: "Java", image: "/img/menu/langs/java.svg" },
+                  { label: 'R-lang', param: "tags", subtext: "R-lang", image: "/img/menu/langs/r-lang.svg" },
+                  { label: 'C%2B%2B', param: "tags", subtext: "C++", image: "/img/menu/langs/c-plusplus.svg" },
+                  { label: 'Kotlin', param: "tags", subtext: "Kotlin", image: "/img/menu/langs/kotlin.svg" },
                 ]
               }
             ],
