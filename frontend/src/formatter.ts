@@ -16,4 +16,15 @@ function textToHtml(text: string): string {
     return text.replace(/\n/g, '<br>')
 }
 
-export {formatBytes, verboseDate, textToHtml}
+
+function wrapLinks(text: string): string {
+    let regex: RegExp = /\[(\S+?)]\((https?:\/\/\S+)\)/g;
+    text = text.replace(regex, '<a href="$2" target="_blank">$1</a>')
+
+    // Создаем регулярное выражение для поиска ссылок
+    regex = /(?<!(\S]\()|(href="))(https?:\/\/\S+)/g;
+    // Заменяем все найденные ссылки на теги <a href="...">...</a>
+    return text.replace(regex, '<a href="$3" target="_blank">$3</a>')
+}
+
+export {formatBytes, verboseDate, textToHtml, wrapLinks}

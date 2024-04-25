@@ -20,9 +20,7 @@
         <Textarea class="w-full" rows="7" v-model="commentText" />
         <Button severity="success" label="Обновить" @click="updateComment" />
       </div>
-      <div v-else>
-        {{comment.text}}
-      </div>
+      <div v-else v-html="textToHtml(wrapLinks(comment.text))"></div>
     </template>
   </Card>
 
@@ -43,7 +41,7 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
 import {Comment} from "@/comment";
-import {verboseDate} from "../formatter";
+import {textToHtml, verboseDate, wrapLinks} from "../formatter";
 import {mapState} from "vuex";
 import api from "@/services/api";
 import {AxiosError, AxiosResponse} from "axios";
@@ -70,6 +68,8 @@ export default defineComponent({
     }),
   },
   methods: {
+    wrapLinks,
+    textToHtml,
     verboseDate,
     deleteComment() {
       api.delete("/comments/" + this.comment.id)

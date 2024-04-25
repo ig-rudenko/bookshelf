@@ -47,7 +47,7 @@
           <Chip v-tooltip.bottom="'Найти похожие'" class="m-1" icon="pi pi-tag" :key="index" :label="tag.name" />
         </a>
       </div>
-      <div class="p-3 w-full text-justify" v-html="textToHtml(book.description)"></div>
+      <div class="p-3 w-full text-justify" v-html="textToHtml(wrapLinks(book.description))"></div>
     </div>
   </div>
 
@@ -96,7 +96,7 @@ import api from "@/services/api";
 import {BookDetail} from "@/books";
 import {CommentResult} from "@/comment"
 import {getLanguagePairByLabel} from "@/languages";
-import {formatBytes, textToHtml} from "../formatter";
+import {formatBytes, textToHtml, wrapLinks} from "../formatter";
 import BookViewStats from "@/components/BookViewStats.vue";
 
 export default defineComponent({
@@ -126,6 +126,7 @@ export default defineComponent({
     }
   },
   methods: {
+    wrapLinks,
     textToHtml,
     getLanguagePairByLabel,
     formatBytes,
