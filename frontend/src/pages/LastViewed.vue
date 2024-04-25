@@ -10,7 +10,7 @@
 
   <div class="flex flex-wrap justify-content-center align-content-center">
     <template v-if="result">
-      <div v-for="(book, index) in result.books" :key="index" class="border-round-2xl flex flex-wrap justify-content-center p-2 p-card shadow-2 card">
+      <div v-for="(book, index) in result.books" :key="index" class="border-round-2xl card flex flex-wrap justify-content-center m-2 p-2 p-card shadow-2">
         <div class="p-2 w-full">
           <MeterGroup class="meter-font" v-if="book.readPages" :value="[{label: verboseValue(book), value: percents(book), color: 'primary', icon: 'pi pi-file' }]"/>
         </div>
