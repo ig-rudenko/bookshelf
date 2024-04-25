@@ -73,8 +73,10 @@ export default defineComponent({
   },
 
   mounted() {
+    if (this.loggedIn) {
       this.getFavoriteCount();
       this.getReadCount();
+    }
   },
 
   computed: {
@@ -165,6 +167,15 @@ export default defineComponent({
 
         data.push(this.favoriteItem)
         data.push(this.readItem)
+        data.push(
+          {
+            label: "Недавние",
+            icon: "pi pi-eye",
+            // iconColor: "red",
+            href: "/last-viewed",
+            root: true,
+          }
+        )
 
         if (this.user?.isStaff) {
           data.push({ label: "Добавить книгу", icon: "pi pi-plus", href: "/create-book", root: true })

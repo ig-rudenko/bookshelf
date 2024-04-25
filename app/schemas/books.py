@@ -57,3 +57,15 @@ class BooksSchemaPaginated(CamelSerializerModel):
     current_page: int
     max_pages: int
     per_page: int
+
+
+class BookWithReadPagesSchema(BookSchema):
+    read_pages: int = Field(0)
+
+
+class BooksWithReadPagesPaginatedSchema(BooksSchemaPaginated):
+    books: list[BookWithReadPagesSchema]
+    total_count: int
+    current_page: int
+    max_pages: int
+    per_page: int

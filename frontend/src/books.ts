@@ -114,6 +114,10 @@ export interface BookDetail extends Book {
     read: boolean
 }
 
+export interface BookWithReadPages extends Book {
+    readPages: number
+}
+
 
 export interface PaginatedBookResult {
     books: Book[],
@@ -121,4 +125,8 @@ export interface PaginatedBookResult {
     currentPage: number,
     maxPages: number,
     perPage: number
+}
+
+export interface BookWithReadPagesPaginatedResult extends PaginatedBookResult{
+    books: BookWithReadPages[],
 }

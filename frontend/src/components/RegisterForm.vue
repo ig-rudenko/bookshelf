@@ -1,9 +1,9 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
-import {mapState, mapActions} from "vuex";
+import {mapActions, mapState} from "vuex";
 
 import {RegisterUser} from "@/user";
-import {AxiosError, AxiosResponse} from "axios";
+import {AxiosError} from "axios";
 import getVerboseAxiosError from "@/errorFmt.ts";
 
 export default defineComponent({
@@ -37,12 +37,8 @@ export default defineComponent({
       if (!this.user.isValid) return;
 
       this.register(this.user)
-          .then(
-          (value: AxiosResponse|AxiosError) => {
-            if (value.status == 200) this.$router.push("/");
-            this.userError = (<AxiosError>value).message
-          },
-      ).catch(
+          .then(() => this.$router.push("/login"))
+          .catch(
           (reason: AxiosError<any>) => {
             this.userError = getVerboseAxiosError(reason)
           }
@@ -84,15 +80,15 @@ export default defineComponent({
 
       <div class="mb-5">
         <FloatLabel>
-          <InputText @keydown.enter="handleRegister" v-model="user.password" id="password-input" type="password" :class="getClassesFor(user.valid.password)" />
-          <label for="password-input" class="block text-900 mb-2">Password</label>
+          <InputText @keydown.enter="handleRegister" v-model="user.password" id="password1-input" type="password" :class="getClassesFor(user.valid.password)" />
+          <label for="password1-input" class="block text-900 mb-2">Password</label>
         </FloatLabel>
         <InlineMessage v-if="!user.valid.password" severity="error">{{user.valid.passwordError}}</InlineMessage>
       </div>
 
       <FloatLabel class="mb-5">
-        <InputText @keydown.enter="handleRegister" v-model="user.password2" id="password-input" type="password" :class="getClassesFor(user.valid.password)" />
-        <label for="password-input" class="block text-900 mb-2">Confirm password</label>
+        <InputText @keydown.enter="handleRegister" v-model="user.password2" id="password2-input" type="password" :class="getClassesFor(user.valid.password)" />
+        <label for="password2-input" class="block text-900 mb-2">Confirm password</label>
       </FloatLabel>
 
       <Button label="Sign In" icon="pi pi-user" @click="handleRegister" class="w-full"></Button>

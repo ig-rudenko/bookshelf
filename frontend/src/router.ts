@@ -16,6 +16,7 @@ import UpdateBook from "@/pages/UpdateBook.vue";
 import ShowBook from "@/pages/ShowBook.vue";
 import Favorites from "@/pages/Favorites.vue";
 import ReadBooks from "@/pages/ReadBooks.vue";
+import LastViewed from "@/pages/LastViewed.vue";
 
 
 const beforeEnter = (to: RouteLocationNormalized, _: RouteLocationNormalized, next: NavigationGuardNext) => {
@@ -33,6 +34,7 @@ const routes: RouteRecordRaw[] = [
     { path: "/signup", component: Register },
     { path: "/favorites", component: Favorites },
     { path: "/read", component: ReadBooks },
+    { path: "/last-viewed", component: LastViewed },
     { path: "/create-book", component: CreateBook },
     { path: "/book/:id", component: BookPage, beforeEnter: beforeEnter },
     { path: "/book/:id/edit", component: UpdateBook, beforeEnter: beforeEnter },

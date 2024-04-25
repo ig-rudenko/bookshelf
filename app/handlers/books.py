@@ -22,6 +22,7 @@ from ..schemas.books import (
     BooksSchemaPaginated,
     BookSchemaDetail,
     BookSchemaWithDesc,
+    BooksWithReadPagesPaginatedSchema,
 )
 from ..services.auth import get_current_user, get_user_or_none
 from ..services.books import (
@@ -33,6 +34,8 @@ from ..services.books import (
     delete_recent_books_cache,
 )
 from ..services.celery import create_book_preview_task
+from ..services.paginator import paginator_query
+from ..services.pdf_history import get_last_viewed_books
 from ..services.permissions import check_book_owner_permission
 from ..settings import settings
 
@@ -54,6 +57,15 @@ async def get_publishers_view(
     user: Optional[User] = Depends(get_user_or_none),
 ):
     return await get_publishers(session, name, user)
+
+
+@router.get("/last-viewed", response_model=BooksWithReadPagesPaginatedSchema)
+async def get_last_viewed_books_view(
+    paginator: dict = Depends(paginator_query),
+    session: AsyncSession = Depends(get_session, use_cache=True),
+    user: Optional[User] = Depends(get_current_user),
+):
+    return await get_last_viewed_books(session, user, paginator)
 
 
 def books_query_params(

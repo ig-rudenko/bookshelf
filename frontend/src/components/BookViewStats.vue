@@ -31,7 +31,7 @@ export default defineComponent({
       return this.currentPage/this.book.pages*100
     },
     verboseValue() {
-      return `Прочитанно страниц: ${this.currentPage}/${this.book.pages}`;
+      return `Прочитано страниц: ${this.currentPage}/${this.book.pages}`;
     }
   },
   methods: {
