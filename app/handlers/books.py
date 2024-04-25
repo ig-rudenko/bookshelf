@@ -61,7 +61,7 @@ async def get_publishers_view(
 async def get_last_viewed_books_view(
     paginator: dict = Depends(paginator_query),
     session: AsyncSession = Depends(get_session, use_cache=True),
-    user: Optional[User] = Depends(get_current_user),
+    user: User = Depends(get_current_user),
 ):
     return await get_last_viewed_books(session, user, paginator)
 

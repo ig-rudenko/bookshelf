@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import AsyncIterable, BinaryIO, Iterator
 
 import aiofiles
-from fastapi import File
+from fastapi import UploadFile
 from slugify import slugify
 
 from .base import AbstractStorage
@@ -31,7 +31,7 @@ class LocalStorage(AbstractStorage):
     def media_root(self, value):
         self._media_root = self._format_media_root(value)
 
-    async def upload_book(self, file: File, book_id: int) -> str:
+    async def upload_book(self, file: UploadFile, book_id: int) -> str:
         # Фильтруем запрещенные символы
         if file_match := re.search(r"(?P<file_name>.+)\.pdf$", str(file.filename)):
             file_name = file_match.group("file_name")
@@ -83,13 +83,13 @@ class LocalStorage(AbstractStorage):
             raise self.FileNotFoundError
 
         try:
-            file = open(book_folder / file_name, "rb")
+            book_file = open(book_folder / file_name, "rb")
         except OSError:
             raise self.FileNotFoundError
         try:
-            yield file
+            yield book_file
         finally:
-            file.close()
+            book_file.close()
 
     async def upload_file(self, file_name: str, data: bytes) -> str:
         file_path = self._media_root / file_name
