@@ -44,6 +44,8 @@ InvalidAccessTokenException = HTTPException(
 def create_jwt_token_pair(user_id: int) -> TokenPair:
     """
     Создает пару токенов: access_token, refresh_token.
+    :param user_id: Идентификатор пользователя.
+    :return: :class:`TokenPair`.
     """
     access_token = _create_jwt_token(
         {USER_IDENTIFIER: user_id, "type": "access"},
@@ -53,14 +55,21 @@ def create_jwt_token_pair(user_id: int) -> TokenPair:
         {USER_IDENTIFIER: user_id, "type": "refresh"},
         timedelta(hours=REFRESH_TOKEN_EXPIRE_HOURS),
     )
-    return TokenPair(accessToken=access_token, refreshToken=refresh_token)
+    return TokenPair(access_token=access_token, refresh_token=refresh_token)
 
 
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
     session: AsyncSession = Depends(get_session, use_cache=True),
 ) -> User:
-    """Получение текущего пользователя"""
+    """
+    Получение текущего пользователя по токену аутентификации.
+
+    :param token: Токен пользователя.
+    :param session: :class:`AsyncSession` объект сессии.
+    :return: Объект пользователя :class:`User`.
+    :raises CredentialsException: Если пользователь не найден.
+    """
     payload = _get_token_payload(token, "access")
     try:
         user = await User.get(session, id=payload[USER_IDENTIFIER])
@@ -74,6 +83,14 @@ async def get_user_or_none(
     authorization: Optional[str] = Header(None),
     session: AsyncSession = Depends(get_session, use_cache=True),
 ) -> User | None:
+    """
+    Получение текущего пользователя по токену аутентификации.
+
+    :param authorization: Значение заголовка HTTP (Authorization).
+    :param session: :class:`AsyncSession` объект сессии.
+    :return: Объект пользователя :class:`User` или :class:`None`.
+    :raises CredentialsException: Если пользователь не найден.
+    """
     if authorization:
         if token_match := re.match(r"Bearer (\S+)", authorization):
             try:
@@ -96,6 +113,12 @@ def refresh_access_token(refresh_token: str) -> str:
 
 
 def _create_jwt_token(data: dict, delta: timedelta) -> str:
+    """
+    Создает JWT токен.
+    :param data: Полезная нагрузка.
+    :param delta: Время жизни токена.
+    :return: Закодированный токен.
+    """
     expires_delta = datetime.now(UTC) + delta
     data.update({"exp": expires_delta})
     encoded_jwt = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
@@ -103,6 +126,14 @@ def _create_jwt_token(data: dict, delta: timedelta) -> str:
 
 
 def _get_token_payload(token: str, token_type: str) -> dict:
+    """
+    Возвращает payload токена.
+
+    :param token: Закодированный токен.
+    :param token_type: Тип токена (access или refresh).
+    :return: Словарь полезной нагрузки.
+    :raises CredentialsException: Если токен недействителен.
+    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError:
@@ -116,6 +147,9 @@ def _get_token_payload(token: str, token_type: str) -> dict:
 
 
 def get_invalid_token_exc(token_type: str) -> HTTPException:
+    """
+    Возвращает исключение в зависимости от типа токена.
+    """
     if token_type == "access":
         return InvalidAccessTokenException
     else:

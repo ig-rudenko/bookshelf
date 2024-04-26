@@ -45,7 +45,7 @@ async def get_tokens(user: UserCredentialsSchema, session: AsyncSession = Depend
 @router.post("/token/refresh", response_model=AccessToken)
 def refresh_token(token: RefreshToken):
     """Получение нового access token через refresh token"""
-    return AccessToken(accessToken=refresh_access_token(token.refresh_token))
+    return AccessToken(access_token=refresh_access_token(token.refresh_token))
 
 
 @router.get("/myself", response_model=UserSchema)

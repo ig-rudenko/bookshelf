@@ -1,38 +1,42 @@
-from fastapi import APIRouter, Depends, status, Query
+from typing import Optional
+
+from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.crud.comments import get_comments, create_comment
-from app.models import Book, Comment
-from app.orm.session_manager import get_session
-from app.schemas.comments import (
+from ..crud.comments import get_comments, create_comment
+from ..models import Book, Comment, User
+from ..orm.session_manager import get_session
+from ..schemas.comments import (
     CommentCreateUpdateSchema,
     CommentSchema,
     CommentUserSchema,
     UserSchema,
     CommentsListSchema,
 )
-from app.services.auth import get_user_or_none, get_current_user
-from app.services.permissions import check_non_private_or_owner_book_permission
+from ..services.auth import get_user_or_none, get_current_user
+from ..services.paginator import paginator_query
+from ..services.permissions import check_non_private_or_owner_book_permission
 
 router = APIRouter(prefix="/comments", tags=["comments"])
-
-
-def comments_query_params(
-    page: int = Query(1, gt=0, description="Номер страницы"),
-    per_page: int = Query(25, gte=1, alias="per-page", description="Количество элементов на странице"),
-):
-    return {"page": page, "per_page": per_page}
 
 
 @router.get("/book/{book_id}", response_model=CommentsListSchema)
 async def get_book_comments_view(
     book_id: int,
-    query_params: dict = Depends(comments_query_params),
+    query_params: dict = Depends(paginator_query),
     session: AsyncSession = Depends(get_session),
-    user=Depends(get_user_or_none),
+    user: Optional[User] = Depends(get_user_or_none),
 ):
+    """
+    Возвращает список комментариев к книге.
+    :param book_id: Идентификатор книги.
+    :param query_params: Параметры для постраничного отображения.
+    :param session: Сессия базы данных.
+    :param user: Пользователь либо None.
+    """
+
     await check_non_private_or_owner_book_permission(session, user, book_id)
     comments_schema, total_count = await get_comments(session, book_id, query_params)
 
@@ -52,6 +56,13 @@ async def create_book_comment_view(
     session: AsyncSession = Depends(get_session),
     user=Depends(get_current_user),
 ):
+    """
+    Создание комментария к книге.
+    :param book_id: Идентификатор книги.
+    :param comment_data: Данные комментария.
+    :param session: Сессия базы данных.
+    :param user: Пользователь :class:`User`.
+    """
     if not await Book.exists(session, id=book_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Книга не найдена")
 
@@ -71,6 +82,14 @@ async def update_comment_view(
     session: AsyncSession = Depends(get_session),
     user=Depends(get_current_user),
 ) -> Comment:
+    """
+    Редактирование комментария.
+    :param comment_id: Идентификатор комментария.
+    :param comment_data: Данные комментария.
+    :param session: Сессия базы данных.
+    :param user: Пользователь :class:`User`.
+    """
+
     try:
         comment = await Comment.get(session, id=comment_id)
     except NoResultFound:
@@ -89,6 +108,13 @@ async def delete_comment_view(
     session: AsyncSession = Depends(get_session),
     user=Depends(get_current_user),
 ) -> None:
+    """
+    Удаление комментария.
+    :param comment_id: Идентификатор комментария.
+    :param session: Сессия базы данных.
+    :param user: Пользователь :class:`User`.
+    """
+
     try:
         comment = await Comment.get(session, id=comment_id)
     except NoResultFound:

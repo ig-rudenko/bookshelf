@@ -7,7 +7,15 @@ from app.models import Book, User
 
 
 async def check_book_owner_permission(session: AsyncSession, user_id: int, book: int | Book):
-    """Если пользователь не является владельцем книги, выбрасывает исключение."""
+    """
+    Если пользователь не является владельцем книги, выбрасывает исключение.
+    :param session: :class:`AsyncSession` объект сессии.
+    :param user_id: ID пользователя.
+    :param book: ID книги или объект книги.
+
+    :raises HTTPException:  403 Forbidden :class:`HTTPException`.
+    :raises ValueError:     book must be int or Book.
+    """
     if isinstance(book, int):
         result = await session.execute(select(Book.user_id).where(Book.id == book))
         book_owner_id: int | None = result.scalar_one_or_none()
@@ -30,6 +38,16 @@ async def check_non_private_or_owner_book_permission(
 ):
     """
     Если книга является приватной, и пользователь не является владельцем, выбрасывает исключение.
+
+    :param session: :class:`AsyncSession` объект сессии.
+    :param user: Объект пользователя или None.
+    :param book: ID книги или объект книги.
+
+    :raises HTTPException:
+        - 403 Forbidden :class:`HTTPException` (У вас нет прав на доступ к этой книге).
+        - 404 Not Found :class:`HTTPException` (Книга не найдена).
+    :raises ValueError:     book must be int or Book.
+
     """
     if isinstance(book, int):
         query: Select[tuple[int, bool]] = select(Book.user_id, Book.private).where(Book.id == book)

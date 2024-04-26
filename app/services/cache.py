@@ -14,17 +14,21 @@ logger = logging.getLogger(__name__)
 
 
 class AbstractCache(ABC):
+    """Абстрактный класс для реализации кеша данных."""
 
     @abstractmethod
     async def get(self, key: str) -> Optional[Any]:
+        """Получает значение из кеша по ключу."""
         pass
 
     @abstractmethod
     async def set(self, key: str, value: Any, timeout: int) -> None:
+        """Записывает значение в кеш по ключу и устанавливает таймаут для удаления."""
         pass
 
     @abstractmethod
     async def delete(self, key: str) -> None:
+        """Удаляет значение из кеша по ключу."""
         pass
 
     @abstractmethod
@@ -40,6 +44,7 @@ class _ValueType(TypedDict):
 
 @singleton
 class InMemoryCache(AbstractCache):
+    """Кэш данных в памяти."""
 
     def __init__(self) -> None:
         self._cache: dict[str, _ValueType] = {}
@@ -75,6 +80,8 @@ class InMemoryCache(AbstractCache):
 
 @singleton
 class RedisCache(AbstractCache):
+    """Кэш данных в Redis."""
+
     def __init__(self, host: str, port: int, db: int, password: Optional[str] = None) -> None:
         self._redis: Redis = Redis(
             host=host,
@@ -138,6 +145,8 @@ def cached(
     :param key: Ключ кэша, если не указан будет взято имя функции.
     :param variable_positions: Список позиций аргументов, которые будут добавлены в ключ через str().
     :param delimiter: Разделитель позиций аргументов.
+
+    :return: Декоратор функции.
     """
 
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:

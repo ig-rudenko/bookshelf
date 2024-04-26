@@ -11,11 +11,21 @@ from sqlalchemy.ext.asyncio import (
 
 
 class DatabaseSessionManager:
+    """
+    Менеджер сессий базы данных с поддержкой асинхронности.
+
+    Класс предоставляет методы для инициализации,
+    закрытия соединения с базой данных, а также создания
+    асинхронных сессий и подключений.
+    """
+
     def __init__(self) -> None:
         self._engine: Optional[AsyncEngine] = None
         self._session_maker: Optional[async_sessionmaker[AsyncSession]] = None
 
     def init(self, dsn: str, **conn_args) -> None:
+        """Инициализирует соединение с базой данных."""
+
         # Just additional example of customization.
         # you can add parameters to init and so on
         if "postgresql" in dsn:
@@ -42,6 +52,8 @@ class DatabaseSessionManager:
         )
 
     async def close(self) -> None:
+        """Закрывает соединение с базой данных."""
+
         if self._engine is None:
             return
         await self._engine.dispose()
@@ -50,6 +62,13 @@ class DatabaseSessionManager:
 
     @asynccontextmanager
     async def session(self) -> AsyncIterator[AsyncSession]:
+        """
+        Контекстный менеджер для создания асинхронной сессии.
+
+        В качестве контекста возвращает объект `AsyncSession`.
+        В случае возникновения исключения внутри контекста,
+        откатывает транзакцию.
+        """
         if self._session_maker is None:
             raise IOError("DatabaseSessionManager is not initialized")
         async with self._session_maker() as session:
@@ -61,6 +80,13 @@ class DatabaseSessionManager:
 
     @asynccontextmanager
     async def connect(self) -> AsyncIterator[AsyncConnection]:
+        """
+        Контекстный менеджер для создания асинхронного подключения.
+
+        В качестве контекста возвращает объект `AsyncConnection`.
+        В случае возникновения исключения внутри контекста,
+        откатывает транзакцию.
+        """
         if self._engine is None:
             raise IOError("DatabaseSessionManager is not initialized")
         async with self._engine.begin() as connection:
@@ -75,6 +101,8 @@ db_manager: DatabaseSessionManager = DatabaseSessionManager()
 
 
 async def get_session() -> AsyncIterator[AsyncSession]:
+    """Контекстный менеджер для создания асинхронной сессии."""
+
     # noinspection PyArgumentList
     async with db_manager.session() as session:
         yield session

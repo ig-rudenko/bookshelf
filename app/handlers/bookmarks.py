@@ -25,7 +25,7 @@ async def get_favorite_books_view(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
-    return await get_favorite_books(user_id=user.id, session=session, paginator=paginator)
+    return await get_favorite_books(session=session, user_id=user.id, paginator=paginator)
 
 
 @router.get("/favorite/count", status_code=status.HTTP_200_OK, response_model=int)
@@ -33,7 +33,7 @@ async def get_favorite_books_count_view(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
-    return await get_favorite_books_count(user_id=user.id, session=session)
+    return await get_favorite_books_count(session=session, user_id=user.id)
 
 
 @router.get("/read", status_code=status.HTTP_200_OK, response_model=BooksSchemaPaginated)
@@ -42,7 +42,7 @@ async def get_read_books_view(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
-    return await get_read_books(user_id=user.id, session=session, paginator=paginator)
+    return await get_read_books(session=session, user_id=user.id, paginator=paginator)
 
 
 @router.get("/read/count", status_code=status.HTTP_200_OK, response_model=int)
@@ -50,7 +50,7 @@ async def get_read_books_count_view(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
-    return await get_read_books_count(user_id=user.id, session=session)
+    return await get_read_books_count(session=session, user_id=user.id)
 
 
 @router.post("/{book_id}/favorite", status_code=status.HTTP_200_OK)

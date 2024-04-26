@@ -44,7 +44,7 @@ router = APIRouter(prefix="/books", tags=["books"])
 async def get_recent_books_view(
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
-    """Последние 25 добавленных книг"""
+    """Последние 25 добавленных книг."""
     return await get_recent_books(session, 25)
 
 
@@ -52,9 +52,9 @@ async def get_recent_books_view(
 async def get_publishers_view(
     name: str | None = Query(None, description="Издательство"),
     session: AsyncSession = Depends(get_session, use_cache=True),
-    user: Optional[User] = Depends(get_user_or_none),
 ):
-    return await get_publishers(session, name, user)
+    """Поиск издательств по названию."""
+    return await get_publishers(session, name)
 
 
 @router.get("/last-viewed", response_model=BooksWithReadPagesPaginatedSchema)
@@ -63,6 +63,7 @@ async def get_last_viewed_books_view(
     session: AsyncSession = Depends(get_session, use_cache=True),
     user: User = Depends(get_current_user),
 ):
+    """Возвращает просмотренные книги пользователя с кол-вом просмотренных страниц."""
     return await get_last_viewed_books(session, user, paginator)
 
 
@@ -81,6 +82,8 @@ def books_query_params(
     page: int = Query(1, gt=0, description="Номер страницы"),
     per_page: int = Query(25, gte=1, alias="per-page", description="Количество элементов на странице"),
 ) -> QueryParams:
+    """Параметры поиска по книгам."""
+
     if pages_gt and pages_lt and pages_gt >= pages_lt:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -109,7 +112,7 @@ async def get_books_view(
     current_user: Optional[User] = Depends(get_user_or_none),
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
-    """Просмотр всех книг"""
+    """Просмотр всех книг с фильтрацией по запросу."""
     return await get_filtered_books(session, current_user, query_params)
 
 
@@ -196,7 +199,7 @@ async def upload_book_file(
     await check_book_owner_permission(session, current_user.id, book)
 
     await set_file(session, file, book)
-    create_book_preview_task.delay(book.id)
+    create_book_preview_task.delay(book.id)  # Отправляем задачу
 
     return BookSchema.model_validate(book)
 

@@ -8,8 +8,15 @@ from app.schemas.books import BooksSchemaPaginated
 from app.services.books import get_paginated_books
 
 
-async def get_favorite_books(user_id: int, session: AsyncSession, paginator: dict) -> BooksSchemaPaginated:
-    """Возвращает список избранных книг"""
+async def get_favorite_books(session: AsyncSession, user_id: int, paginator: dict) -> BooksSchemaPaginated:
+    """
+    Возвращает список избранных книг.
+    :param session: :class:`AsyncSession` объект сессии.
+    :param user_id: Идентификатор пользователя.
+    :param paginator: Параметры страницы. Словарь с ключами page, per_page.
+    :return: :class:`BooksSchemaPaginated`.
+    """
+
     fb = favorite_books_association
     query = (
         select(Book, fb.columns.id)
@@ -23,7 +30,7 @@ async def get_favorite_books(user_id: int, session: AsyncSession, paginator: dic
     return await get_paginated_books(session, query, paginator)
 
 
-async def get_favorite_books_count(user_id: int, session: AsyncSession) -> int:
+async def get_favorite_books_count(session: AsyncSession, user_id: int) -> int:
     """Возвращает количество избранных книг"""
     query = (
         select(Book, favorite_books_association.columns.id)
@@ -33,8 +40,14 @@ async def get_favorite_books_count(user_id: int, session: AsyncSession) -> int:
     return await query_count(query, session)
 
 
-async def get_read_books(user_id: int, session: AsyncSession, paginator: dict) -> BooksSchemaPaginated:
-    """Возвращает список прочитанных книг"""
+async def get_read_books(session: AsyncSession, user_id: int, paginator: dict) -> BooksSchemaPaginated:
+    """
+    Возвращает список прочитанных книг.
+    :param session: :class:`AsyncSession` объект сессии.
+    :param user_id: Идентификатор пользователя.
+    :param paginator: Параметры страницы. Словарь с ключами page, per_page.
+    :return: :class:`BooksSchemaPaginated`.
+    """
     br = books_read_association
     query = (
         select(Book, br.columns.id)
@@ -47,7 +60,7 @@ async def get_read_books(user_id: int, session: AsyncSession, paginator: dict) -
     return await get_paginated_books(session, query, paginator)
 
 
-async def get_read_books_count(user_id: int, session: AsyncSession) -> int:
+async def get_read_books_count(session: AsyncSession, user_id: int) -> int:
     """Возвращает количество прочитанных книг"""
     query = (
         select(Book, books_read_association.columns.id)
@@ -57,7 +70,7 @@ async def get_read_books_count(user_id: int, session: AsyncSession) -> int:
     return await query_count(query, session)
 
 
-async def mark_favorite(session: AsyncSession, user: User, book: Book, favorite: bool):
+async def mark_favorite(session: AsyncSession, user: User, book: Book, favorite: bool) -> None:
     """Меняет статус избранности книги"""
     has_favorite = book in await user.await_attr.favorites
 
@@ -69,7 +82,7 @@ async def mark_favorite(session: AsyncSession, user: User, book: Book, favorite:
         await session.commit()
 
 
-async def mark_read(session: AsyncSession, user: User, book: Book, read: bool):
+async def mark_read(session: AsyncSession, user: User, book: Book, read: bool) -> None:
     """Меняет статус прочтения книги"""
     book_already_read = book in await user.await_attr.books_read
 

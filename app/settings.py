@@ -22,8 +22,7 @@ class _BaseSettings(BaseSettings):
     media_root: Path = Path(media_storage)
     media_root.mkdir(exist_ok=True, parents=True)
 
-    # Путь к базе данных
-    database_url: str = ""
+    database_url: str = ""  # Путь к базе данных
     media_url: str = "/media"
 
     REDIS_HOST: str = ""
@@ -31,6 +30,8 @@ class _BaseSettings(BaseSettings):
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
 
+    CELERY_BROKER_URL: str = ""  # Брокер сообщений для Celery
 
-settings = _BaseSettings()
+
+settings: _BaseSettings = _BaseSettings()
 settings.logger.setLevel(settings.log_level)

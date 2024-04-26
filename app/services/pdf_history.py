@@ -14,6 +14,28 @@ from ..services.thumbnail import get_thumbnail
 async def get_last_viewed_books(
     session: AsyncSession, user: User, paginator
 ) -> BooksWithReadPagesPaginatedSchema:
+    """
+    Асинхронно получает информацию о последних просмотренных книгах пользователя,
+    включая страницу, на которой он остановился.
+
+    Функция извлекает данные о пользователях из базы данных и применяет пагинацию к результатам.
+
+    :param session: Асинхронный объект :class:`AsyncSession` сеанса базы данных.
+    :param user: Объект :class:`User`, представляющий текущего пользователя.
+    :param paginator:
+        Словарь, содержащий информацию о странице и количестве элементов на странице для пагинации:
+        - page: Номер текущей страницы (:class:`int`).
+        - per_page: Количество элементов на странице (:class:`int`).
+
+    :return: :class:`BooksWithReadPagesPaginatedSchema`, содержащий:
+            - books: Список объектов :class:`BookWithReadPagesSchema`,
+                     представляющих книги с номером последней прочитанной страницы.
+            - total_count: Общее количество книг пользователя.
+            - current_page: Номер текущей страницы.
+            - max_pages: Общее количество страниц на основе пагинации.
+            - per_page: Количество элементов на странице.
+    """
+
     query = (
         select(Book, UserData.pdf_history)
         .join(UserData)
@@ -51,6 +73,16 @@ async def get_last_viewed_books(
 
 
 async def get_pdf_history_data(session: AsyncSession, user_id: int, book_id: int) -> PdfJSHistorySchema:
+    """
+    Асинхронно получает историю просмотра PDF-файла пользователя для книги.
+
+    :param session: Асинхронный объект :class:`AsyncSession` сеанса базы данных.
+    :param user_id: Идентификатор пользователя (:class:`int`).
+    :param book_id: Идентификатор книги (:class:`int`).
+
+    :return: :class:`PdfJSHistorySchema`.
+    :raises HTTPException: :class:`HTTPException` Пользовательские данные не существуют.
+    """
     try:
         user_data = await UserData.get(session, user_id=user_id, book_id=book_id)
     except NoResultFound:
@@ -61,6 +93,17 @@ async def get_pdf_history_data(session: AsyncSession, user_id: int, book_id: int
 async def set_pdf_history_data(
     session: AsyncSession, user_id: int, book_id: int, data: CreatePdfJSHistorySchema
 ) -> PdfJSHistorySchema:
+    """
+    Асинхронно создает историю просмотра PDF-файла пользователя для книги.
+    Если книга уже имеет историю просмотра, то она будет обновлена, иначе создается новая.
+
+    :param session: Асинхронный объект :class:`AsyncSession` сеанса базы данных.
+    :param user_id: Идентификатор пользователя (:class:`int`).
+    :param book_id: Идентификатор книги (:class:`int`).
+    :param data: :class:`CreatePdfJSHistorySchema`.
+
+    :return: :class:`PdfJSHistorySchema`.
+    """
     try:
         user_data = await UserData.get(session, user_id=user_id, book_id=book_id)
     except NoResultFound:

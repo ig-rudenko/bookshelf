@@ -22,7 +22,14 @@ _T = TypeVar("_T", bound=Any)
 
 
 class AwaitAttrs:
+    """
+    Базовый класс для классов ORM, предоставляющий доступ к атрибутам с ожиданием (awaitable).
+    Добавляет функциональность для асинхронного доступа к атрибутам.
+    """
+
     class _AwaitAttrGetitem:
+        """Внутренний класс для реализации асинхронного доступа к атрибутам."""
+
         __slots__ = "_instance"
 
         def __init__(self, _instance: Any):
@@ -33,9 +40,22 @@ class AwaitAttrs:
 
     @property
     def await_attr(self) -> Self:
-        """provide awaitable attribute access"""
+        """
+        Предоставляет доступ к атрибутам объекта с ожиданием.
+        Возвращает объект `_AwaitAttrGetitem`, который перехватывает
+        обращение к атрибутам и запускает их получение в отдельной
+        greenlet-функции.
+        """
         return AwaitAttrs._AwaitAttrGetitem(self)  # type: ignore
 
 
 class OrmBase(AwaitAttrs, DeclarativeBase):
+    """
+    Базовый класс для моделей SQLAlchemy с поддержкой асинхронного доступа к атрибутам.
+
+    Класс `OrmBase` наследуется от `AwaitAttrs` и `DeclarativeBase`.
+    Он использует `DeclarativeBase` для создания моделей ORM
+    и добавляет функциональность `AwaitAttrs` для асинхронного доступа к атрибутам.
+    """
+
     metadata = MetaData(naming_convention=convention)  # type: ignore

@@ -16,6 +16,7 @@ async def get_pdf_history_view(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
+    """Возвращает место на котором остановился просмотр книги."""
     return await get_pdf_history_data(session, current_user.id, book_id)
 
 
@@ -26,4 +27,5 @@ async def set_pdf_history_view(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
+    """Сохраняет данные о просмотре книги."""
     return await set_pdf_history_data(session, current_user.id, book_id, data)
