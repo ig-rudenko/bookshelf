@@ -4,11 +4,11 @@ from unittest import IsolatedAsyncioTestCase
 
 from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.testclient import TestClient
-from sqlalchemy import delete
 from sqlalchemy.exc import NoResultFound
 
-from app.handlers.books import router
-from app.models import Publisher, User, Tag, Book, book_tag_association
+from app.handlers.books import router as books_router
+from app.models import Publisher, User, Tag, Book
+from app.orm.base_model import OrmBase
 from app.orm.session_manager import db_manager
 from app.schemas.books import BookSchema, CreateBookSchema, BookSchemaWithDesc
 from app.services.aaa import create_jwt_token_pair
@@ -23,7 +23,7 @@ class BaseBookTest(IsolatedAsyncioTestCase):
     @classmethod
     def setUpClass(cls):
         db_manager.init(TEST_DB_URL)
-        cls.client = TestClient(router)
+        cls.client = TestClient(books_router)
 
     async def asyncSetUp(self):
         await self.asyncTearDown()
@@ -33,13 +33,9 @@ class BaseBookTest(IsolatedAsyncioTestCase):
         self.book_private = await self.create_book(self.user_2, "book_2", private=True)
 
     async def asyncTearDown(self):
-        async with db_manager.session() as conn:
-            await conn.execute(delete(Publisher))
-            await conn.execute(delete(User))
-            await conn.execute(delete(Tag))
-            await conn.execute(delete(Book))
-            await conn.execute(delete(book_tag_association))
-            await conn.commit()
+        async with db_manager._engine.begin() as conn:
+            await conn.run_sync(OrmBase.metadata.drop_all)
+            await conn.run_sync(OrmBase.metadata.create_all)
 
     @staticmethod
     async def create_book(user: User, title: str, private: bool) -> Book:

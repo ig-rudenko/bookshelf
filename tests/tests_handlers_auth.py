@@ -6,6 +6,7 @@ from sqlalchemy.sql.expression import delete
 
 from app.handlers.auth import router
 from app.models import User
+from app.orm.base_model import OrmBase
 from app.orm.session_manager import db_manager
 from app.schemas.users import UserSchema
 from app.services.aaa import create_jwt_token_pair
@@ -86,9 +87,9 @@ class AuthJWTTest(IsolatedAsyncioTestCase):
         self.client.post("/auth/users", json=self.user_data)
 
     async def asyncTearDown(self):
-        async with db_manager.session() as conn:
-            await conn.execute(delete(User))
-            await conn.commit()
+        async with db_manager._engine.begin() as conn:
+            await conn.run_sync(OrmBase.metadata.drop_all)
+            await conn.run_sync(OrmBase.metadata.create_all)
 
     def test_get_tokens(self):
         """Тест на успешное получение токенов JWT"""

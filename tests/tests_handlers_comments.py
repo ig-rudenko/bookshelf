@@ -1,7 +1,7 @@
 from fastapi.exceptions import HTTPException
 from fastapi.testclient import TestClient
 
-from app.handlers.comments import router
+from app.handlers.comments import router as comments_router
 from app.orm.session_manager import db_manager
 from app.services.aaa import create_jwt_token_pair
 from tests import TEST_DB_URL
@@ -13,7 +13,7 @@ class TestComments(BaseBookTest):
     @classmethod
     def setUpClass(cls):
         db_manager.init(TEST_DB_URL)
-        cls.client = TestClient(router)
+        cls.client = TestClient(comments_router)
 
     async def test_create_comment(self):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)

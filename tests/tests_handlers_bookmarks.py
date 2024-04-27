@@ -1,7 +1,7 @@
 from fastapi.exceptions import HTTPException
 from fastapi.testclient import TestClient
 
-from app.handlers.bookmarks import router
+from app.handlers.bookmarks import router as bookmarks_router
 from app.models import Book
 from app.orm.session_manager import db_manager
 from app.schemas.books import BookSchema
@@ -16,7 +16,7 @@ class TestFavoriteBooks(BaseBookTest):
     @classmethod
     def setUpClass(cls):
         db_manager.init(TEST_DB_URL)
-        cls.client = TestClient(router)
+        cls.client = TestClient(bookmarks_router)
 
     async def test_mark_favorite(self):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
@@ -93,7 +93,7 @@ class TestReadBooks(BaseBookTest):
     @classmethod
     def setUpClass(cls):
         db_manager.init(TEST_DB_URL)
-        cls.client = TestClient(router)
+        cls.client = TestClient(bookmarks_router)
 
     async def test_mark_read(self):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
