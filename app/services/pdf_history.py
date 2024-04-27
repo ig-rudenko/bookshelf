@@ -3,12 +3,12 @@ from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..crud.base import query_count
-from ..models import User, Book, UserData
-from ..schemas.books import BookWithReadPagesSchema, BooksWithReadPagesPaginatedSchema
-from ..schemas.pdf_history import PDFHistoryFilesSchema, PdfJSHistorySchema, CreatePdfJSHistorySchema
-from ..services.paginator import paginate
-from ..services.thumbnail import get_thumbnail
+from app.crud.base import query_count
+from app.models import User, Book, UserData
+from app.schemas.books import BookWithReadPagesSchema, BooksWithReadPagesPaginatedSchema
+from app.schemas.pdf_history import PDFHistoryFilesSchema, PdfJSHistorySchema, CreatePdfJSHistorySchema
+from app.services.paginator import paginate
+from app.services.thumbnail import get_thumbnail
 
 
 async def get_last_viewed_books(

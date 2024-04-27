@@ -8,8 +8,8 @@ import aiofiles
 from fastapi import UploadFile
 from slugify import slugify
 
+from app.services.deco import singleton
 from .base import AbstractStorage
-from ..services.deco import singleton
 
 
 @singleton

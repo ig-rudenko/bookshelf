@@ -7,10 +7,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import User
 from app.orm.session_manager import get_session
+from app.schemas.users import UserCreateSchema
+from app.services.encrypt import encrypt_password, validate_password
 from .exc import CredentialsException
 from .jwt import oauth2_scheme, _get_token_payload, USER_IDENTIFIER
-from ..encrypt import encrypt_password
-from ...schemas.users import UserCreateSchema
 
 
 async def get_current_user(
@@ -63,3 +63,14 @@ async def create_user(session: AsyncSession, user: UserCreateSchema) -> User:
     await session.commit()
     await session.refresh(obj)
     return obj
+
+
+async def get_user_by_credentials(session: AsyncSession, username: str, password: str) -> User:
+    try:
+        user_model = await User.get(session, username=username)
+    except NoResultFound:
+        raise CredentialsException
+
+    if not validate_password(password, user_model.password):
+        raise CredentialsException
+    return user_model

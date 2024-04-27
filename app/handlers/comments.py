@@ -5,18 +5,18 @@ from fastapi.exceptions import HTTPException
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models import Book, Comment, User
-from ..orm.session_manager import get_session
-from ..schemas.comments import (
+from app.models import Book, Comment, User
+from app.orm.session_manager import get_session
+from app.schemas.comments import (
     CommentCreateUpdateSchema,
     CommentSchema,
     CommentUserSchema,
     CommentsPaginateSchema,
 )
-from ..services.aaa import get_user_or_none, get_current_user
-from ..services.comments import create_comment, get_comments
-from ..services.paginator import paginator_query
-from ..services.permissions import check_non_private_or_owner_book_permission
+from app.services.aaa import get_user_or_none, get_current_user
+from app.services.comments import create_comment, get_comments
+from app.services.paginator import paginator_query
+from app.services.permissions import check_non_private_or_owner_book_permission
 
 router = APIRouter(prefix="/comments", tags=["comments"])
 

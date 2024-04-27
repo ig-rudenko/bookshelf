@@ -1,7 +1,7 @@
 from fastapi import Depends
 from fastapi.exceptions import HTTPException
 from fastapi.routing import APIRouter
-from sqlalchemy.exc import IntegrityError, NoResultFound
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import models
@@ -11,11 +11,9 @@ from ..schemas.users import UserSchema, UserCreateSchema, UserCredentialsSchema
 from ..services.aaa import (
     create_jwt_token_pair,
     get_current_user,
-    CredentialsException,
     refresh_access_token,
 )
-from ..services.aaa.users import create_user
-from ..services.encrypt import validate_password
+from ..services.aaa.users import create_user, get_user_by_credentials
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -29,17 +27,10 @@ async def register_user(user: UserCreateSchema, session: AsyncSession = Depends(
 
 
 @router.post("/token", response_model=TokenPair)
-async def get_tokens(user: UserCredentialsSchema, session: AsyncSession = Depends(get_session)):
+async def get_tokens(user_data: UserCredentialsSchema, session: AsyncSession = Depends(get_session)):
     """Получение пары JWT"""
-    try:
-        user_model = await models.User.get(session, username=user.username)
-    except NoResultFound:
-        raise CredentialsException
-
-    if not validate_password(user.password, user_model.password):
-        raise CredentialsException
-
-    return create_jwt_token_pair(user_id=user_model.id)
+    user = await get_user_by_credentials(session, user_data.username, user_data.password)
+    return create_jwt_token_pair(user_id=user.id)
 
 
 @router.post("/token/refresh", response_model=AccessToken)

@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models import User
-from ..orm.session_manager import get_session
-from ..schemas.pdf_history import CreatePdfJSHistorySchema, PdfJSHistorySchema
-from ..services.aaa import get_current_user
-from ..services.pdf_history import get_pdf_history_data, set_pdf_history_data
+from app.models import User
+from app.orm.session_manager import get_session
+from app.schemas.pdf_history import CreatePdfJSHistorySchema, PdfJSHistorySchema
+from app.services.aaa import get_current_user
+from app.services.pdf_history import get_pdf_history_data, set_pdf_history_data
 
 router = APIRouter(prefix="/user-data", tags=["user-data"])
 

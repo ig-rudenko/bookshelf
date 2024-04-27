@@ -7,15 +7,24 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from ..crud.base import query_count
-from ..media_storage import get_storage, AbstractStorage
-from ..models import Book, User, Tag, Publisher, UserData, favorite_books_association, books_read_association
-from ..orm.session_manager import db_manager
-from ..schemas.books import BookSchema, BooksSchemaPaginated, BookSchemaDetail, CreateBookSchema
-from ..services.cache import get_cache, cached
-from ..services.paginator import paginate
-from ..services.thumbnail import get_thumbnail
-from ..settings import settings
+from app.crud.base import query_count
+from app.media_storage import get_storage, AbstractStorage
+from app.models import (
+    Book,
+    User,
+    Tag,
+    Publisher,
+    UserData,
+    favorite_books_association,
+    books_read_association,
+)
+from app.orm.session_manager import db_manager
+from app.schemas.books import BookSchema, BooksSchemaPaginated, BookSchemaDetail, CreateBookSchema
+from app.services.cache import get_cache
+from app.services.cache.deco import cached
+from app.services.paginator import paginate
+from app.services.thumbnail import get_thumbnail
+from app.settings import settings
 
 _QT = TypeVar("_QT", bound=Select)
 

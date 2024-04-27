@@ -5,11 +5,10 @@ from fastapi.responses import StreamingResponse
 from slugify import slugify
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.services.publishers import get_publishers
-from ..media_storage import get_storage
-from ..models import User
-from ..orm.session_manager import get_session
-from ..schemas.books import (
+from app.media_storage import get_storage
+from app.models import User
+from app.orm.session_manager import get_session
+from app.schemas.books import (
     BookSchema,
     CreateBookSchema,
     BooksSchemaPaginated,
@@ -17,8 +16,8 @@ from ..schemas.books import (
     BookSchemaWithDesc,
     BooksWithReadPagesPaginatedSchema,
 )
-from ..services.aaa import get_current_user, get_user_or_none
-from ..services.books import (
+from app.services.aaa import get_current_user, get_user_or_none
+from app.services.books import (
     set_file,
     QueryParams,
     get_filtered_books,
@@ -30,10 +29,11 @@ from ..services.books import (
     create_book,
     update_book,
 )
-from ..services.celery import create_book_preview_task
-from ..services.paginator import paginator_query
-from ..services.pdf_history import get_last_viewed_books
-from ..services.permissions import check_book_owner_permission
+from app.services.celery import create_book_preview_task
+from app.services.paginator import paginator_query
+from app.services.pdf_history import get_last_viewed_books
+from app.services.permissions import check_book_owner_permission
+from app.services.publishers import get_publishers
 
 router = APIRouter(prefix="/books", tags=["books"])
 
