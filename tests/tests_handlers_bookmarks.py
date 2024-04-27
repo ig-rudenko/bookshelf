@@ -5,7 +5,7 @@ from app.handlers.bookmarks import router
 from app.models import Book
 from app.orm.session_manager import db_manager
 from app.schemas.books import BookSchema
-from app.services.auth import create_jwt_token_pair
+from app.services.aaa import create_jwt_token_pair
 from tests import TEST_DB_URL
 from tests_handlers_books import BaseBookTest
 

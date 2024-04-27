@@ -5,24 +5,23 @@ from fastapi.exceptions import HTTPException
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..crud.comments import get_comments, create_comment
 from ..models import Book, Comment, User
 from ..orm.session_manager import get_session
 from ..schemas.comments import (
     CommentCreateUpdateSchema,
     CommentSchema,
     CommentUserSchema,
-    UserSchema,
-    CommentsListSchema,
+    CommentsPaginateSchema,
 )
-from ..services.auth import get_user_or_none, get_current_user
+from ..services.aaa import get_user_or_none, get_current_user
+from ..services.comments import create_comment, get_comments
 from ..services.paginator import paginator_query
 from ..services.permissions import check_non_private_or_owner_book_permission
 
 router = APIRouter(prefix="/comments", tags=["comments"])
 
 
-@router.get("/book/{book_id}", response_model=CommentsListSchema)
+@router.get("/book/{book_id}", response_model=CommentsPaginateSchema)
 async def get_book_comments_view(
     book_id: int,
     query_params: dict = Depends(paginator_query),
@@ -38,15 +37,7 @@ async def get_book_comments_view(
     """
 
     await check_non_private_or_owner_book_permission(session, user, book_id)
-    comments_schema, total_count = await get_comments(session, book_id, query_params)
-
-    return CommentsListSchema(
-        comments=comments_schema,
-        total_count=total_count,
-        current_page=query_params["page"],
-        max_pages=total_count // query_params["per_page"] or 1,
-        per_page=query_params["per_page"],
-    )
+    return await get_comments(session, book_id, query_params)
 
 
 @router.post("/book/{book_id}", status_code=status.HTTP_201_CREATED, response_model=CommentUserSchema)
@@ -66,13 +57,7 @@ async def create_book_comment_view(
     if not await Book.exists(session, id=book_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Книга не найдена")
 
-    comment = await create_comment(session, comment_data, book_id, user.id)
-    return CommentUserSchema(
-        id=comment.id,
-        text=comment.text,
-        created_at=comment.created_at,
-        user=UserSchema.model_validate(user),
-    )
+    return await create_comment(session, comment_data, user, book_id)
 
 
 @router.put("/{comment_id}", response_model=CommentSchema)

@@ -7,12 +7,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy import delete
 from sqlalchemy.exc import NoResultFound
 
-from app.crud.books import create_book
 from app.handlers.books import router
 from app.models import Publisher, User, Tag, Book, book_tag_association
 from app.orm.session_manager import db_manager
 from app.schemas.books import BookSchema, CreateBookSchema, BookSchemaWithDesc
-from app.services.auth import create_jwt_token_pair
+from app.services.aaa import create_jwt_token_pair
+from app.services.books import create_book
 from app.settings import settings
 from tests.init import TEST_DB_URL
 

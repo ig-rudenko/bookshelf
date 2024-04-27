@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.crud.books import get_book
 from app.models import User, Book
 from app.orm.session_manager import get_session
 from app.schemas.books import BooksSchemaPaginated
-from app.services.auth import get_current_user
+from app.services.aaa import get_current_user
 from app.services.bookmarks import (
     get_favorite_books,
     mark_favorite,
@@ -14,6 +13,7 @@ from app.services.bookmarks import (
     get_favorite_books_count,
     get_read_books_count,
 )
+from app.services.books import get_book
 from app.services.paginator import paginator_query
 
 router = APIRouter(prefix="/bookmarks", tags=["bookmarks"])

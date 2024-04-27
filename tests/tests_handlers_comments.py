@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 
 from app.handlers.comments import router
 from app.orm.session_manager import db_manager
-from app.services.auth import create_jwt_token_pair
+from app.services.aaa import create_jwt_token_pair
 from tests import TEST_DB_URL
 from tests.tests_handlers_books import BaseBookTest
 

@@ -5,13 +5,7 @@ from fastapi.responses import StreamingResponse
 from slugify import slugify
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..crud.books import (
-    create_book,
-    update_book,
-    get_book,
-    get_book_detail,
-)
-from ..crud.publishers import get_publishers
+from app.services.publishers import get_publishers
 from ..media_storage import get_storage
 from ..models import User
 from ..orm.session_manager import get_session
@@ -23,7 +17,7 @@ from ..schemas.books import (
     BookSchemaWithDesc,
     BooksWithReadPagesPaginatedSchema,
 )
-from ..services.auth import get_current_user, get_user_or_none
+from ..services.aaa import get_current_user, get_user_or_none
 from ..services.books import (
     set_file,
     QueryParams,
@@ -31,6 +25,10 @@ from ..services.books import (
     delete_book,
     get_recent_books,
     delete_recent_books_cache,
+    get_book,
+    get_book_detail,
+    create_book,
+    update_book,
 )
 from ..services.celery import create_book_preview_task
 from ..services.paginator import paginator_query

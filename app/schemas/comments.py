@@ -28,7 +28,7 @@ class CommentUserSchema(CamelSerializerModel):
     user: UserSchema
 
 
-class CommentsListSchema(CamelSerializerModel):
+class CommentsPaginateSchema(CamelSerializerModel):
     comments: list[CommentUserSchema]
     total_count: int
     current_page: int

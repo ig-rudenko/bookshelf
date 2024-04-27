@@ -8,7 +8,7 @@ from app.handlers.auth import router
 from app.models import User
 from app.orm.session_manager import db_manager
 from app.schemas.users import UserSchema
-from app.services.auth import create_jwt_token_pair
+from app.services.aaa import create_jwt_token_pair
 from app.services.encrypt import validate_password
 from tests.init import TEST_DB_URL
 

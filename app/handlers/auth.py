@@ -5,16 +5,16 @@ from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import models
-from ..crud.users import create_user
 from ..orm.session_manager import get_session
 from ..schemas.auth import TokenPair, RefreshToken, AccessToken
 from ..schemas.users import UserSchema, UserCreateSchema, UserCredentialsSchema
-from ..services.auth import (
+from ..services.aaa import (
     create_jwt_token_pair,
     get_current_user,
     CredentialsException,
     refresh_access_token,
 )
+from ..services.aaa.users import create_user
 from ..services.encrypt import validate_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
