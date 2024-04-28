@@ -6,7 +6,6 @@ import "vue3-pdf-app/dist/icons/main.css";
 import api from "@/services/api.ts";
 import {PdfHistory} from "@/services/userData.ts";
 import {mapState} from "vuex";
-// import "@/assets/pdf-viewer/main.css"
 
 export default defineComponent({
   name: "ShowBook",

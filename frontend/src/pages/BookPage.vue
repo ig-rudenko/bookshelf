@@ -22,7 +22,7 @@
       </div>
 
       <div class="p-2 pb-4">
-        <BookViewStats :book="book" />
+        <BookViewStats v-if="loggedIn" :book="book" />
       </div>
 
       <div class="m-2">
