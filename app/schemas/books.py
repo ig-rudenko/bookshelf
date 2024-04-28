@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import Field
 
 from .base import CamelSerializerModel, CamelAliasModel
@@ -83,6 +85,7 @@ class BookWithReadPagesSchema(BookSchema):
     """Схема для представления информации о книге (без описания) с указанием прочитанных страниц."""
 
     read_pages: int = Field(0)
+    last_time_read: datetime = Field(None)
 
 
 class BooksWithReadPagesPaginatedSchema(CamelSerializerModel):

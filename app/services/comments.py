@@ -29,6 +29,7 @@ async def get_comments(session: AsyncSession, book_id: int, paginator: dict) -> 
         select(Comment, User.username)
         .join(User)
         .where(Comment.book_id == book_id)
+        .group_by(Comment)
         .order_by(Comment.created_at.desc())
     )
     query = paginate(query, page=paginator["page"], per_page=paginator["per_page"])

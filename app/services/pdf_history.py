@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
@@ -37,12 +39,12 @@ async def get_last_viewed_books(
     """
 
     query = (
-        select(Book, UserData.pdf_history)
+        select(Book, UserData)
         .join(UserData)
         .where(UserData.user_id == user.id)
-        .group_by(UserData.id)
+        .group_by(UserData)
         .group_by(Book.id)
-        .order_by(UserData.id.desc())
+        .order_by(UserData.pdf_history_updated_at.desc())
     )
     query = paginate(query, page=paginator["page"], per_page=paginator["per_page"])
 
@@ -51,15 +53,16 @@ async def get_last_viewed_books(
     count = await query_count(query, session)
 
     books_schemas = []
-    for book, pdf_history in result.all():  # type: Book, str
+    for book, user_data in result.all():  # type: Book, UserData
         try:
-            history = PDFHistoryFilesSchema.model_validate_json(pdf_history)
+            history = PDFHistoryFilesSchema.model_validate_json(user_data.pdf_history)
         except ValueError as e:
             print(e)
         else:
             if history.files:
                 schema = BookWithReadPagesSchema.model_validate(book)
                 schema.read_pages = history.files[-1].page
+                schema.last_time_read = user_data.pdf_history_updated_at
                 schema.preview_image = get_thumbnail(book.preview_image, "medium")
                 books_schemas.append(schema)
 
@@ -104,14 +107,20 @@ async def set_pdf_history_data(
 
     :return: :class:`PdfJSHistorySchema`.
     """
+    now = datetime.now(tz=timezone.utc).replace(tzinfo=None)
     try:
         user_data = await UserData.get(session, user_id=user_id, book_id=book_id)
     except NoResultFound:
         user_data = await UserData.create(
-            session, pdf_history=data.pdf_history, user_id=user_id, book_id=book_id
+            session,
+            pdf_history=data.pdf_history,
+            pdf_history_updated_at=now,
+            user_id=user_id,
+            book_id=book_id,
         )
     else:
         user_data.pdf_history = data.pdf_history
+        user_data.pdf_history_updated_at = now
         await user_data.save(session)
 
     return PdfJSHistorySchema.model_validate(user_data)

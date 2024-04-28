@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 from app.schemas.base import CamelAliasModel, CamelSerializerModel
@@ -24,3 +26,4 @@ class CreatePdfJSHistorySchema(CamelAliasModel):
 class PdfJSHistorySchema(CamelSerializerModel):
     id: int
     pdf_history: str
+    pdf_history_updated_at: datetime | None

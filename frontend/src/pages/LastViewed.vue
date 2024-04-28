@@ -54,6 +54,8 @@
 import {defineComponent} from 'vue';
 import {AxiosResponse} from "axios";
 import {mapState} from "vuex";
+import TimeAgo from 'javascript-time-ago'
+import ru from 'javascript-time-ago/locale/ru'
 
 import Menu from "@/components/Menu.vue";
 import Footer from "@/components/Footer.vue";
@@ -77,6 +79,7 @@ export default defineComponent({
     }
   },
   mounted() {
+    TimeAgo.addDefaultLocale(ru)
     document.title = "Недавно просмотренные книги";
     if (!this.loggedIn) this.$router.push("/login");
     this.getBooksList(1);
@@ -100,7 +103,11 @@ export default defineComponent({
       return book.readPages/book.pages*100
     },
     verboseValue(book: BookWithReadPages) {
-      return `Прочитано страниц: ${book.readPages}/${book.pages}`;
+      return `Прочитано страниц: ${book.readPages}/${book.pages} | ` + this.verboseTimeAgo(book);
+    },
+    verboseTimeAgo(book: BookWithReadPages): string {
+      const timeAgo = new TimeAgo('ru-RU')
+      return book.lastTimeRead?timeAgo.format(new Date(book.lastTimeRead)):''
     }
   }
 })

@@ -116,6 +116,7 @@ export interface BookDetail extends Book {
 
 export interface BookWithReadPages extends Book {
     readPages: number
+    lastTimeRead: string|null
 }
 
 

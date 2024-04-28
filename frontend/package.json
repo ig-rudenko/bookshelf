@@ -10,12 +10,13 @@
   },
   "dependencies": {
     "axios": "^1.6.8",
+    "javascript-time-ago": "^2.5.10",
     "primeicons": "^6.0.1",
     "primevue": "^3.50.0",
     "vue": "^3.4.21",
     "vue-router": "^4.3.0",
-    "vuex": "^4.1.0",
-    "vue3-pdf-app": "^1.0.3"
+    "vue3-pdf-app": "^1.0.3",
+    "vuex": "^4.1.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",

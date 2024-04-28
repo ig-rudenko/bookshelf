@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Integer, String, ForeignKey, Text, CheckConstraint, Boolean
+from sqlalchemy import Integer, String, ForeignKey, Text, CheckConstraint, Boolean, DateTime
 from sqlalchemy import Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.expression import false, true
@@ -160,3 +160,4 @@ class UserData(OrmBase, Manager):
     book_id: Mapped[int] = mapped_column(ForeignKey("books.id", ondelete="CASCADE"))
 
     pdf_history: Mapped[str] = mapped_column(String(256), nullable=True)
+    pdf_history_updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
