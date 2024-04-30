@@ -85,7 +85,7 @@ class Book(OrmBase, Manager):
     publisher_id: Mapped[int] = mapped_column(ForeignKey("publishers.id", ondelete="CASCADE"))
 
     title: Mapped[str] = mapped_column(String(254))
-    preview_image: Mapped[str] = mapped_column(String(128))
+    preview_image: Mapped[str] = mapped_column(String(4096))
     file: Mapped[str] = mapped_column(String(128))
     authors: Mapped[str] = mapped_column(String(254))
     description: Mapped[str] = mapped_column(Text)

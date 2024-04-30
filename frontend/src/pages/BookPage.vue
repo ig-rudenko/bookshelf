@@ -3,7 +3,7 @@
 
   <div v-if="book" class="flex flex-wrap justify-content-center align-items-center my-4">
     <a :href="'/book/'+book.id+'/show'" target="_blank" class="flex flex-column">
-      <img style="width: 100%" class="border-round-xl" alt="book" :src="book.previewImage"/>
+      <img style="width: 100%" class="border-round-xl" alt="book" :src="book.previewImage.replace(/&size=\S/, '&size=XL')"/>
     </a>
 
     <div class="flex flex-column m-3 w-full" style="max-width: 40rem;">

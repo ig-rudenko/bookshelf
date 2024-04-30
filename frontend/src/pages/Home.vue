@@ -90,9 +90,11 @@ export default defineComponent({
     },
 
     replaceThumb(data: PaginatedBookResult): PaginatedBookResult {
-      if (this.isMobile) {
-        for (const book of data.books) {
-          book.previewImage = book.previewImage.replace("medium.png", "small.png")
+      for (const book of data.books) {
+        if (this.isMobile) {
+          book.previewImage = book.previewImage.replace(/&size=\S/, "&size=S")
+        } else {
+          book.previewImage = book.previewImage.replace(/&size=\S/, "&size=L")
         }
       }
       return data

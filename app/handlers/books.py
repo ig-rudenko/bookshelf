@@ -1,12 +1,14 @@
+import asyncio
 from typing import Optional
 
 from fastapi import APIRouter, UploadFile, HTTPException, Depends, status, Query
 from fastapi.responses import StreamingResponse
 from slugify import slugify
 from sqlalchemy.ext.asyncio import AsyncSession
+from yadisk.exceptions import YaDiskError
 
-from app.media_storage import get_storage
-from app.models import User
+from app.media_storage import get_storage, YandexStorage
+from app.models import User, Book
 from app.orm.session_manager import get_session
 from app.schemas.books import (
     BookSchema,
@@ -29,11 +31,11 @@ from app.services.books import (
     create_book,
     update_book,
 )
-from app.services.celery import create_book_preview_task
 from app.services.paginator import paginator_query
 from app.services.pdf_history import get_last_viewed_books
 from app.services.permissions import check_book_owner_permission
 from app.services.publishers import get_publishers
+from app.settings import settings
 
 router = APIRouter(prefix="/books", tags=["books"])
 
@@ -197,8 +199,23 @@ async def upload_book_file(
     await check_book_owner_permission(session, current_user.id, book)
 
     await set_file(session, file, book)
-    create_book_preview_task.delay(book.id)  # Отправляем задачу
+    # create_book_preview_task.delay(book.id)  # Отправляем задачу
+    # check_for_preview_task.delay(book.id)
 
+    ys = YandexStorage(settings.ya_disk_token)
+    try:
+        for _ in range(5):
+            async for file in await ys.client.listdir(f"/bookshelf/books/{book_id}/"):
+                if file.preview:
+                    book = await Book.get(session, id=book_id)
+                    book.preview_image = file.preview
+                    await book.save(session)
+                    return
+                else:
+                    await asyncio.sleep(1)
+    except YaDiskError as exc:
+        print(exc)
+        pass
     return BookSchema.model_validate(book)
 
 

@@ -32,6 +32,9 @@ class _BaseSettings(BaseSettings):
 
     CELERY_BROKER_URL: str = ""  # Брокер сообщений для Celery
 
+    # Yandex Disk
+    ya_disk_token: str = ""
+
 
 settings: _BaseSettings = _BaseSettings()
 settings.logger.setLevel(settings.log_level)

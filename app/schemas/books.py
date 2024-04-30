@@ -40,7 +40,7 @@ class BookSchema(CamelSerializerModel):
     user_id: int
 
     title: str = Field(..., max_length=254)
-    preview_image: str = Field(..., max_length=128)
+    preview_image: str = Field(..., max_length=4096)
     authors: str = Field(..., max_length=254)
     pages: int
     size: int

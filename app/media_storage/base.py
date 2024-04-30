@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from contextlib import contextmanager
-from typing import AsyncIterable, BinaryIO, Generator
+from contextlib import asynccontextmanager
+from typing import AsyncIterable, BinaryIO, AsyncGenerator
 
 from fastapi import UploadFile
 
@@ -26,7 +26,7 @@ class AbstractStorage(ABC):
         pass
 
     @abstractmethod
-    def get_book_iterator(self, book_id: int) -> AsyncIterable[bytes]:
+    async def get_book_iterator(self, book_id: int) -> AsyncIterable[bytes]:
         """
         Возвращает асинхронный итератор по байтам книги.
         :param book_id: Идентификатор книги.
@@ -35,9 +35,9 @@ class AbstractStorage(ABC):
         """
         pass
 
-    @contextmanager
+    @asynccontextmanager
     @abstractmethod
-    def get_book_binary(self, book_id: int) -> Generator[BinaryIO, None, None]:
+    async def get_book_binary(self, book_id: int) -> AsyncGenerator[BinaryIO, None]:
         """
         Возвращает итератор бинарного файла книги.
         :param book_id: Идентификатор книги.
@@ -56,9 +56,9 @@ class AbstractStorage(ABC):
         """
         pass
 
-    @contextmanager
+    @asynccontextmanager
     @abstractmethod
-    def get_file_binary(self, file_name: str) -> Generator[BinaryIO, None, None]:
+    async def get_file_binary(self, file_name: str) -> AsyncGenerator[BinaryIO, None]:
         """
         Возвращает итератор бинарного файла.
         :param file_name: Путь к файлу в хранилище.

@@ -1,8 +1,8 @@
 import re
 import shutil
-from contextlib import contextmanager
+from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncIterable, BinaryIO, Iterator
+from typing import AsyncIterable, BinaryIO, AsyncGenerator
 
 import aiofiles
 from fastapi import UploadFile
@@ -88,8 +88,8 @@ class LocalStorage(AbstractStorage):
         except OSError:
             raise self.FileNotFoundError
 
-    @contextmanager
-    def get_book_binary(self, book_id: int) -> Iterator[BinaryIO]:
+    @asynccontextmanager
+    async def get_book_binary(self, book_id: int) -> AsyncGenerator[BinaryIO, None]:
         """
         Возвращает итератор бинарного файла книги.
         :param book_id: Идентификатор книги.
@@ -129,8 +129,8 @@ class LocalStorage(AbstractStorage):
             await f.write(data)
         return file_name
 
-    @contextmanager
-    def get_file_binary(self, file_name: str) -> Iterator[BinaryIO]:
+    @asynccontextmanager
+    async def get_file_binary(self, file_name: str) -> AsyncGenerator[BinaryIO, None]:
         """
         Возвращает итератор бинарного файла.
         :param file_name: Путь к файлу в хранилище.

@@ -124,7 +124,7 @@ async def create_book_preview_and_update_pages_count(storage: AbstractStorage, b
 
     :return: Ссылка на превью книги.
     """
-    with storage.get_book_binary(book_id) as file_data:  # type: BinaryIO
+    async with storage.get_book_binary(book_id) as file_data:  # type: BinaryIO
         doc = fitz.Document(stream=file_data.read())
 
     total_pages: int = doc.page_count
@@ -133,7 +133,7 @@ async def create_book_preview_and_update_pages_count(storage: AbstractStorage, b
     image: bytearray = pix.tobytes()
 
     preview_name = f"previews/{book_id}/preview.png"
-    await storage.upload_file(preview_name, image)
+    await storage.upload_file(preview_name, data=bytes(image))
 
     async with db_manager.session() as session:
         book = await Book.get(session, id=book_id)
