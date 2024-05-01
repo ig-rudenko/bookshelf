@@ -2,7 +2,7 @@ version: "3.11"
 
 services:
   nginx:
-    image: bookshelf-nginx:0.1
+    image: bookshelf-nginx:0.4
     build: frontend
     ports:
       - "80:80"
@@ -19,7 +19,7 @@ services:
 
   api-1:
     build: .
-    image: bookshelf:0.1
+    image: bookshelf:0.4
     command: /bin/sh run.sh
     volumes:
       - "./media:/app/media"
