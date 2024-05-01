@@ -32,6 +32,16 @@ class _BaseSettings(BaseSettings):
 
     CELERY_BROKER_URL: str = ""  # Брокер сообщений для Celery
 
+    # Google Captcha
+    RECAPTCHA_ENABLED: bool = False
+    RECAPTCHA_SITE_KEY: str = ""
+    RECAPTCHA_SECRET_KEY: str = ""
+
+    # Email
+    EMAIL_FROM: str = ""
+    EMAIL_PASSWORD: str = ""
+    FORGET_PASSWORD_LINK_EXPIRE_MINUTES: int = 10
+
 
 settings: _BaseSettings = _BaseSettings()
 settings.logger.setLevel(settings.log_level)

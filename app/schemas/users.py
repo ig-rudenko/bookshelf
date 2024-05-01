@@ -25,3 +25,4 @@ class UserCreateSchema(CamelAliasModel):
     username: str = Field(..., min_length=2, max_length=150)
     email: EmailStr = Field(..., max_length=254)
     password: str = Field(..., min_length=8, max_length=50)
+    recaptcha_token: str

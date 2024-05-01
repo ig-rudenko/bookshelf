@@ -5,6 +5,7 @@ from celery import Celery
 
 from app.media_storage import get_storage
 from app.orm.session_manager import db_manager
+from app.services.aaa.reset_password import send_reset_password_email
 from app.services.books import create_book_preview_and_update_pages_count, delete_recent_books_cache
 from app.services.thumbnail import create_thumbnails
 from app.settings import settings
@@ -32,6 +33,23 @@ def create_book_preview_task(book_id: int):
 
         # Удаляем кэш недавно добавленных книг
         await delete_recent_books_cache()
+
+    def sync_task():
+        loop = asyncio.new_event_loop()
+        loop.run_until_complete(async_task())
+
+    try:
+        sync_task()
+    except RuntimeError:
+        thread = Thread(target=sync_task)
+        thread.start()
+        thread.join()
+
+
+@celery.task(name="send_reset_password_email_task", ignore_result=True)
+def send_reset_password_email_task(email: str):
+    async def async_task():
+        await send_reset_password_email(email)
 
     def sync_task():
         loop = asyncio.new_event_loop()

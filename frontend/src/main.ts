@@ -36,6 +36,8 @@ import Textarea from "primevue/textarea";
 import Tooltip from 'primevue/tooltip';
 import ScrollPanel from "primevue/scrollpanel";
 import {Router} from "vue-router";
+import { VueRecaptchaPlugin } from 'vue-recaptcha';
+import {createHead} from "@unhead/vue";
 
 import App from '@/App.vue';
 import store from "@/store";
@@ -43,8 +45,11 @@ import ToastService from 'primevue/toastservice';
 import setupInterceptors from '@/services/setupInterceptors';
 import router from "@/router";
 
+const head = createHead()
 setupInterceptors(store);
 const app = createApp(App);
+app.use(head)
+app.use(VueRecaptchaPlugin, { v2SiteKey: '6LcpBc0pAAAAAHu7T0s0SpoqfEgW2iQk-XCX5hwp' })
 app.use(PrimeVue, { ripple: true });
 app.use(ToastService);
 app.directive('tooltip', Tooltip);

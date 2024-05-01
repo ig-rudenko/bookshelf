@@ -12,3 +12,19 @@ class AccessToken(CamelSerializerModel):
 
 class RefreshToken(CamelAliasModel):
     refresh_token: str
+
+
+class ForgotPasswordSchema(CamelAliasModel):
+    email: str
+    recaptcha_token: str
+
+
+class ForgotPasswordResponseSchema(CamelSerializerModel):
+    success: bool
+    detail: str
+
+
+class ResetPasswordSchema(CamelAliasModel):
+    token: str
+    password1: str
+    password2: str

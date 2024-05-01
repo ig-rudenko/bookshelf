@@ -1,5 +1,5 @@
 import os
-from datetime import timedelta, datetime, UTC
+from datetime import timedelta, datetime
 
 from fastapi import HTTPException
 from fastapi.security import OAuth2PasswordBearer
@@ -11,6 +11,7 @@ from app.services.aaa.exc import (
     InvalidAccessTokenException,
     InvalidRefreshTokenException,
 )
+from app.settings import settings
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "i9i3902849209323m009sfhs90dh")
@@ -49,6 +50,26 @@ def refresh_access_token(refresh_token: str) -> str:
     )
 
 
+def create_reset_password_token(email: str) -> str:
+    data = {
+        "sub": email,
+        "exp": datetime.utcnow() + timedelta(minutes=settings.FORGET_PASSWORD_LINK_EXPIRE_MINUTES),
+    }
+    return jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def decode_reset_password_token(token: str) -> str | None:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        exp: int = payload.get("exp")
+        if datetime.utcnow() > datetime.fromtimestamp(exp):
+            return None
+        return email
+    except JWTError:
+        return None
+
+
 def _create_jwt_token(data: dict, delta: timedelta) -> str:
     """
     Создает JWT токен.
@@ -56,7 +77,7 @@ def _create_jwt_token(data: dict, delta: timedelta) -> str:
     :param delta: Время жизни токена.
     :return: Закодированный токен.
     """
-    expires_delta = datetime.now(UTC) + delta
+    expires_delta = datetime.utcnow() + delta
     data.update({"exp": expires_delta})
     encoded_jwt = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt

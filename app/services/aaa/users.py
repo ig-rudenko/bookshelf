@@ -58,7 +58,7 @@ async def get_user_or_none(
 async def create_user(session: AsyncSession, user: UserCreateSchema) -> User:
     user_data = user.model_dump()
     user_data["password"] = encrypt_password(user_data["password"])
-    obj = User(**user_data)
+    obj = User(username=user_data["username"], email=user_data["email"], password=user_data["password"])
     session.add(obj)
     await session.commit()
     await session.refresh(obj)

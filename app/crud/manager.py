@@ -9,7 +9,7 @@ class Manager:
         super().__init__(*args, **kwargs)
 
     @classmethod
-    async def create(cls, session: AsyncSession, /, **kwargs) -> Self:
+    async def create(cls, session: AsyncSession, **kwargs) -> Self:
         obj = cls(**kwargs)
         session.add(obj)  # Добавляем объект в его таблицу.
         await session.commit()  # Подтверждаем.
@@ -17,7 +17,7 @@ class Manager:
         return obj
 
     @classmethod
-    async def get(cls, session: AsyncSession, /, **kwargs) -> Self:
+    async def get(cls, session: AsyncSession, **kwargs) -> Self:
         filters = [getattr(cls, key) == value for key, value in kwargs.items()]
         query = select(cls).where(*filters)
         result = await session.execute(query)
@@ -25,7 +25,7 @@ class Manager:
         return result.scalar_one()
 
     @classmethod
-    async def exists(cls, session: AsyncSession, /, **kwargs) -> bool:
+    async def exists(cls, session: AsyncSession, **kwargs) -> bool:
         filters = [getattr(cls, key) == value for key, value in kwargs.items()]
         query = select(getattr(cls, "id")).where(*filters)
         result = await session.execute(query)

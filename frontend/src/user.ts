@@ -1,4 +1,4 @@
-
+import {validateEmail, validatePassword, validateTwoPasswords, validateUsername} from "@/validators.ts";
 
 class LoginUserIsValid {
     username: boolean = true
@@ -7,28 +7,13 @@ class LoginUserIsValid {
     passwordError: string = ""
 
     validateUsername(value: string): void {
-        if (value.length <= 3) {
-            this.username = false;
-            this.usernameError = "Укажите более 3 символов";
-            return;
-        }
-        this.username = true;
-        this.usernameError = "";
+        this.usernameError = validateUsername(value);
+        this.username = this.usernameError.length == 0;
     }
 
     validatePassword(value: string): void {
-        if (value.length < 8) {
-            this.password = false;
-            this.passwordError = "Пароль должен быть 8 или более символов";
-            return;
-        }
-        if (!value.match(/\d/) || !value.match(/\D/)) {
-            this.password = false;
-            this.passwordError = "Пароль должен состоять, как минимум, из цифр и букв";
-            return;
-        }
-        this.password = true;
-        this.passwordError = "";
+        this.passwordError = validatePassword(value)
+        this.password = this.passwordError.length == 0;
     }
 
     get isValid(): boolean {
@@ -42,21 +27,14 @@ class RegisterUserIsValid extends LoginUserIsValid {
     emailError: string = ""
 
     validateEmail(value: string): void {
-        if (!value.match(/^[A-Z0-9._%+-]+@[A-Z0-9-]+.+\.[A-Z]{2,4}$/i)) {
-            this.email = false;
-            this.emailError = "Укажите верный адрес";
-            return;
-        }
-        this.email = true;
-        this.emailError = "";
+        this.emailError = validateEmail(value)
+        this.email = this.emailError.length == 0;
     }
 
     validatePasswordPair(pass1: string, pass2: string) {
         this.validatePassword(pass1)
-        if (pass1 !== pass2) {
-            this.password = false;
-            this.passwordError += "Пароли не совпадают";
-        }
+        this.passwordError += validateTwoPasswords(pass1, pass2);
+        this.password = this.passwordError.length == 0;
     }
 
     get isValid(): boolean {
@@ -86,6 +64,7 @@ class LoginUser {
 class RegisterUser extends LoginUser {
     email: string = ""
     password2: string = ""
+    recaptchaToken: string = ""
     readonly valid: RegisterUserIsValid
 
     constructor() {

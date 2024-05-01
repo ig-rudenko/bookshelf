@@ -25,6 +25,8 @@ class User(OrmBase, Manager):
     is_staff: Mapped[bool] = mapped_column(server_default=false())
     is_active: Mapped[bool] = mapped_column(server_default=true())
     date_join: Mapped[datetime] = mapped_column(server_default=func.now())
+    reset_passwd_email_datetime: Mapped[Optional[datetime]] = mapped_column(nullable=True)
+
     favorites = relationship(
         "Book", secondary="favorite_books", back_populates="favorite_for_users", lazy="select"
     )

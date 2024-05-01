@@ -51,14 +51,17 @@ export default defineComponent({
       );
     },
 
+    goToForgotPassword() {
+      this.$router.push('/forgot-password');
+    }
+
   },
 })
 </script>
 
 <template>
   <div class="p-4 shadow-2 border-round w-full lg:w-4">
-    <div class="text-center mb-3">
-<!--      <img src="#" alt="Image" height="50" class="mb-3" />-->
+    <div class="text-center mb-5">
       <div class="text-900 text-3xl font-medium mb-3">Добро пожаловать</div>
       <span class="text-600 font-medium line-height-3">Нет аккаунта?</span>
       <a href="/signup" class="font-medium no-underline ml-2 text-blue-500 cursor-pointer">Создать</a>
@@ -84,7 +87,7 @@ export default defineComponent({
       </div>
 
       <div class="mb-4">
-        <a class="font-medium no-underline ml-2 text-blue-500 text-right cursor-pointer">Forgot password?</a>
+        <a @click="goToForgotPassword" class="font-medium no-underline ml-2 text-blue-500 text-right cursor-pointer">Забыли пароль?</a>
       </div>
 
       <Button label="Sign In" icon="pi pi-user" @click="handleLogin" class="w-full"></Button>

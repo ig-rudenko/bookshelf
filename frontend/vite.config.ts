@@ -14,12 +14,15 @@ export default defineConfig({
   server: {
     proxy: {
       '/api/v1': {
-        target: 'https://it-bookshelf.ru',
+        target: 'http://127.0.0.1:8080',
         changeOrigin: true,
         secure: false,
         ws: true,
       },
-      '/media': { target: 'https://it-bookshelf.ru', secure: false },
+      '/media': { target: 'http://127.0.0.1:8080', secure: false },
     }
+  },
+  optimizeDeps: {
+    exclude: ["vue-recaptcha"]
   }
 })
