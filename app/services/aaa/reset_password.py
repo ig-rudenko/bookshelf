@@ -46,7 +46,6 @@ async def send_reset_password_email(email: str):
     """
     Отправляет письмо на смену пароля.
     :param email: Email пользователя.
-    :return: True, если письмо отправлено.
     """
 
     secret_token = create_reset_password_token(email=email)

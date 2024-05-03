@@ -23,6 +23,7 @@ from app.schemas.books import BookSchema, BooksSchemaPaginated, BookSchemaDetail
 from app.services.cache import get_cache
 from app.services.cache.deco import cached
 from app.services.paginator import paginate
+from app.services.publishers import get_or_create_publisher
 from app.services.thumbnail import get_thumbnail
 from app.settings import settings
 
@@ -206,22 +207,27 @@ async def get_book(session: AsyncSession, book_id: int) -> Book:
 
 
 async def get_book_detail(session: AsyncSession, book_id: int, user: User | None) -> BookSchemaDetail:
+    """
+    Возвращает детальную информацию о книге с отметками просмотра и статуса избранного.
+    """
     try:
-        query = select(Book, favorite_books_association.columns.id, books_read_association.columns.id).where(
-            Book.id == book_id
-        )
-        query = query.outerjoin(
-            favorite_books_association,
-            (
-                (Book.id == favorite_books_association.columns.book_id)
-                & (favorite_books_association.columns.user_id == (user.id if user else None))
-            ),
-        ).outerjoin(
-            books_read_association,
-            (
-                (Book.id == books_read_association.columns.book_id)
-                & (books_read_association.columns.user_id == (user.id if user else None))
-            ),
+        query = (
+            select(Book, favorite_books_association.columns.id, books_read_association.columns.id)
+            .where(Book.id == book_id)
+            .outerjoin(
+                favorite_books_association,
+                (
+                    (Book.id == favorite_books_association.columns.book_id)
+                    & (favorite_books_association.columns.user_id == (user.id if user else None))
+                ),
+            )
+            .outerjoin(
+                books_read_association,
+                (
+                    (Book.id == books_read_association.columns.book_id)
+                    & (books_read_association.columns.user_id == (user.id if user else None))
+                ),
+            )
         )
         result = await session.execute(query)
         result.unique()
@@ -237,7 +243,7 @@ async def get_book_detail(session: AsyncSession, book_id: int, user: User | None
 
 
 async def create_book(session: AsyncSession, user: User, book_data: CreateBookSchema) -> Book:
-    publisher = await _get_or_create_publisher(session, book_data.publisher)
+    publisher = await get_or_create_publisher(session, book_data.publisher)
     tags = await _get_or_create_tags(session, book_data.tags)
     book = Book(
         user_id=user.id,
@@ -261,7 +267,7 @@ async def create_book(session: AsyncSession, user: User, book_data: CreateBookSc
 
 
 async def update_book(session: AsyncSession, book: Book, book_data: CreateBookSchema) -> Book:
-    publisher = await _get_or_create_publisher(session, book_data.publisher)
+    publisher = await get_or_create_publisher(session, book_data.publisher)
     tags = await _get_or_create_tags(session, book_data.tags)
 
     book.publisher_id = publisher.id
@@ -289,18 +295,3 @@ async def _get_or_create_tags(session: AsyncSession, tags: list[str]) -> list[Ta
         model_tags.append(tag)
     session.add_all(model_tags)
     return model_tags
-
-
-async def _get_or_create_publisher(session: AsyncSession, publisher_name: str) -> Publisher:
-    """Находит или создает издательство по названию"""
-    query = select(Publisher).where(Publisher.name.ilike(publisher_name))
-    result = await session.execute(query)
-    result.unique()
-    publisher = result.scalar_one_or_none()
-    if publisher is None:
-        publisher = Publisher(name=publisher_name)
-        session.add(publisher)
-        await session.commit()
-        await session.refresh(publisher)
-
-    return publisher

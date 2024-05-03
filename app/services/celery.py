@@ -48,6 +48,8 @@ def create_book_preview_task(book_id: int):
 
 @celery.task(name="send_reset_password_email_task", ignore_result=True)
 def send_reset_password_email_task(email: str):
+    """Задача отправки ссылки для сброса пароля"""
+
     async def async_task():
         await send_reset_password_email(email)
 

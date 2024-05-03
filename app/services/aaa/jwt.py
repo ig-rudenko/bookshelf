@@ -61,9 +61,9 @@ def create_reset_password_token(email: str) -> str:
 def decode_reset_password_token(token: str) -> str | None:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        exp: int = payload.get("exp")
-        if datetime.utcnow() > datetime.fromtimestamp(exp):
+        email: str = payload.get("sub", "")
+        exp: int = payload.get("exp", 0)
+        if datetime.utcnow() > datetime.fromtimestamp(exp) or not email:
             return None
         return email
     except JWTError:

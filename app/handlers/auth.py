@@ -21,6 +21,7 @@ from ..services.aaa import (
     refresh_access_token,
 )
 from ..services.aaa.captcha import verify_captcha
+from ..services.aaa.requests import get_client_ip
 from ..services.aaa.reset_password import (
     verify_forgot_password_email_send,
     reset_password,
@@ -37,8 +38,9 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 async def register_user(
     user: UserCreateSchema, request: Request, session: AsyncSession = Depends(get_session)
 ):
+    """Регистрация нового пользователя"""
     try:
-        if await verify_captcha(user.recaptcha_token, request.client.host):
+        if await verify_captcha(user.recaptcha_token, remote_ip=get_client_ip(request)):
             return await create_user(session, user)
         return HTTPException(status_code=422, detail="Вы не прошли проверку для регистрации")
     except IntegrityError:
@@ -60,6 +62,7 @@ def refresh_token(token: RefreshToken):
 
 @router.get("/myself", response_model=UserSchema)
 def verify_jwt(user: models.User = Depends(get_current_user)):
+    """Проверка JWT"""
     return user
 
 
@@ -67,8 +70,9 @@ def verify_jwt(user: models.User = Depends(get_current_user)):
 async def forgot_password_api_view(
     data: ForgotPasswordSchema, request: Request, session: AsyncSession = Depends(get_session)
 ):
+    """Отправка письма для сброса пароля"""
     try:
-        if await verify_forgot_password_email_send(session, data, request_ip=request.client.host):
+        if await verify_forgot_password_email_send(session, data, request_ip=get_client_ip(request)):
             send_reset_password_email_task.delay(data.email)
             return ForgotPasswordResponseSchema(
                 detail=f"Письмо отправлено от имени {settings.EMAIL_FROM}, "
@@ -85,9 +89,11 @@ async def forgot_password_api_view(
 
 @router.get("/reset-password/verify/{token}", response_model=UserSchema)
 async def reset_password_verify_api_view(token: str, session: AsyncSession = Depends(get_session)):
+    """Проверка токена для сброса пароля"""
     return await get_user_from_token(session, token)
 
 
 @router.post("/reset-password")
 async def reset_password_api_view(data: ResetPasswordSchema, session: AsyncSession = Depends(get_session)):
+    """Сброс пароля пользователя"""
     await reset_password(session, data.token, data.password1, data.password2)

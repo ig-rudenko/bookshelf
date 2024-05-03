@@ -8,6 +8,7 @@ from app.settings import settings
 
 @singleton
 class EmailService:
+    """Сервис для отправки почты"""
 
     def __init__(self):
         self._from = settings.EMAIL_FROM
@@ -25,6 +26,7 @@ class EmailService:
 
     @staticmethod
     def _render_reset_body(context: dict) -> str:
+        """Рендер тела письма для сброса пароля"""
         return """
         <h3>Сброс пароля для сайта it-bookshelf.ru</h3>
         <div>
@@ -35,6 +37,7 @@ class EmailService:
         )
 
     def send_reset_password_email(self, email: str, subject: str, context: dict) -> None:
+        """Отправка письма для сброса пароля"""
         try:
             server = smtplib.SMTP_SSL(self._smtp_server, self._smtp_port, timeout=10)
             try:
@@ -52,4 +55,5 @@ class EmailService:
 
 
 def get_email_service() -> EmailService:
+    """Получение сервиса для отправки почты"""
     return EmailService()
