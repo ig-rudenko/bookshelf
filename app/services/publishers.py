@@ -19,7 +19,9 @@ async def get_publishers(session: AsyncSession, search: str | None = None) -> li
     return list(results.scalars().all())
 
 
-async def get_or_create_publisher(session: AsyncSession, publisher_name: str) -> Publisher:
+async def get_or_create_publisher(
+    session: AsyncSession, publisher_name: str, *, commit: bool = True
+) -> Publisher:
     """Находит или создает издательство по названию"""
     query = select(Publisher).where(Publisher.name.ilike(publisher_name))
     result = await session.execute(query)
@@ -28,7 +30,8 @@ async def get_or_create_publisher(session: AsyncSession, publisher_name: str) ->
     if publisher is None:
         publisher = Publisher(name=publisher_name)
         session.add(publisher)
-        await session.commit()
-        await session.refresh(publisher)
+        if commit:
+            await session.commit()
+            await session.refresh(publisher)
 
     return publisher

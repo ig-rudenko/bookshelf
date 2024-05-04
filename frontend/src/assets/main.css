@@ -15,3 +15,23 @@ body, html {
     font-family: "Cascadia Code", monospace;
     /*font-family: "Spot Mono", monospace*/
 }
+
+
+::-webkit-scrollbar {
+    display: inline;
+    width: 7px;
+    height: 5px;
+}
+::-webkit-scrollbar-track-piece {
+    background-color: var(--primary-100);
+    border-radius: 20px;
+    opacity: 0.3;
+}
+::-webkit-scrollbar-thumb {
+    background-color: var(--primary-300);
+    border-radius: 20px;
+    height: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--primary-500);
+}

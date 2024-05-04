@@ -1,5 +1,6 @@
 from typing import TypeVar, TypedDict, BinaryIO
 
+# noinspection PyPackageRequirements
 import fitz
 from fastapi import UploadFile, HTTPException
 from sqlalchemy import select, func, Select, delete
@@ -136,6 +137,7 @@ async def create_book_preview_and_update_pages_count(storage: AbstractStorage, b
     preview_name = f"previews/{book_id}/preview.png"
     await storage.upload_file(preview_name, image)
 
+    # noinspection PyArgumentList
     async with db_manager.session() as session:
         book = await Book.get(session, id=book_id)
         book.preview_image = f"{settings.media_url}/{preview_name}"
@@ -191,7 +193,7 @@ async def get_recent_books(session: AsyncSession, limit: int) -> list[BookSchema
     books = result.scalars().all()
     books_schemas = [BookSchema.model_validate(book) for book in books]
     for book in books_schemas:
-        book.preview_image = get_thumbnail(book.preview_image, "small")
+        book.preview_image = get_thumbnail(book.preview_image, "medium")
     return books_schemas
 
 
@@ -243,8 +245,8 @@ async def get_book_detail(session: AsyncSession, book_id: int, user: User | None
 
 
 async def create_book(session: AsyncSession, user: User, book_data: CreateBookSchema) -> Book:
-    publisher = await get_or_create_publisher(session, book_data.publisher)
-    tags = await _get_or_create_tags(session, book_data.tags)
+    publisher = await get_or_create_publisher(session, book_data.publisher, commit=False)
+    tags = await _get_or_create_tags(session, book_data.tags, commit=False)
     book = Book(
         user_id=user.id,
         publisher_id=publisher.id,
@@ -267,8 +269,8 @@ async def create_book(session: AsyncSession, user: User, book_data: CreateBookSc
 
 
 async def update_book(session: AsyncSession, book: Book, book_data: CreateBookSchema) -> Book:
-    publisher = await get_or_create_publisher(session, book_data.publisher)
-    tags = await _get_or_create_tags(session, book_data.tags)
+    publisher = await get_or_create_publisher(session, book_data.publisher, commit=False)
+    tags = await _get_or_create_tags(session, book_data.tags, commit=False)
 
     book.publisher_id = publisher.id
     book.title = book_data.title
@@ -282,7 +284,7 @@ async def update_book(session: AsyncSession, book: Book, book_data: CreateBookSc
     return book
 
 
-async def _get_or_create_tags(session: AsyncSession, tags: list[str]) -> list[Tag]:
+async def _get_or_create_tags(session: AsyncSession, tags: list[str], *, commit: bool = True) -> list[Tag]:
     """Находит или создает список тегов"""
     model_tags = []
     for tag_name in tags:
@@ -291,7 +293,12 @@ async def _get_or_create_tags(session: AsyncSession, tags: list[str]) -> list[Ta
         tag = result.scalar_one_or_none()
         if tag is None:
             tag = Tag(name=tag_name)
-
         model_tags.append(tag)
     session.add_all(model_tags)
+
+    if commit:
+        await session.commit()
+        for tag in model_tags:
+            await session.refresh(tag)
+
     return model_tags

@@ -29,8 +29,8 @@ export default defineComponent({
 
   <div class="flex justify-content-center align-items-center">
     <div class="scroll-menu" style="width: 80rem;">
-      <a :href="'/book/'+book.id" v-for="(book, index) in recentBooks" :key="index" class="item shadow-3">
-        <img :alt="book.title" width="100%" :src="book.previewImage" v-tooltip.bottom="book.title" />
+      <a :href="'/book/'+book.id" v-for="(book, index) in recentBooks" :key="index" class="m-2 inline-block shadow-3">
+        <img :alt="book.title" class="item flex" :src="book.previewImage.replace('small', 'medium')" v-tooltip.bottom="book.title" />
       </a>
     </div>
   </div>
@@ -50,13 +50,26 @@ export default defineComponent({
   -webkit-overflow-scrolling: touch;
 }
 .item {
-  margin: 0.5rem;
-  width: 10rem;
+  height: 100%;
+  max-height: 220px;
   float: none;
   display: inline-block;
 }
-/*to hide the scrollbars*/
-::-webkit-scrollbar {
-  display: none;
+
+.scroll-menu::-webkit-scrollbar {
+  display: inline;
+  height: 5px;
+}
+.scroll-menu::-webkit-scrollbar-track-piece {
+  background-color: var(--primary-100);
+  border-radius: 20px;
+}
+.scroll-menu::-webkit-scrollbar-thumb {
+  background-color: var(--primary-300);
+  border-radius: 20px;
+  height: 4px;
+}
+.scroll-menu::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary-500);
 }
 </style>

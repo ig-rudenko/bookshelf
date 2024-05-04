@@ -31,7 +31,12 @@ class RegisterUserTest(IsolatedAsyncioTestCase):
             await conn.commit()
 
     async def test_create_user(self):
-        user_data = {"username": "testuser", "password": "testpassword", "email": "igor@mail.com"}
+        user_data = {
+            "username": "testuser",
+            "password": "testpassword",
+            "email": "igor@mail.com",
+            "recaptchaToken": "some token",
+        }
         response = self.client.post("/auth/users", json=user_data)
         self.assertEqual(response.status_code, 200)
         async with db_manager.session() as session:
@@ -50,7 +55,12 @@ class RegisterUserTest(IsolatedAsyncioTestCase):
 
     def test_register_user_duplicate(self):
         """Попытка зарегистрировать уже существующего пользователя"""
-        user_data = {"username": "testuser", "password": "testpassword", "email": "igor@mail.com"}
+        user_data = {
+            "username": "testuser",
+            "password": "testpassword",
+            "email": "igor@mail.com",
+            "recaptchaToken": "some token",
+        }
         self.client.post("/auth/users", json=user_data)
         with self.assertRaises(HTTPException):
             self.client.post("/auth/users", json=user_data)
@@ -59,18 +69,34 @@ class RegisterUserTest(IsolatedAsyncioTestCase):
         """Пустой пароль"""
         with self.assertRaises(RequestValidationError):
             self.client.post(
-                "/auth/users", json={"username": "testuser", "password": "", "email": "igor@mail.com"}
+                "/auth/users",
+                json={
+                    "username": "testuser",
+                    "password": "",
+                    "email": "igor@mail.com",
+                    "recaptchaToken": "some token",
+                },
             )
 
     def test_create_user_empty_data(self):
-        """Пустой пароль"""
+        """Без данных"""
         with self.assertRaises(RequestValidationError):
             self.client.post("/auth/users")
 
     def test_create_user_without_email(self):
-        """Пустой пароль"""
+        """Без указания email"""
         with self.assertRaises(RequestValidationError):
-            self.client.post("/auth/users", json={"username": "testuser", "password": "password"})
+            self.client.post(
+                "/auth/users",
+                json={"username": "testuser", "password": "password", "recaptchaToken": "some token"},
+            )
+
+    def test_register_user_without_recaptchaToken(self):
+        """Без указания recaptchaToken"""
+        with self.assertRaises(RequestValidationError):
+            self.client.post(
+                "/auth/users", json={"username": "testuser", "password": "password", "email": "igor@mail.com"}
+            )
 
 
 # noinspection PyArgumentList
@@ -83,7 +109,12 @@ class AuthJWTTest(IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self):
         await self.asyncTearDown()
-        self.user_data = {"username": "testuser", "password": "testpassword", "email": "igor@mail.com"}
+        self.user_data = {
+            "username": "testuser",
+            "password": "testpassword",
+            "email": "igor@mail.com",
+            "recaptchaToken": "some token",
+        }
         self.client.post("/auth/users", json=self.user_data)
 
     async def asyncTearDown(self):
@@ -101,7 +132,11 @@ class AuthJWTTest(IsolatedAsyncioTestCase):
 
     def test_get_tokens_invalid_credentials(self):
         # Тест на попытку получить токены JWT с неверными учетными данными
-        user_credentials = {"username": "testuser", "password": "wrongpassword"}
+        user_credentials = {
+            "username": "testuser",
+            "password": "wrongpassword",
+            "recaptchaToken": "some token",
+        }
         with self.assertRaises(HTTPException):
             self.client.post("/auth/token", json=user_credentials)
 

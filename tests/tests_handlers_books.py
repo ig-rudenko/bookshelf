@@ -134,7 +134,9 @@ class CreateBookTest(BaseBookTest):
         async with db_manager.session() as session:
             self.user_1.is_staff = True
             await self.user_1.save(session)
+
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
+
         self.book_valid_data["publisher"] = "Another Publisher"
         response = self.client.post(
             "/books",
@@ -142,6 +144,7 @@ class CreateBookTest(BaseBookTest):
             json=self.book_valid_data,
         )
         self.assertEqual(response.status_code, 201)
+
         response = self.client.post(
             "/books",
             headers={"Authorization": f"Bearer {token_pair.access_token}"},
