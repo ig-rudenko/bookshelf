@@ -16,7 +16,7 @@
     "primevue": "^3.50.0",
     "vue": "^3.4.21",
     "vue-recaptcha": "^3.0.0-alpha.2",
-    "vue-router": "^4.3.0",
+    "vue-router": "^4.3.1",
     "vue3-pdf-app": "^1.0.3",
     "vuex": "^4.1.0"
   },
