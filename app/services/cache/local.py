@@ -2,9 +2,10 @@ import pickle
 from datetime import datetime, timedelta
 from typing import TypedDict, Any, Optional
 
+from loguru import logger
+
 from app.services.deco import singleton
 from .base import AbstractCache
-from .logger import logger
 
 
 class _ValueType(TypedDict):
@@ -20,7 +21,7 @@ class InMemoryCache(AbstractCache):
         self._cache: dict[str, _ValueType] = {}
 
     async def get(self, key: str) -> Optional[Any]:
-        logger.debug(f"Get from cache %s", key)
+        logger.debug(f"Get from cache {key}", key=key)
 
         if value := self._cache.get(key, None):
             if value["expires"] > datetime.now():
@@ -30,7 +31,7 @@ class InMemoryCache(AbstractCache):
         return None
 
     async def set(self, key: str, value: Any, timeout: int) -> None:
-        logger.debug(f"Set to cache %s", key)
+        logger.debug(f"Set to cache {key}", key=key)
 
         self._cache[key] = {
             "data": pickle.dumps(value),
@@ -38,11 +39,11 @@ class InMemoryCache(AbstractCache):
         }
 
     async def delete(self, key: str) -> None:
-        logger.debug(f"Delete_ from cache %s", key)
+        logger.debug(f"Delete_ from cache {key}", key=key)
         self._cache.pop(key, None)
 
     async def delete_namespace(self, prefix: str) -> None:
-        logger.debug(f"Delete namespace from cache %s", prefix)
+        logger.debug(f"Delete namespace from cache {prefix}", prefix=prefix)
         for key in list(self._cache.keys()):
             if key.startswith(prefix):
                 self._cache.pop(key, None)

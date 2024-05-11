@@ -1,11 +1,11 @@
 import pickle
 from typing import Optional, Any
 
+from loguru import logger
 from redis.asyncio import Redis
 
 from app.services.deco import singleton
 from .base import AbstractCache
-from .logger import logger
 
 
 @singleton
@@ -23,7 +23,7 @@ class RedisCache(AbstractCache):
         )
 
     async def get(self, key: str) -> Optional[Any]:
-        logger.debug(f"Get from cache %s", key)
+        logger.debug(f"Get from cache {key}", key=key)
 
         value = await self._redis.get(key)
         if value is not None:
@@ -31,12 +31,12 @@ class RedisCache(AbstractCache):
         return None
 
     async def set(self, key: str, value: Any, expire: int) -> None:
-        logger.debug(f"Set to cache %s", key)
+        logger.debug(f"Set to cache {key}", key=key)
 
         await self._redis.set(key, pickle.dumps(value), ex=expire)
 
     async def delete(self, key: str) -> None:
-        logger.debug(f"Delete_ from cache %s", key)
+        logger.debug(f"Delete_ from cache {key}", key=key)
         await self._redis.delete(key)
 
     async def clear(self) -> None:
@@ -44,6 +44,6 @@ class RedisCache(AbstractCache):
         await self._redis.flushdb(asynchronous=True)
 
     async def delete_namespace(self, prefix: str) -> None:
-        logger.debug(f"Delete namespace from cache %s", prefix)
+        logger.debug(f"Delete namespace from cache {prefix}", prefix=prefix)
         async for key in self._redis.scan_iter(f"{prefix}*"):
             await self._redis.delete(key)

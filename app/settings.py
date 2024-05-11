@@ -1,19 +1,9 @@
-import logging
-import sys
 from pathlib import Path
 
 from pydantic_settings import BaseSettings
 
-logging.basicConfig(
-    format="{levelname:<9} {module:<10} {funcName} -> {message}",
-    style="{",
-    handlers=[logging.StreamHandler(stream=sys.stdout)],
-    level=logging.INFO,
-)
-
 
 class _BaseSettings(BaseSettings):
-    logger: logging.Logger = logging.getLogger()
     log_level: str = "INFO"
 
     # Путь к медиа хранилищу
@@ -44,4 +34,3 @@ class _BaseSettings(BaseSettings):
 
 
 settings: _BaseSettings = _BaseSettings()
-settings.logger.setLevel(settings.log_level)
