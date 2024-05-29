@@ -47,7 +47,9 @@ export default defineComponent({
 </script>
 
 <template>
-  <MeterGroup v-if="currentPage" :value="[{label: verboseValue, value: percents, color: 'primary', icon: '' }]"/>
+  <div v-if="currentPage" class="p-2 pb-4">
+    <MeterGroup :value="[{label: verboseValue, value: percents, color: 'primary', icon: '' }]"/>
+  </div>
 </template>
 
 <style scoped>

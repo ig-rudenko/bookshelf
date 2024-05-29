@@ -1,29 +1,25 @@
 <template>
   <Menu/>
 
-  <div v-if="book" class="flex flex-wrap justify-content-center align-items-center my-4">
-    <a :href="'/book/'+book.id+'/show'" target="_blank" class="flex flex-column">
-      <img style="width: 100%" class="border-round-xl" alt="book" :src="book.previewImage"/>
+  <div v-if="book" class="flex flex-wrap justify-content-center y-4">
+    <a :href="'/book/'+book.id+'/show'" target="_blank" class="flex flex-column py-5">
+      <img class="book-image border-round-xl" alt="book" :src="book.previewImage"/>
     </a>
 
     <div class="flex flex-column m-3 w-full" style="max-width: 40rem;">
       <h2 class="p-2">{{book.title}}</h2>
 
-      <div class="pl-2 mb-3 flex flex-wrap align-items-center">
-        <template v-if="loggedIn && user">
+      <div v-if="loggedIn && user" class="pl-2 mb-3 flex flex-wrap align-items-center">
           <Bookmarks type="favorite" :bookId="book.id" :mark="book.favorite" @updated="v => book!.favorite = v" />
           <Bookmarks type="read" :bookId="book.id" :mark="book.read" @updated="v => book!.read = v" />
-        </template>
 
-        <template v-if="loggedIn && user && user.id == book.userId">
+        <template v-if="user.id == book.userId">
           <Button @click="showEditBook" v-tooltip.bottom="'Редактировать'" icon="pi pi-pencil" raised rounded outlined severity="warning" class="mx-1"/>
           <Button @click="displayDeleteBookDialog = true" v-tooltip.bottom="'Удалить'" icon="pi pi-trash" raised rounded outlined severity="danger" class="mx-1"/>
         </template>
       </div>
 
-      <div class="p-2 pb-4">
-        <BookViewStats v-if="loggedIn" :book="book" />
-      </div>
+      <BookViewStats v-if="loggedIn" :book="book" />
 
       <div class="m-2">
         <span>Издательство <i class="pi pi-building mr-2"/></span>
@@ -168,5 +164,9 @@ export default defineComponent({
 </script>
 
 <style scoped>
-
+.book-image {
+  width: 100%;
+  position: sticky;
+  top: 2rem;
+}
 </style>
