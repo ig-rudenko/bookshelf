@@ -36,7 +36,7 @@
 
         <div class="flex flex-column gap-2 pb-2">
           <label for="book.language">Язык книги</label>
-          <LanguageDropdown :language="filterData.language" @update="l => filterData.language=l" :showClear="true"/>
+          <LanguageDropdown :language="filterData.language" @update="(l: string) => filterData.language=l" :showClear="true"/>
         </div>
 
         <div class="flex flex-column gap-2 pb-2">

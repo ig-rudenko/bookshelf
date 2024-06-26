@@ -10,8 +10,8 @@
       <h2 class="p-2">{{book.title}}</h2>
 
       <div v-if="loggedIn && user" class="pl-2 mb-3 flex flex-wrap align-items-center">
-          <Bookmarks type="favorite" :bookId="book.id" :mark="book.favorite" @updated="v => book!.favorite = v" />
-          <Bookmarks type="read" :bookId="book.id" :mark="book.read" @updated="v => book!.read = v" />
+          <Bookmarks type="favorite" :bookId="book.id" :mark="book.favorite" @updated="(v: boolean) => book!.favorite = v" />
+          <Bookmarks type="read" :bookId="book.id" :mark="book.read" @updated="(v: boolean) => book!.read = v" />
 
         <template v-if="user.id == book.userId">
           <Button @click="showEditBook" v-tooltip.bottom="'Редактировать'" icon="pi pi-pencil" raised rounded outlined severity="warning" class="mx-1"/>

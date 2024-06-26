@@ -4,7 +4,7 @@
   <div v-if="result?.totalCount" class="p-2">
     <h3 class="flex flex-column align-items-center gap-2">
       <span>Недавно просмотренные книги: {{result?.totalCount}} <i class="pi pi-book"/></span>
-      <span>Из них прочитано страниц: {{result?.books.reduce((pages, book) => pages + book.readPages, 0)}} <i class="pi pi-file"/></span>
+      <span>Из них прочитано страниц: {{result?.books.reduce((pages: number, book: any) => pages + book.readPages, 0)}} <i class="pi pi-file"/></span>
     </h3>
   </div>
 

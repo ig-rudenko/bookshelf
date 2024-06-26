@@ -72,7 +72,7 @@
 
         <div class="flex flex-column gap-2 pb-2">
           <label for="book.language">Язык книги</label>
-          <LanguageDropdown :language="book.language" @update="l => book.language=l" :class="validator.language?'':'p-invalid'"/>
+          <LanguageDropdown :language="book.language" @update="(l: string) => book.language=l" :class="validator.language?'':'p-invalid'"/>
           <InlineMessage class="zoomin cursor-pointer" v-tooltip="'Проверить заново'" severity="error" v-if="!validator.language" @click="validator.validateLanguage(book.language)">Укажите от 1 до 128 символов</InlineMessage>
         </div>
 

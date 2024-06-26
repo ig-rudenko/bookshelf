@@ -7,8 +7,8 @@
 
   <div id="search-block" class="flex flex-wrap justify-content-center p-2">
     <SearchBookForm
-        @compactView="v => compactView = v"
-        :filterData="filters" @filtered="(f) => {filters = f; getBooksList(1, f)}" />
+        @compactView="(v: boolean) => compactView = v"
+        :filterData="filters" @filtered="(f: any) => {filters = f; getBooksList(1, f)}" />
   </div>
 
   <div class="flex flex-wrap justify-content-center align-content-center">
