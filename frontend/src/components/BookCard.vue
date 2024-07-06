@@ -81,9 +81,13 @@ export default defineComponent({
     isMobile() {
       return this.windowWidth <= 768;
     },
-    cardStyle() {
-      const style = {
-        width: this.compactView?'16rem':'45rem'
+    cardStyle(): any {
+      let style: any = {
+        width: this.compactView?'16rem':'45rem',
+      }
+      if (this.compactView) {
+        style["border"] = "none"
+        style["box-shadow"] = "none!important"
       }
       if (this.compactView && this.isMobile) {
         style.width = '6rem'
@@ -175,6 +179,11 @@ export default defineComponent({
   max-height: 400px;
   max-width: 300px;
   width: 15.9rem;
+  margin-top: 5px;
+  margin-right: 6px;
+  box-shadow: 7px -2px 2px #bbbbbb;
+  border-left: 1px solid #e3e3e3;
+  border-bottom: 1px solid #e3e3e3;
 }
 
 @media (width < 768px) {
