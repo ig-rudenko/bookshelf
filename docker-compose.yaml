@@ -17,21 +17,22 @@ services:
       api-1:
         condition: service_healthy
 
-  api-1:
+  api-1: &backend
     build: .
     image: bookshelf:0.4
     command: /bin/sh run.sh
-    volumes:
-      - "./media:/app/media"
     environment:
       CELERY_BROKER_URL: "redis://redis:6379/1"
       REDIS_HOST: "redis"
       REDIS_DB: 0
     env_file:
       - config/env/api
+    volumes:
+      - "./media:/app/media"
     depends_on:
       database:
         condition: service_healthy
+
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://localhost:8000/ping"]
       start_period: 5s
@@ -40,22 +41,16 @@ services:
       retries: 5
 
   celery-worker:
-    build: .
-    image: bookshelf:0.1
+    <<: *backend
     command: celery -A app.services.celery worker --loglevel=info
-    env_file:
-      - config/env/api
-    environment:
-      CELERY_BROKER_URL: "redis://redis:6379/1"
-      REDIS_HOST: "redis"
-      REDIS_DB: 0
-    volumes:
-      - "./media:/app/media"
     depends_on:
       redis:
         condition: service_started
       database:
         condition: service_healthy
+    healthcheck:
+      test: .
+      disable: true
 
   redis:
     image: redis:7.2.4-alpine
@@ -86,7 +81,6 @@ services:
     depends_on:
       pgadmin4:
         condition: service_started
-
 
   pgadmin4:
     image: elestio/pgadmin:latest
