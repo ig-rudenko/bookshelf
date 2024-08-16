@@ -2,7 +2,7 @@ import pickle
 from typing import Optional, Any
 
 from loguru import logger
-from redis.asyncio import Redis
+from redis.asyncio import Redis, ConnectionPool
 
 from app.services.deco import singleton
 from .base import AbstractCache
@@ -12,15 +12,19 @@ from .base import AbstractCache
 class RedisCache(AbstractCache):
     """Кэш данных в Redis."""
 
-    def __init__(self, host: str, port: int, db: int, password: Optional[str] = None) -> None:
-        self._redis: Redis = Redis(
+    def __init__(
+        self, host: str, port: int, db: int, password: Optional[str] = None, max_connections: int = 5
+    ) -> None:
+        self._pool = ConnectionPool(
             host=host,
             port=port,
             db=db,
             password=password,
             socket_timeout=2,
             socket_connect_timeout=2,
+            max_connections=max_connections,
         )
+        self._redis = Redis(connection_pool=self._pool)
 
     async def get(self, key: str) -> Optional[Any]:
         logger.debug(f"Get from cache {key}", key=key)
