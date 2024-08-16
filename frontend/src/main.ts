@@ -35,7 +35,7 @@ import Skeleton from 'primevue/skeleton';
 import Textarea from "primevue/textarea";
 import Tooltip from 'primevue/tooltip';
 import ScrollPanel from "primevue/scrollpanel";
-import {Router} from "vue-router";
+// import {Router} from "vue-router";
 import { VueRecaptchaPlugin } from 'vue-recaptcha';
 import {createHead} from "@unhead/vue";
 
@@ -55,7 +55,7 @@ app.use(ToastService);
 app.directive('tooltip', Tooltip);
 app.use(store);
 app.use(router);
-app.config.globalProperties.$router = router as Router;
+// app.config.globalProperties.$router = router as Router;
 
 app.component('AutoComplete', AutoComplete);
 app.component('Accordion', Accordion);

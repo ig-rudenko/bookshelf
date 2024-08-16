@@ -52,6 +52,7 @@ import Footer from "@/components/Footer.vue";
 import getVerboseAxiosError from "@/errorFmt";
 import {validateTwoPasswords} from "@/validators";
 import {User} from "@/user.ts";
+import {useRoute, useRouter} from "vue-router";
 
 export default defineComponent({
   name: "ResetPassword",
@@ -92,8 +93,10 @@ export default defineComponent({
 
   computed: {
     token(): string {
-      return this.$route.params?.token.toString();
-    }
+      return this.route.params?.token.toString();
+    },
+    route() {return useRoute()},
+    router() {return useRouter()},
   },
 
   methods: {
@@ -134,7 +137,7 @@ export default defineComponent({
     },
 
     goToLoginPage() {
-      this.$router.push("/login");
+      this.router.push("/login");
     }
   }
 });

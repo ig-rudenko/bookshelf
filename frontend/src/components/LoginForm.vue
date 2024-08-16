@@ -5,6 +5,7 @@ import {mapState, mapActions} from "vuex";
 import {LoginUser} from "@/user";
 import {AxiosError, AxiosResponse} from "axios";
 import getVerboseAxiosError from "@/errorFmt.ts";
+import {useRouter} from "vue-router";
 
 export default defineComponent({
   name: "LoginForm",
@@ -19,10 +20,11 @@ export default defineComponent({
     ...mapState({
       loggedIn: (state: any) => state.auth.status.loggedIn,
     }),
+    router() {return useRouter()},
   },
   created() {
     if (this.loggedIn) {
-      this.$router.push("/");
+      this.router.push("/");
     }
   },
   methods: {
@@ -37,7 +39,7 @@ export default defineComponent({
           .then(
               (value: AxiosResponse|AxiosError) => {
                 if (value.status == 200) {
-                  this.$router.push("/");
+                  this.router.push("/");
                 } else {
                   this.userError = (<AxiosError>value).message
                 }
@@ -52,7 +54,7 @@ export default defineComponent({
     },
 
     goToForgotPassword() {
-      this.$router.push('/forgot-password');
+      this.router.push('/forgot-password');
     }
 
   },

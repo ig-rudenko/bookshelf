@@ -6,6 +6,7 @@ import "vue3-pdf-app/dist/icons/main.css";
 import api from "@/services/api.ts";
 import {PdfHistory} from "@/services/userData.ts";
 import {mapState} from "vuex";
+import {useRoute} from "vue-router";
 
 export default defineComponent({
   name: "ShowBook",
@@ -33,8 +34,9 @@ export default defineComponent({
     ...mapState({
       loggedIn: (state) => state.auth.status.loggedIn,
     }),
+    route() {return useRoute()},
     bookId() {
-      return this.$route.params.id
+      return this.route.params.id
     }
   },
   methods: {

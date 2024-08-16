@@ -94,6 +94,7 @@ import {CommentResult} from "@/comment"
 import {getLanguagePairByLabel} from "@/languages";
 import {formatBytes, textToHtml, wrapLinks} from "../formatter";
 import BookViewStats from "@/components/BookViewStats.vue";
+import {useRoute} from "vue-router";
 
 export default defineComponent({
   name: "BookPage",
@@ -114,11 +115,13 @@ export default defineComponent({
       loggedIn: (state: any) => state.auth.status.loggedIn,
       user: (state: any) => state.auth.user,
     }),
+    route() {return useRoute()},
+
     canCreateComment() {
       return this.loggedIn && this.user?.isStaff;
     },
     bookIdParam() {
-      return this.$route.params.id
+      return this.route.params.id
     }
   },
   methods: {

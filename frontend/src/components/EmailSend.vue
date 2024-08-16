@@ -38,6 +38,7 @@ import api from "@/services/api";
 import {AxiosError, AxiosResponse} from "axios";
 import getVerboseAxiosError from "@/errorFmt";
 import {validateEmail} from "@/validators.ts";
+import {useRouter} from "vue-router";
 
 interface SentEmailResponse {
   success: boolean
@@ -56,6 +57,9 @@ export default defineComponent({
         isValid: true,
         recaptchaToken: "",
       }
+  },
+  computed: {
+    router() {return useRouter()},
   },
   methods: {
     getClassesFor(isValid: boolean): string[] {
@@ -110,7 +114,7 @@ export default defineComponent({
           )
     },
     goToLoginPage() {
-      this.$router.push("/login")
+      this.router.push("/login")
     }
   }
 })

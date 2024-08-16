@@ -52,6 +52,7 @@ import {PaginatedBookResult} from "@/books";
 import {createFilterBook, FilterBook} from "@/filters";
 import RecentBooks from "@/components/RecentBooks.vue";
 import bookService from "@/services/books.ts";
+import {useRoute} from "vue-router";
 
 
 export default defineComponent({
@@ -68,7 +69,7 @@ export default defineComponent({
       }
   },
   mounted() {
-    this.filters = createFilterBook(this.$route.query)
+    this.filters = createFilterBook(this.route.query)
     this.getBooksList(1, this.filters);
     window.addEventListener('resize', () => this.windowWidth = window.innerWidth);
   },
@@ -76,6 +77,7 @@ export default defineComponent({
     isMobile() {
       return this.windowWidth <= 768;
     },
+    route() {return useRoute()},
   },
   methods: {
     getBooksList(page: number, filter: null|FilterBook=null) {
