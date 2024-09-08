@@ -24,6 +24,7 @@ def create_book_preview_task(book_id: int):
     """
     Задача создания обложки книги.
     """
+
     async def async_task():
         storage = get_storage()
         preview_name = await create_book_preview_and_update_pages_count(storage, book_id)

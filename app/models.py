@@ -32,6 +32,7 @@ class User(OrmBase, Manager):
     )
     books_read = relationship("Book", secondary="books_read", back_populates="read_by_users", lazy="select")
     comments = relationship("Comment", back_populates="user", lazy="select")
+    bookshelves = relationship("Bookshelf", back_populates="user", lazy="select")
 
     def __str__(self):
         return self.username
@@ -99,6 +100,9 @@ class Book(OrmBase, Manager):
 
     # Define relationship to Tag using the association table
     tags = relationship("Tag", secondary=book_tag_association, back_populates="books", lazy="joined")
+    bookshelves: Mapped["Bookshelf"] = relationship(
+        "Bookshelf", secondary="bookshelf_book_association", back_populates="books", lazy="select"
+    )
     # Define relationship to Publisher, User
     publisher: Mapped[Publisher] = relationship("Publisher", back_populates="books", lazy="joined")
     user: Mapped[User] = relationship("User")
@@ -116,6 +120,34 @@ class Book(OrmBase, Manager):
 
     def __repr__(self):
         return f"<Book: {self.title}>"
+
+
+class Bookshelf(OrmBase, Manager):
+    __tablename__ = "bookshelf"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(128), unique=True)
+    description: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+
+    # relations
+    user: Mapped[User] = relationship("User", back_populates="bookshelves", lazy="select")
+    books: Mapped[list[Book]] = relationship(
+        "Book", secondary="bookshelf_book_association", back_populates="bookshelves", lazy="select"
+    )
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return f"<Bookshelf: {self.name}>"
+
+
+class BookshelfBookAssociation(OrmBase, Manager):
+    __tablename__ = "bookshelf_book_association"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    book_id: Mapped[int] = mapped_column(ForeignKey("books.id", ondelete="CASCADE"))
+    bookshelf_id: Mapped[int] = mapped_column(ForeignKey("bookshelf.id", ondelete="CASCADE"))
 
 
 class Comment(OrmBase, Manager):

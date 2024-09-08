@@ -205,7 +205,9 @@ async def get_book(session: AsyncSession, book_id: int) -> Book:
     try:
         return await Book.get(session, id=book_id)
     except NoResultFound:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Книга не найдена")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Книга с ID '{book_id}' не найдена"
+        )
 
 
 async def get_book_detail(session: AsyncSession, book_id: int, user: User | None) -> BookSchemaDetail:
