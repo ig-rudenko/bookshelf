@@ -1,3 +1,4 @@
+from asyncio import current_task
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, Optional
 
@@ -7,6 +8,7 @@ from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
+    async_scoped_session,
 )
 
 
@@ -50,6 +52,10 @@ class DatabaseSessionManager:
             bind=self._engine,
             expire_on_commit=False,
         )
+
+    @property
+    def session_maker(self) -> async_sessionmaker[AsyncSession]:
+        return self._session_maker
 
     async def close(self) -> None:
         """Закрывает соединение с базой данных."""
@@ -106,3 +112,16 @@ async def get_session() -> AsyncIterator[AsyncSession]:
     # noinspection PyArgumentList
     async with db_manager.session() as session:
         yield session
+
+
+@asynccontextmanager
+async def scoped_session():
+    scoped_factory = async_scoped_session(
+        db_manager.session_maker,
+        scopefunc=current_task,
+    )
+    try:
+        async with scoped_factory() as s:
+            yield s
+    finally:
+        await scoped_factory.remove()

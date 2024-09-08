@@ -19,7 +19,7 @@ from app.models import (
     favorite_books_association,
     books_read_association,
 )
-from app.orm.session_manager import db_manager
+from app.orm.session_manager import scoped_session
 from app.schemas.books import BookSchema, BooksSchemaPaginated, BookSchemaDetail, CreateBookSchema
 from app.services.cache import get_cache
 from app.services.cache.deco import cached
@@ -138,7 +138,7 @@ async def create_book_preview_and_update_pages_count(storage: AbstractStorage, b
     await storage.upload_file(preview_name, image)
 
     # noinspection PyArgumentList
-    async with db_manager.session() as session:
+    async with scoped_session() as session:
         book = await Book.get(session, id=book_id)
         book.preview_image = f"{settings.media_url}/{preview_name}"
         book.pages = total_pages

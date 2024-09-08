@@ -42,7 +42,7 @@ async def verify_forgot_password_email_send(
     return verify
 
 
-async def send_reset_password_email(email: str):
+def send_reset_password_email(email: str):
     """
     Отправляет письмо на смену пароля.
     :param email: Email пользователя.

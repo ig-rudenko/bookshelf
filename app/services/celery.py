@@ -1,5 +1,4 @@
 import asyncio
-from threading import Thread
 
 from celery import Celery
 
@@ -17,13 +16,14 @@ else:
     celery.conf.task_always_eager = True
 db_manager.init(settings.database_url)
 
+loop = asyncio.get_event_loop()
+
 
 @celery.task(name="create_book_preview", ignore_result=True)
 def create_book_preview_task(book_id: int):
     """
     Задача создания обложки книги.
     """
-
     async def async_task():
         storage = get_storage()
         preview_name = await create_book_preview_and_update_pages_count(storage, book_id)
@@ -34,32 +34,11 @@ def create_book_preview_task(book_id: int):
         # Удаляем кэш недавно добавленных книг
         await delete_recent_books_cache()
 
-    def sync_task():
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(async_task())
-
-    try:
-        sync_task()
-    except RuntimeError:
-        thread = Thread(target=sync_task)
-        thread.start()
-        thread.join()
+    task = loop.create_task(async_task())
+    loop.run_until_complete(task)
 
 
 @celery.task(name="send_reset_password_email_task", ignore_result=True)
 def send_reset_password_email_task(email: str):
     """Задача отправки ссылки для сброса пароля"""
-
-    async def async_task():
-        await send_reset_password_email(email)
-
-    def sync_task():
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(async_task())
-
-    try:
-        sync_task()
-    except RuntimeError:
-        thread = Thread(target=sync_task)
-        thread.start()
-        thread.join()
+    send_reset_password_email(email)
