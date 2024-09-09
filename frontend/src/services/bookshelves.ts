@@ -10,6 +10,7 @@ export interface EditBookshelf {
 export interface Bookshelf extends EditBookshelf {
     id: number
     createdAt: string
+    userId: number
 }
 
 export interface PaginatedBookshelvesResult {
@@ -38,6 +39,24 @@ class BookshelvesService {
             .then(
                 (value: AxiosResponse<PaginatedBookshelvesResult>) => value.data
             )
+    }
+
+    createBookshelf(data: EditBookshelf): Promise<Bookshelf> {
+        return api.post("/bookshelves", data).then(
+            (value: AxiosResponse<Bookshelf>) => value.data
+        )
+    }
+
+    updateBookshelf(id: number|string, data: EditBookshelf): Promise<Bookshelf> {
+        return api.put("/bookshelves/"+id, data).then(
+            (value: AxiosResponse<Bookshelf>) => value.data
+        )
+    }
+
+    async getBookshelf(id: number|string): Promise<Bookshelf> {
+        return api.get("/bookshelves/"+id).then(
+            (value: AxiosResponse<Bookshelf>) => value.data
+        )
     }
 
 }

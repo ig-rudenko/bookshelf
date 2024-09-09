@@ -86,11 +86,12 @@ export default defineComponent({
   emits: ["filtered", "compactView"],
   props: {
     filterData: {required: true, type: FilterBook},
+    initialCompactView: {required: false, type: Boolean, default: false},
   },
   data() {
       return {
         currentTag: "",
-        compactView: false,
+        compactView: this.initialCompactView,
         publishersList: [] as string[],
       }
   },

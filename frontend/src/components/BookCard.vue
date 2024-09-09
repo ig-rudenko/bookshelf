@@ -2,7 +2,7 @@
 
   <div class="card-plate" :style="cardStyle">
     <div v-if="showImage" class="flex">
-      <img @click="showBook" :src="book.previewImage" class="book-image cursor-pointer" alt="book"/>
+      <img @click="$emit('click:book', book.id)" :src="book.previewImage" class="book-image cursor-pointer" alt="book"/>
     </div>
 
     <div class="book-about px-2" v-if="!compactView" style="font-size: 0.83rem;">
@@ -68,7 +68,7 @@ export default defineComponent({
     compactView: {required: false, type: Boolean, default: false},
     showImage: {required: false, type: Boolean, default: true},
   },
-  emits: ['select:tag', 'select:publisher'],
+  emits: ['select:tag', 'select:publisher', 'click:book'],
   data() {
       return {
         windowWidth: window.innerWidth,
@@ -105,7 +105,7 @@ export default defineComponent({
     getLanguagePairByLabel,
     formatBytes,
     showBook() {
-      document.location.href = `/book/${this.book.id}`;
+
     },
     selectTag(tag: string) {
       this.$emit('select:tag', tag);
