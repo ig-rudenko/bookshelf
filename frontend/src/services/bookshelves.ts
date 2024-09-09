@@ -25,7 +25,12 @@ export interface PaginatedBookshelvesResult {
 class BookshelvesService {
     public lastUrlParams: string = "";
 
-    async getBookshelvesList(page: number, searchText: string, perPage?: number): Promise<PaginatedBookshelvesResult | null> {
+    async getBookshelf(id: number | string): Promise<Bookshelf> {
+        let value = await api.get("/bookshelf/" + id);
+        return value.data;
+    }
+
+    getBookshelvesList(page: number, searchText: string, perPage?: number): Promise<PaginatedBookshelvesResult> | null {
         let urlParams = `?page=${page}`;
         if (perPage) urlParams += `&per-page=${perPage}`;
         if (searchText) urlParams += `&search=${searchText}`;
@@ -35,26 +40,24 @@ class BookshelvesService {
         if (this.lastUrlParams == urlParams) return null;
         this.lastUrlParams = urlParams
 
-        return await api.get("/bookshelves" + urlParams)
+        return api.get("/bookshelf" + urlParams)
             .then(
                 (value: AxiosResponse<PaginatedBookshelvesResult>) => value.data
             )
     }
 
-    createBookshelf(data: EditBookshelf): Promise<Bookshelf> {
-        return api.post("/bookshelves", data).then(
-            (value: AxiosResponse<Bookshelf>) => value.data
-        )
+    async createBookshelf(data: EditBookshelf): Promise<Bookshelf> {
+        let value = await api.post("/bookshelf", data);
+        return value.data;
     }
 
-    updateBookshelf(id: number|string, data: EditBookshelf): Promise<Bookshelf> {
-        return api.put("/bookshelves/"+id, data).then(
-            (value: AxiosResponse<Bookshelf>) => value.data
-        )
+    async updateBookshelf(id: number | string, data: EditBookshelf): Promise<Bookshelf> {
+        let value = await api.put("/bookshelf/" + id, data);
+        return value.data;
     }
 
-    deleteBookshelf(id: number|string) {
-        return api.delete("/bookshelves/"+id)
+    deleteBookshelf(id: number | string) {
+        return api.delete("/bookshelf/" + id)
     }
 
 }

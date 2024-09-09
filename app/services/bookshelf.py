@@ -14,7 +14,7 @@ from app.schemas.bookshelf import (
 from .books import get_book
 from .paginator import paginate
 from ..crud.base import query_count
-from ..models import Bookshelf, Book, BookshelfBookAssociation
+from ..models import Bookshelf, BookshelfBookAssociation
 
 _QT = TypeVar("_QT", bound=Select)
 
@@ -47,19 +47,20 @@ async def _get_paginated_bookshelves(
     query = paginate(query, page=paginator["page"], per_page=paginator["per_page"])
     res = await session.execute(query)
     count = await query_count(query, session)
-    books = [
+    bookshelves = [
         BookshelfSchema(
             id=row.id,
             name=row.name,
+            user_id=row.user_id,
             description=row.description,
-            createdAt=row.created_at,
+            created_at=row.created_at,
             books=[book_id for book_id in row.book_ids if book_id],
         )
         for row in res.fetchall()
     ]
 
     return BookshelfSchemaSchemaPaginated(
-        books=books,
+        bookshelves=bookshelves,
         total_count=count,
         current_page=paginator["page"],
         max_pages=count // paginator["per_page"] or 1,
@@ -67,20 +68,40 @@ async def _get_paginated_bookshelves(
     )
 
 
-async def get_filtered_bookshelves(session: AsyncSession, query_params: QueryParams):
-    query = (
+def _get_bookshelf_query() -> Select:
+    return (
         select(
             Bookshelf.id,
             Bookshelf.name,
+            Bookshelf.user_id,
             Bookshelf.description,
             Bookshelf.created_at,
             func.array_agg(BookshelfBookAssociation.book_id).label("book_ids"),
         )
-        .join(
+        .join(  # Левое соединение, если книжная полка без книг
             BookshelfBookAssociation, Bookshelf.id == BookshelfBookAssociation.bookshelf_id, isouter=True
-        )  # Левое соединение, если книжная полка без книг
+        )
         .group_by(Bookshelf.id)
     )
+
+
+async def get_bookshelf(session: AsyncSession, bookshelf_id: int) -> BookshelfSchema:
+    query = _get_bookshelf_query()
+    result = (await session.execute(query)).one_or_none()
+    if result is None:
+        raise HTTPException(status_code=404, detail=f"Книжная полка с ID '{bookshelf_id}' не найдена")
+    return BookshelfSchema(
+        id=result.id,
+        name=result.name,
+        description=result.description,
+        user_id=result.user_id,
+        created_at=result.created_at,
+        books=result.book_ids,
+    )
+
+
+async def get_filtered_bookshelves(session: AsyncSession, query_params: QueryParams):
+    query = _get_bookshelf_query()
     query = _filter_bookselves_query_by_params(query, query_params)
     return await _get_paginated_bookshelves(session, query, query_params)
 
@@ -89,9 +110,7 @@ async def create_bookshelf(
     session: AsyncSession, user_id: int, bookshelf_schema: CreateUpdateBookshelfSchema
 ) -> BookshelfSchema:
 
-    books: list[Book] = []
-    for book_id in bookshelf_schema.books:
-        books.append(await get_book(session, book_id))
+    books = [await get_book(session, book_id) for book_id in bookshelf_schema.books]
 
     bookshelf = Bookshelf(
         name=bookshelf_schema.name,
@@ -116,7 +135,8 @@ async def create_bookshelf(
         id=bookshelf.id,
         name=bookshelf.name,
         description=bookshelf.description,
-        createdAt=bookshelf.created_at,
+        user_id=bookshelf.user_id,
+        created_at=bookshelf.created_at,
         books=bookshelf_schema.books,
     )
 
@@ -125,10 +145,10 @@ async def update_bookshelf(
     session: AsyncSession, bookshelf_id: int, user_id: int, bookshelf_schema: CreateUpdateBookshelfSchema
 ) -> CreateUpdateBookshelfSchema:
     # Получение книжной полки по ID
-    result = await session.execute(select(Bookshelf).where(Bookshelf.id == bookshelf_id).options(
-            selectinload(Bookshelf.books)
-    ))
-    bookshelf = result.scalar()
+    result = await session.execute(
+        select(Bookshelf).where(Bookshelf.id == bookshelf_id).options(selectinload(Bookshelf.books))
+    )
+    bookshelf: Bookshelf | None = result.scalar()
     if bookshelf is None:
         raise HTTPException(status_code=404, detail=f"Книжная полка с ID '{bookshelf_id}' не найдена")
 
@@ -137,7 +157,7 @@ async def update_bookshelf(
         raise HTTPException(status_code=403, detail="Недостаточно прав для выполнения операции")
 
     # Получение книг и обновление связи
-    books = [await get_book(session, book_id) for book_id in bookshelf.books]
+    books = [await get_book(session, book_id) for book_id in bookshelf_schema.books]
 
     # Обновление полей книжной полки
     bookshelf.name = bookshelf_schema.name

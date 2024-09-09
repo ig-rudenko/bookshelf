@@ -15,6 +15,7 @@ from app.services.bookshelf import (
     create_bookshelf,
     delete_bookshelf,
     update_bookshelf,
+    get_bookshelf,
 )
 
 router = APIRouter(prefix="/bookshelf", tags=["bookshelf"])
@@ -49,6 +50,14 @@ async def create_bookshelf_api_view(
     current_user: User = Depends(get_current_user),
 ):
     return await create_bookshelf(session, user_id=current_user.id, bookshelf_schema=data)
+
+
+@router.get("/{bookshelf_id}", response_model=BookshelfSchema)
+async def get_bookshelf_api_view(
+    bookshelf_id: int,
+    session: AsyncSession = Depends(get_session, use_cache=True),
+):
+    return await get_bookshelf(session, bookshelf_id=bookshelf_id)
 
 
 @router.put("/{bookshelf_id}", response_model=CreateUpdateBookshelfSchema)

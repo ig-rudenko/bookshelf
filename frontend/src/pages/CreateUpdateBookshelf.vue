@@ -99,7 +99,7 @@ export default defineComponent({
 
   methods: {
     getBookshelfToEdit() {
-      if (this.editBookshelfID) {
+      if (this.editBookshelfID && this.user) {
         bookshelvesService.getBookshelf(this.editBookshelfID).then(
             data => {
               if (data.userId !== this.user.id) {

@@ -11,9 +11,12 @@ class CreateUpdateBookshelfSchema(CamelAliasModel):
     books: list[int] = Field(..., min_length=1)
 
 
-class BookshelfSchema(CreateUpdateBookshelfSchema):
+class BookshelfSchema(CamelSerializerModel):
     id: int
-    created_at: datetime = Field(..., alias="createdAt")
+    name: str = Field(..., min_length=3, max_length=128)
+    description: str = Field(..., max_length=1000)
+    created_at: datetime
+    user_id: int
     books: list[int]
 
 
@@ -23,7 +26,7 @@ class BookshelfSchemaSchemaPaginated(CamelSerializerModel):
     Содержит информацию о количестве всех записей, текущей странице,
     максимальное кол-во страниц, количество записей на одной странице"""
 
-    books: list[BookshelfSchema]
+    bookshelves: list[BookshelfSchema]
     total_count: int
     current_page: int
     max_pages: int
