@@ -1,7 +1,7 @@
 <template>
 
   <div class="card-plate" :style="cardStyle">
-    <div class="flex">
+    <div v-if="showImage" class="flex">
       <img @click="showBook" :src="book.previewImage" class="book-image cursor-pointer" alt="book"/>
     </div>
 
@@ -66,6 +66,7 @@ export default defineComponent({
   props: {
     book: {required: true, type: Object as PropType<Book>},
     compactView: {required: false, type: Boolean, default: false},
+    showImage: {required: false, type: Boolean, default: true},
   },
   emits: ['select:tag', 'select:publisher'],
   data() {
@@ -92,6 +93,11 @@ export default defineComponent({
       if (this.compactView && this.isMobile) {
         style.width = '6rem'
       }
+
+      if (!this.showImage) {
+        style.width = "28rem";
+      }
+
       return style;
     }
   },
@@ -157,6 +163,7 @@ export default defineComponent({
   -ms-flex-pack: center!important;
   justify-content: center!important;
   text-align: center!important;
+  text-wrap: balance;
 }
 
 .book-about {

@@ -19,6 +19,7 @@ import ReadBooks from "@/pages/ReadBooks.vue";
 import LastViewed from "@/pages/LastViewed.vue";
 import ForgotPassword from "@/pages/ForgotPassword.vue";
 import ResetPassword from "@/pages/ResetPassword.vue";
+import Bookshelves from "@/pages/Bookshelves.vue";
 
 
 const beforeEnter = (to: RouteLocationNormalized, _: RouteLocationNormalized, next: NavigationGuardNext) => {
@@ -40,6 +41,7 @@ const routes: RouteRecordRaw[] = [
     { path: "/read", component: ReadBooks },
     { path: "/last-viewed", component: LastViewed },
     { path: "/create-book", component: CreateBook },
+    { path: "/bookshelves", component: Bookshelves },
     { path: "/book/:id", component: BookPage, beforeEnter: beforeEnter },
     { path: "/book/:id/edit", component: UpdateBook, beforeEnter: beforeEnter },
     { path: "/book/:id/show", component: ShowBook, beforeEnter: beforeEnter },

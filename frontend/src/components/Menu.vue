@@ -109,7 +109,7 @@ export default defineComponent({
       let data: any[] = [
         {
           label: "Главная",
-          icon: "pi pi-book",
+          icon: "pi pi-home",
           href: "/",
           root: true,
         },
@@ -162,6 +162,13 @@ export default defineComponent({
           ]
         }
       ]
+
+      data.push({
+        label: "Книжные полки",
+        icon: "pi pi-book",
+        href: "/bookshelves",
+        root: true,
+      })
 
       if (this.loggedIn) {
 
