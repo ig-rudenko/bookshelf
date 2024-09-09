@@ -6,7 +6,6 @@ import {ChallengeV2} from "vue-recaptcha";
 import {RegisterUser} from "@/user";
 import {AxiosError} from "axios";
 import getVerboseAxiosError from "@/errorFmt.ts";
-import {useRouter} from "vue-router";
 
 export default defineComponent({
   name: "LoginForm",
@@ -22,11 +21,10 @@ export default defineComponent({
       loggedIn: (state: any) => state.auth.status.loggedIn,
       state: (state: any) => state,
     }),
-    router() {return useRouter()},
   },
   created() {
     if (this.loggedIn) {
-      this.router.push("/");
+      this.$router.push("/");
     }
   },
   methods: {

@@ -59,7 +59,6 @@ import SearchBookForm from "@/components/SearchBookForm.vue";
 import {PaginatedBookResult} from "@/books";
 import {FilterBook} from "@/filters";
 import api from "@/services/api";
-import {useRouter} from "vue-router";
 
 
 export default defineComponent({
@@ -74,14 +73,13 @@ export default defineComponent({
   },
   mounted() {
     document.title = "Прочитанные книги";
-    if (!this.loggedIn) this.router.push("/login");
+    if (!this.loggedIn) this.$router.push("/login");
     this.getBooksList(1);
   },
   computed: {
     ...mapState({
       loggedIn: (state: any) => state.auth.status.loggedIn,
     }),
-    router() {return useRouter()},
   },
   methods: {
     getBooksList(page: number) {
