@@ -53,10 +53,8 @@ class BookshelvesService {
         )
     }
 
-    async getBookshelf(id: number|string): Promise<Bookshelf> {
-        return api.get("/bookshelves/"+id).then(
-            (value: AxiosResponse<Bookshelf>) => value.data
-        )
+    deleteBookshelf(id: number|string) {
+        return api.delete("/bookshelves/"+id)
     }
 
 }

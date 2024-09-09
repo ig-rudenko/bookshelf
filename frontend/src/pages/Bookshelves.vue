@@ -4,7 +4,7 @@
     <div class="flex align-items-center gap-3" style="width: 90vw;">
       <h1 class="border-bottom-3 w-fit p-2"><i class="pi pi-book text-2xl mr-2"/>Книжные полки</h1>
       <div v-if="loggedIn && user?.isSuperuser">
-        <Button icon="pi pi-plus" @click="$router.push('/bookshelves/create')" outlined severity="success" />
+        <Button icon="pi pi-plus" @click="goToCreateBookshelfPage" outlined severity="success" />
       </div>
     </div>
   </div>
@@ -88,6 +88,10 @@ export default defineComponent({
         this.loadingBooks = false
       })
     },
+
+    goToCreateBookshelfPage() {
+      location.href = '/bookshelves/create'
+    }
 
   },
 
