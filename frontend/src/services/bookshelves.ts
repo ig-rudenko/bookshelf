@@ -1,5 +1,4 @@
 import api from "@/services/api.ts";
-import {AxiosResponse} from "axios";
 
 export interface EditBookshelf {
     name: string
@@ -30,7 +29,7 @@ class BookshelvesService {
         return value.data;
     }
 
-    getBookshelvesList(page: number, searchText: string, perPage?: number): Promise<PaginatedBookshelvesResult> | null {
+    async getBookshelvesList(page: number, searchText: string, perPage?: number): Promise<PaginatedBookshelvesResult | null> {
         let urlParams = `?page=${page}`;
         if (perPage) urlParams += `&per-page=${perPage}`;
         if (searchText) urlParams += `&search=${searchText}`;
@@ -40,10 +39,8 @@ class BookshelvesService {
         if (this.lastUrlParams == urlParams) return null;
         this.lastUrlParams = urlParams
 
-        return api.get("/bookshelf" + urlParams)
-            .then(
-                (value: AxiosResponse<PaginatedBookshelvesResult>) => value.data
-            )
+        let value = await api.get("/bookshelf" + urlParams);
+        return value.data;
     }
 
     async createBookshelf(data: EditBookshelf): Promise<Bookshelf> {

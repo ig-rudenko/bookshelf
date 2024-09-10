@@ -81,12 +81,10 @@ export default defineComponent({
       this.loadingBooks = true
       bookshelvesService.getBookshelvesList(page, this.search, this.results?.perPage).then(
           (value: PaginatedBookshelvesResult | null) => {
-            this.results = value;
+            if (value) this.results = value;
             this.loadingBooks = false;
           }
-      ).catch(() => {
-        this.loadingBooks = false
-      })
+      ).catch(() => this.loadingBooks = false)
     },
 
     goToCreateBookshelfPage() {
