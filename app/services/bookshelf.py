@@ -86,7 +86,7 @@ def _get_bookshelf_query() -> Select:
 
 
 async def get_bookshelf(session: AsyncSession, bookshelf_id: int) -> BookshelfSchema:
-    query = _get_bookshelf_query()
+    query = _get_bookshelf_query().where(Bookshelf.id == bookshelf_id)
     result = (await session.execute(query)).one_or_none()
     if result is None:
         raise HTTPException(status_code=404, detail=f"Книжная полка с ID '{bookshelf_id}' не найдена")
