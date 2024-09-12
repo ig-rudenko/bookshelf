@@ -1,12 +1,23 @@
 <template>
   <div class="my-2">
-    <h2 :id="'bookshelf-name-'+bookshelf.id" class="bookshelf-name flex align-items-center">
-      <span class="mr-3">{{ bookshelf.name }}</span>
-      <Button v-if="user?.id == bookshelf.userId" @click="goToEditBookshelfPage" icon="pi pi-pencil" size="small"
-              outlined severity="warning"/>
-      <Button v-if="user?.id == bookshelf.userId" @click="showDeleteDialog=true" icon="pi pi-trash" size="small"
-              outlined severity="danger"/>
-    </h2>
+    <div class="flex align-items-center">
+      <h2 :id="'bookshelf-name-'+bookshelf.id" class="bookshelf-name flex align-items-center">
+        {{ bookshelf.name }}
+      </h2>
+
+      <div class="flex align-items-center relative">
+        <Button icon="pi pi-share-alt" size="small" @click="copyClipboard" outlined text/>
+        <Badge v-if="copyClipboardText" class="text-xs absolute" style="top: -25px">{{copyClipboardText}}</Badge>
+      </div>
+
+      <div>
+        <Button v-if="user?.id == bookshelf.userId" @click="goToEditBookshelfPage" icon="pi pi-pencil" size="small"
+                outlined severity="warning"/>
+        <Button v-if="user?.id == bookshelf.userId" @click="showDeleteDialog=true" icon="pi pi-trash" size="small"
+                outlined severity="danger"/>
+      </div>
+    </div>
+
     <div class="bookshelf-desc">{{ bookshelf.description }}</div>
 
     <div :id="'bookshelf-'+bookshelf.id">
@@ -42,6 +53,7 @@ export default defineComponent({
   data() {
     return {
       showDeleteDialog: false,
+      copyClipboardText: "",
     }
   },
   computed: {
@@ -73,6 +85,16 @@ export default defineComponent({
       } else {
         location.hash = 'bookshelf-name-' + this.bookshelf.id;
       }
+    },
+
+    copyClipboard() {
+      navigator.clipboard.writeText(location.origin + "/bookshelves?search=" + this.bookshelf.name)
+          .then(
+              () => this.copyClipboardText = 'Скопировано!'
+          ).catch(
+          () => this.copyClipboardText = 'Не удалось скопировать!'
+      )
+      setTimeout(() => this.copyClipboardText = "", 700);
     }
   }
 
