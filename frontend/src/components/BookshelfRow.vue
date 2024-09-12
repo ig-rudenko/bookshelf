@@ -1,20 +1,23 @@
 <template>
   <div class="my-2">
-    <h2 class="bookshelf-name flex align-items-center">
+    <h2 :id="'bookshelf-name-'+bookshelf.id" class="bookshelf-name flex align-items-center">
       <span class="mr-3">{{ bookshelf.name }}</span>
-      <Button v-if="user?.id == bookshelf.userId" @click="goToEditBookshelfPage" icon="pi pi-pencil" size="small" outlined severity="warning"/>
-      <Button v-if="user?.id == bookshelf.userId" @click="showDeleteDialog=true" icon="pi pi-trash" size="small" outlined severity="danger"/>
+      <Button v-if="user?.id == bookshelf.userId" @click="goToEditBookshelfPage" icon="pi pi-pencil" size="small"
+              outlined severity="warning"/>
+      <Button v-if="user?.id == bookshelf.userId" @click="showDeleteDialog=true" icon="pi pi-trash" size="small"
+              outlined severity="danger"/>
     </h2>
     <div class="bookshelf-desc">{{ bookshelf.description }}</div>
 
-    <div class="flex flex-row">
-      <BookshelfImages @click:book="showBookPage" :booksID="bookshelf.books" />
+    <div :id="'bookshelf-'+bookshelf.id">
+      <BookshelfImages @maximize="processMaximizeChange" @click:book="showBookPage" :booksID="bookshelf.books"/>
     </div>
 
   </div>
 
 
-  <Dialog v-model:visible="showDeleteDialog" modal header="Вы уверены, что хотите удалить книжную полку" :style="{ width: '25rem' }">
+  <Dialog v-model:visible="showDeleteDialog" modal header="Вы уверены, что хотите удалить книжную полку"
+          :style="{ width: '25rem' }">
     <div class="flex justify-content-end gap-2">
       <Button type="button" label="Нет" severity="secondary" @click="showDeleteDialog = false"></Button>
       <Button type="button" label="Удалить" severity="danger" @click="deleteBookshelf"></Button>
@@ -52,7 +55,7 @@ export default defineComponent({
       location.href = "/book/" + bookID
     },
     goToEditBookshelfPage() {
-      location.href = '/bookshelves/'+this.bookshelf.id+'/edit'
+      location.href = '/bookshelves/' + this.bookshelf.id + '/edit'
     },
     deleteBookshelf() {
       bookshelvesService.deleteBookshelf(this.bookshelf.id).then(
@@ -62,6 +65,15 @@ export default defineComponent({
       )
       this.showDeleteDialog = false;
     },
+
+    processMaximizeChange(status: string) {
+      location.hash = "";
+      if (status) {
+        location.hash = 'bookshelf-' + this.bookshelf.id;
+      } else {
+        location.hash = 'bookshelf-name-' + this.bookshelf.id;
+      }
+    }
   }
 
 });
@@ -72,6 +84,7 @@ export default defineComponent({
   .bookshelf-name {
     padding: 0 1rem;
   }
+
   .bookshelf-desc {
     padding: 0 1rem;
   }

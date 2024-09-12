@@ -12,7 +12,7 @@
   <div id="search-block" class="flex justify-content-center p-2">
     <IconField class="max-w-30rem w-full" iconPosition="left">
       <InputIcon class="pi pi-search"/>
-      <InputText class="w-full" v-model="search" placeholder="Поиск"/>
+      <InputText class="w-full" @keydown.enter="getBookshelvesList(1)" v-model="search" placeholder="Поиск"/>
     </IconField>
     <Button icon="pi pi-search" @click="getBookshelvesList(1)"/>
   </div>

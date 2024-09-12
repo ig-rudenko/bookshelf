@@ -1,19 +1,33 @@
 <template>
-  <div v-if="booksID.length" class="p-5 my-4 bookshelf">
 
-    <div v-for="id in booksID" :key="id" class="w-10rem inline-block relative" style="min-height: 300px;">
+  <div class="sticky text-right z-5 w-full" style="top: 0;">
+    <Button v-if="maximize" @click="() => changeMaximize(false)" v-tooltip.left="'Свернуть'" class="absolute"
+            icon="pi pi-angle-double-up" style="right: 10px; top: 10px"/>
+    <Button v-else @click="() => changeMaximize(true)" v-tooltip.left="'Развернуть'" class="absolute"
+            icon="pi pi-angle-double-down" style="right: 10px; top: 10px"/>
+  </div>
+
+  <!--Подсказка-->
+  <div class="sticky z-1">
+    <div v-if="!isMobile && maximize" class="absolute flex align-items-center left-0 p-4 text-400 text-xs top-0">
+      <span class="pr-1">Листайте вправо с зажатым</span>
+      <Button outlined style="padding: 2px; font-size: 12px">Shift</Button>
+    </div>
+  </div>
+
+  <div v-if="booksID.length" class="p-5 my-4 bookshelf relative" :style="bookshelfStyle">
+
+    <!--Обложки книг-->
+    <div v-for="id in booksID" :key="id" class="inline-block relative book-block" :style="bookBlockStyle">
       <div class="absolute image-block flex flex-row" @mouseover="getBook(id)">
-        <img @click="$emit('click:book', id)" :src="`/media/previews/${id}/preview_thumb_medium.png`" class="book-image" alt="book-preview"/>
-        <ScrollPanel v-if="currentBook" class="book-detail shadow-1 p-0" style="width: 28.5rem; height: 300px"
-                     :pt="{
-                              wrapper: {
-                                  style: { 'border-right': '10px solid var(--surface-ground)' }
-                              },
-                              bary: 'hover:bg-primary-400 bg-primary-300 opacity-100'
-                          }"
-                     :class="isMobile?'absolute':''">
+        <!--Картинка книги-->
+        <img @click="$emit('click:book', id)" :src="`/media/previews/${id}/preview_thumb_medium.png`"
+             class="book-image" :style="bookImageStyle" alt="book-preview"/>
+
+        <!--Описание книги-->
+        <div v-if="currentBook" class="book-detail p-0 m-0" :class="isMobile?'absolute':''">
           <BookCard :book="currentBook" :show-image="false" style="background-color: var(--primary-color-text)"/>
-        </ScrollPanel>
+        </div>
       </div>
     </div>
 
@@ -33,13 +47,14 @@ export default defineComponent({
   props: {
     booksID: {required: true, type: Object as PropType<number[]>},
   },
-  emits: ["click:book"],
+  emits: ["click:book", "maximize"],
   data() {
     return {
       bookImages: [] as { id: number, src: string }[],
       viewedBooks: new Map() as Map<number, Book>,
       currentBook: undefined as Book | undefined,
       windowWidth: window.innerWidth,
+      maximize: false,
     }
   },
 
@@ -51,6 +66,37 @@ export default defineComponent({
     isMobile() {
       return this.windowWidth <= 768;
     },
+
+    bookBlockStyle() {
+      if (this.maximize) {
+        return {
+          padding: "1rem",
+          width: "15rem !important",
+          margin: "1rem !important",
+        }
+      }
+      return {}
+    },
+
+    bookshelfStyle() {
+      if (this.maximize) {
+        return {
+          "white-space": "pre-wrap !important",
+          padding: "3rem !important",
+        }
+      }
+      return {}
+    },
+
+    bookImageStyle() {
+      if (this.maximize) {
+        return {
+          transform: "rotate3d(1, 1, 1, -1deg)"
+        }
+      }
+      return {}
+    }
+
   },
 
   methods: {
@@ -66,7 +112,13 @@ export default defineComponent({
             reason => console.log(reason)
         )
       }
+    },
+
+    changeMaximize(status: boolean) {
+      this.maximize = status;
+      this.$emit("maximize", this.maximize);
     }
+
   },
 })
 </script>
@@ -78,7 +130,7 @@ export default defineComponent({
   width: 90vw;
   overflow-x: auto;
   white-space: nowrap;
-  overflow-y: hidden;
+  overflow-y: auto;
   border: none;
   border-bottom: 10px solid var(--surface-700);
   box-shadow: 1px 1px 5px var(--surface-700);
@@ -86,11 +138,17 @@ export default defineComponent({
 }
 
 
+.book-block {
+  min-height: 300px;
+  width: 10rem !important;
+}
+
+
 .book-image {
   border-radius: .75rem !important;
   max-height: 300px;
   min-height: 300px;
-  max-width: 300px;
+  max-width: 350px;
   margin-top: 5px;
   margin-right: 6px;
   box-shadow: -10px -2px 2px #959595;
@@ -100,21 +158,26 @@ export default defineComponent({
   transform: rotate3d(1, 1, 1, -5deg);
 }
 
+/* При наведении на обложку поднимаем её на передний план */
+.image-block:hover, .image-block:active {
+  z-index: 2;
+}
+
+/* Увеличение книги при наведении на обложку */
+.image-block:hover .book-image {
+  transform: scale(1.15) !important;
+  box-shadow: 0 0 10px #121212;
+}
+
+
+/* По умолчанию описание книги скрыто */
 .book-detail {
   display: none;
 }
 
-.image-block:hover, .image-block:active {
-  z-index: 999;
-}
-
+/* При наведении на обложку показывает описание книги */
 .image-block:hover .book-detail, .image-block:active .book-detail {
   display: block;
-}
-
-.image-block:hover .book-image {
-  transform: scale(1.15);
-  box-shadow: 0 0 10px #121212;
 }
 
 
