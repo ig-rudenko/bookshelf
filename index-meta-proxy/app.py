@@ -81,12 +81,17 @@ async def replace_meta_data(book_id: int) -> str:
     index_data = await get_origin_index()
 
     index_data = re.sub(
-        r'<meta property="og:title" content="(.+?)">',
+        r'<meta property="og:type" content=".+?">',
+        f'<meta property="og:type" content="object">',
+        index_data,
+    )
+    index_data = re.sub(
+        r'<meta property="og:title" content=".+?">',
         f'<meta property="og:title" content="{book_data.title}">',
         index_data,
     )
     index_data = re.sub(
-        r'<meta property="og:description" content="(.+?)">',
+        r'<meta property="og:description" content=".+?">',
         f'<meta property="og:description" content="{book_data.desc}">',
         index_data,
     )
@@ -96,8 +101,9 @@ async def replace_meta_data(book_id: int) -> str:
         index_data,
     )
     index_data = re.sub(
-        r'<meta property="og:image" content="(.+?)">',
-        f'<meta property="og:image" content="{book_data.preview_image}">',
+        r'<meta property="og:image" content=".+?">',
+        f"""<meta property="og:image" content="{API_URL}{book_data.preview_image}">
+        <meta property="og:image:alt" content="{book_data.title}">""",
         index_data,
     )
     return index_data
