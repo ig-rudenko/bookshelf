@@ -12,11 +12,19 @@ from app.settings import settings
 celery = Celery(__name__)
 if settings.CELERY_BROKER_URL:
     celery.conf.broker_url = settings.CELERY_BROKER_URL
+    loop = asyncio.get_event_loop()
 else:
     celery.conf.task_always_eager = True
+
 db_manager.init(settings.database_url)
 
-loop = asyncio.get_event_loop()
+
+def perform_async_task(coro):
+    if celery.conf.task_always_eager:
+        asyncio.gather(coro)
+    else:
+        task = loop.create_task(coro)
+        loop.run_until_complete(task)
 
 
 @celery.task(name="create_book_preview", ignore_result=True)
@@ -35,8 +43,7 @@ def create_book_preview_task(book_id: int):
         # Удаляем кэш недавно добавленных книг
         await delete_recent_books_cache()
 
-    task = loop.create_task(async_task())
-    loop.run_until_complete(task)
+    perform_async_task(async_task())
 
 
 @celery.task(name="send_reset_password_email_task", ignore_result=True)
