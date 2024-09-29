@@ -25,7 +25,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api/v1': {
-        target: 'http://localhost:8080',
+        target: 'https://it-bookshelf.ru',
         changeOrigin: true,
         secure: false,
         ws: true,

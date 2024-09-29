@@ -138,10 +138,12 @@ export default defineComponent({
                   { label: 'Python', param: "tags", subtext: "Python", image: "/img/menu/langs/python.svg" },
                   { label: 'Go', param: "tags", subtext: "Go", image: '/img/menu/langs/go.svg' },
                   { label: 'Java Script', param: "tags", subtext: "Java Script", image: "/img/menu/langs/js.svg" },
+                  { label: 'Type Script', param: "tags", subtext: "Type Script", image: "/img/menu/langs/ts.svg" },
                   { label: 'Java', param: "tags", subtext: "Java", image: "/img/menu/langs/java.svg" },
                   { label: 'R-lang', param: "tags", subtext: "R-lang", image: "/img/menu/langs/r-lang.svg" },
                   { label: 'C%2B%2B', param: "tags", subtext: "C++", image: "/img/menu/langs/c-plusplus.svg" },
                   { label: 'Kotlin', param: "tags", subtext: "Kotlin", image: "/img/menu/langs/kotlin.svg" },
+                  { label: 'PHP', param: "tags", subtext: "PHP", image: "/img/menu/langs/php.svg" },
                 ]
               }
             ],
