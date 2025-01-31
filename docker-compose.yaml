@@ -1,5 +1,3 @@
-version: "3.11"
-
 services:
   nginx:
     image: bookshelf-nginx:0.4
