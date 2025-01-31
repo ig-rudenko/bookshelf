@@ -5,6 +5,11 @@ services:
     image: bookshelf-nginx:0.4
     build: frontend
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 10m
+        max-file: "3"
     ports:
       - "80:80"
       - "443:443"
@@ -23,6 +28,11 @@ services:
     image: bookshelf:0.4
     command: /bin/sh run.sh
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 10m
+        max-file: "3"
     environment:
       CELERY_BROKER_URL: "redis://redis:6379/1"
       REDIS_HOST: "redis"
@@ -46,6 +56,11 @@ services:
     build: index-meta-proxy
     image: bookshelf-index-meta-proxy:0.4
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 10m
+        max-file: "3"
     environment:
       API_URL: "https://it-bookshelf.ru"
 #      API_URL: "http://nginx"
@@ -67,10 +82,20 @@ services:
   redis:
     image: redis:7.2.4-alpine
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 10m
+        max-file: "3"
 
   database:
     image: postgres:16.2
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 10m
+        max-file: "3"
     env_file:
       - config/env/postgres
     volumes:
@@ -85,6 +110,11 @@ services:
   pgadmin-balancer:
     image: nginx:1.25.4-alpine
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 10m
+        max-file: "3"
     ports:
       - "8080:8080"
     volumes:
@@ -99,6 +129,11 @@ services:
   pgadmin4:
     image: elestio/pgadmin:latest
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: 10m
+        max-file: "3"
     env_file:
       - config/env/pgadmin
     depends_on:
