@@ -17,7 +17,7 @@ RUN pip install --upgrade --no-cache-dir pip && pip install pymupdf --no-cache-d
 COPY pyproject.toml poetry.lock /app/
 
 RUN poetry config virtualenvs.create false && \
-    poetry install --only main --no-interaction --no-ansi --no-cache;
+    poetry install --no-root --only main --no-interaction --no-ansi --no-cache;
 
 
 FROM python:3.12.6-slim
