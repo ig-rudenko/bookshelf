@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@unhead/vue": "^1.9.8",
-    "axios": "^1.6.8",
+    "axios": "^1.7.9",
     "javascript-time-ago": "^2.5.10",
     "primeicons": "^7.0.0",
     "primevue": "^3.53.0",
