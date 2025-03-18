@@ -1,36 +1,37 @@
+base_service: &base_service
+  restart: always
+  logging:
+    driver: "json-file"
+    options:
+      max-size: 10m
+      max-file: "3"
+
+
 services:
   nginx:
+    <<: *base_service
     image: bookshelf-nginx:0.4
     build: frontend
-    restart: always
-    logging:
-      driver: "json-file"
-      options:
-        max-size: 10m
-        max-file: "3"
     ports:
-      - "80:80"
-      - "443:443"
+      - "${BIND_HOST:-0.0.0.0}:${BIND_PORT_HTTP:-80}:80"
+      - "${BIND_HOST:-0.0.0.0}:${BIND_PORT_HTTPS:-443}:443"
     volumes:
-      - "./config/nginx/frontend.conf:/etc/nginx/conf.d/default.conf:ro"
+      - "${NGINX_CONFIG:-./config/nginx/frontend.conf}:/etc/nginx/conf.d/default.conf:ro"
       - "./media/previews:/var/www/media/previews:ro"
-      - "/etc/letsencrypt/live/it-bookshelf.ru/fullchain.pem:/etc/ssl/fullchain.pem:ro"
-      - "/etc/letsencrypt/live/it-bookshelf.ru/privkey.pem:/etc/ssl/privkey.pem:ro"
-      - "/etc/letsencrypt/ssl-dhparams.pem:/etc/ssl/ssl-dhparams.pem:ro"
+      - "${CERT_DIR:-/etc/letsencrypt/live/it-bookshelf.ru/}/fullchain.pem:/etc/ssl/fullchain.pem:ro"
+      - "${CERT_DIR:-/etc/letsencrypt/live/it-bookshelf.ru/}/privkey.pem:/etc/ssl/privkey.pem:ro"
+      - "${DH_PARAMS:-/etc/letsencrypt/ssl-dhparams.pem}:/etc/ssl/ssl-dhparams.pem:ro"
     depends_on:
       api-1:
         condition: service_healthy
+    networks:
+      - frontend
 
   api-1: &backend
+    <<: *base_service
     build: .
     image: bookshelf:0.4
     command: /bin/sh run.sh
-    restart: always
-    logging:
-      driver: "json-file"
-      options:
-        max-size: 10m
-        max-file: "3"
     environment:
       CELERY_BROKER_URL: "redis://redis:6379/1"
       REDIS_HOST: "redis"
@@ -49,51 +50,44 @@ services:
       timeout: 10s
       interval: 5s
       retries: 5
+    networks:
+      - frontend
+      - backend
 
   index-meta-proxy:
+    <<: *base_service
     build: index-meta-proxy
     image: bookshelf-index-meta-proxy:0.4
-    restart: always
-    logging:
-      driver: "json-file"
-      options:
-        max-size: 10m
-        max-file: "3"
     environment:
-      API_URL: "https://it-bookshelf.ru"
-#      API_URL: "http://nginx"
+      API_URL: "${BASE_URL:-https://it-bookshelf.ru}"
     depends_on:
       - nginx
+    networks:
+      - frontend
 
   celery-worker:
     <<: *backend
     command: celery -A app.services.celery worker --loglevel=info
+    healthcheck:
+      test: .
+      disable: true
     depends_on:
       redis:
         condition: service_started
       database:
         condition: service_healthy
-    healthcheck:
-      test: .
-      disable: true
+    networks:
+      - backend
 
   redis:
+    <<: *base_service
     image: redis:7.2.4-alpine
-    restart: always
-    logging:
-      driver: "json-file"
-      options:
-        max-size: 10m
-        max-file: "3"
+    networks:
+      - backend
 
   database:
+    <<: *base_service
     image: postgres:16.2
-    restart: always
-    logging:
-      driver: "json-file"
-      options:
-        max-size: 10m
-        max-file: "3"
     env_file:
       - config/env/postgres
     volumes:
@@ -104,36 +98,61 @@ services:
       timeout: 10s
       interval: 5s
       retries: 5
+    networks:
+      - backend
 
   pgadmin-balancer:
+    <<: *base_service
     image: nginx:1.25.4-alpine
-    restart: always
-    logging:
-      driver: "json-file"
-      options:
-        max-size: 10m
-        max-file: "3"
     ports:
       - "8080:8080"
     volumes:
-      - "./config/nginx/pgadmin.conf:/etc/nginx/conf.d/default.conf:ro"
-      - "/etc/letsencrypt/live/it-bookshelf.ru/fullchain.pem:/etc/ssl/fullchain.pem:ro"
-      - "/etc/letsencrypt/live/it-bookshelf.ru/privkey.pem:/etc/ssl/privkey.pem:ro"
-      - "/etc/letsencrypt/ssl-dhparams.pem:/etc/ssl/ssl-dhparams.pem:ro"
+      - "${PG_ADMIN_NGINX_CONFIG:-./config/nginx/pgadmin.conf}:/etc/nginx/conf.d/default.conf:ro"
+      - "${CERT_DIR:-/etc/letsencrypt/live/it-bookshelf.ru}/fullchain.pem:/etc/ssl/fullchain.pem:ro"
+      - "${CERT_DIR:-/etc/letsencrypt/live/it-bookshelf.ru}/privkey.pem:/etc/ssl/privkey.pem:ro"
+      - "${DH_PARAMS:-/etc/letsencrypt/ssl-dhparams.pem}:/etc/ssl/ssl-dhparams.pem:ro"
     depends_on:
       pgadmin4:
         condition: service_started
+    networks:
+      - mgmt
 
   pgadmin4:
+    <<: *base_service
     image: elestio/pgadmin:latest
-    restart: always
-    logging:
-      driver: "json-file"
-      options:
-        max-size: 10m
-        max-file: "3"
     env_file:
       - config/env/pgadmin
     depends_on:
       database:
         condition: service_healthy
+    networks:
+      - mgmt
+      - backend
+
+networks:
+  frontend:
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: ${FRONTEND_IPV4_NETWORK:-172.22.1.0/24}
+        - subnet: ${FRONTEND_IPV6_NETWORK:-fd4d:6169:6c63:6f76::/64}
+
+  backend:
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: ${BACKEND_IPV4_NETWORK:-172.22.2.0/24}
+        - subnet: ${BACKEND_IPV6_NETWORK:-fd4d:6169:6c63:6f77::/64}
+
+  mgmt:
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: ${MGMT_IPV4_NETWORK:-172.22.3.0/24}
+        - subnet: ${MGMT_IPV6_NETWORK:-fd4d:6169:6c63:6f78::/64}
