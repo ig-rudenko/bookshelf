@@ -1,17 +1,14 @@
-base_service: &base_service
-  restart: always
-  logging:
-    driver: "json-file"
-    options:
-      max-size: 10m
-      max-file: "3"
-
-
 services:
+
   nginx:
-    <<: *base_service
     image: bookshelf-nginx:0.4
     build: frontend
+    restart: always
+    logging: &logging
+      driver: "json-file"
+      options:
+        max-size: 10m
+        max-file: "3"
     ports:
       - "${BIND_HOST:-0.0.0.0}:${BIND_PORT_HTTP:-80}:80"
       - "${BIND_HOST:-0.0.0.0}:${BIND_PORT_HTTPS:-443}:443"
@@ -28,10 +25,11 @@ services:
       - frontend
 
   api-1: &backend
-    <<: *base_service
     build: .
     image: bookshelf:0.4
     command: /bin/sh run.sh
+    restart: always
+    logging: *logging
     environment:
       CELERY_BROKER_URL: "redis://redis:6379/1"
       REDIS_HOST: "redis"
@@ -55,9 +53,10 @@ services:
       - backend
 
   index-meta-proxy:
-    <<: *base_service
     build: index-meta-proxy
     image: bookshelf-index-meta-proxy:0.4
+    restart: always
+    logging: *logging
     environment:
       API_URL: "${BASE_URL:-https://it-bookshelf.ru}"
     depends_on:
@@ -68,6 +67,7 @@ services:
   celery-worker:
     <<: *backend
     command: celery -A app.services.celery worker --loglevel=info
+    logging: *logging
     healthcheck:
       test: .
       disable: true
@@ -80,16 +80,18 @@ services:
       - backend
 
   redis:
-    <<: *base_service
     image: redis:7.2.4-alpine
+    restart: always
+    logging: *logging
     networks:
       - backend
 
   database:
-    <<: *base_service
     image: postgres:16.2
+    restart: always
     env_file:
       - config/env/postgres
+    logging: *logging
     volumes:
       - "./pg_data:/var/lib/postgresql/data"
     healthcheck:
@@ -102,8 +104,9 @@ services:
       - backend
 
   pgadmin-balancer:
-    <<: *base_service
     image: nginx:1.25.4-alpine
+    restart: always
+    logging: *logging
     ports:
       - "8080:8080"
     volumes:
@@ -118,10 +121,11 @@ services:
       - mgmt
 
   pgadmin4:
-    <<: *base_service
     image: elestio/pgadmin:latest
+    restart: always
     env_file:
       - config/env/pgadmin
+    logging: *logging
     depends_on:
       database:
         condition: service_healthy
