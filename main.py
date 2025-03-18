@@ -29,7 +29,7 @@ async def startup(app_instance: FastAPI):
 setup_logger(settings.log_level)
 server.logger = logger
 app = FastAPI(lifespan=startup)
-app.add_middleware(LoggingMiddleware, logger=logger)
+app.add_middleware(LoggingMiddleware, logger=logger, ignore_paths=["/ping"])
 
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(book_router, prefix="/api/v1")

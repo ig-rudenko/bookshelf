@@ -12,11 +12,17 @@ class LoggingMiddleware(BaseHTTPMiddleware):
     Middleware для обработки запросов и ответов с целью журналирования
     """
 
-    def __init__(self, app: FastAPI, *, logger) -> None:
+    def __init__(self, app: FastAPI, *, logger, ignore_paths: list = None) -> None:
         self._logger = logger
+        if ignore_paths is None:
+            ignore_paths = []
+        self.ignore_paths = ignore_paths
         super().__init__(app)
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        """Dispatches request/response to be logged"""
+        if request.url.path in self.ignore_paths:
+            return await call_next(request)
 
         request_id: str = str(uuid4())
         logging_dict = {
@@ -31,8 +37,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
         self._logger.info(request_id, **logging_dict)
 
-        if response is None:
-            pass
         return response
 
     @staticmethod
