@@ -1,38 +1,38 @@
 [tool.poetry]
 name = "app"
 version = "0.1.0"
-description = ""
+description = "Сайт книг для IT специалистов"
 authors = ["ig-rudenko <ig.rudenko1@yandex.ru>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
-fastapi = "^0.115.11"
-uvicorn = "^0.34.0"
-sqlalchemy = {extras = ["asyncio"], version = "^2.0.39"}
-alembic = "^1.15.1"
+fastapi = "^0.115.12"
+uvicorn = "^0.34.2"
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.40"}
+alembic = "^1.15.2"
 passlib = "^1.7.4"
-pydantic = {extras = ["email"], version = "^2.10.6"}
+pydantic = {extras = ["email"], version = "^2.11.3"}
 python-jose = {extras = ["cryptography"], version = "^3.4.0"}
 bcrypt = "^4.2.1"
-pillow = "^11.1.0"
+pillow = "^11.2.1"
 python-multipart = "^0.0.20"
-PyMuPDFb = "^1.24.1"
-pydantic-settings = "^2.8.1"
+PyMuPDFb = "^1.24.10"
+pydantic-settings = "^2.9.1"
 asyncpg = "^0.30.0"
 aiofiles = "^24.1.0"
 python-slugify = "^8.0.4"
-celery = {extras = ["redis"], version = "^5.4.0"}
-aiohttp = "^3.11.14"
+celery = {extras = ["redis"], version = "^5.5.1"}
+aiohttp = "^3.11.17"
 loguru = "^0.7.3"
 
 
 [tool.poetry.group.dev.dependencies]
 aiosqlite = "^0.21.0"
-httpx = "^0.27.0"
-coverage = "^7.4.4"
+httpx = "^0.28.1"
+coverage = "^7.8.0"
 black = {extras = ["d"], version = "^25.1.0"}
-mypy = "^1.9.0"
+mypy = "^1.15.0"
 types-passlib = "^1.7.7.20240327"
 types-python-jose = "^3.3.4.20240106"
 types-aiofiles = "^23.2.0.20240403"
