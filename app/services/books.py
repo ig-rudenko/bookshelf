@@ -19,6 +19,7 @@ from app.models import (
     favorite_books_association,
     books_read_association,
 )
+from app.orm.query_formats import filter_books_by_user
 from app.orm.session_manager import scoped_session
 from app.schemas.books import BookSchema, BooksSchemaPaginated, BookSchemaDetail, CreateBookSchema
 from app.services.cache import get_cache
@@ -95,11 +96,7 @@ async def get_filtered_books(
 
     query = select(Book).order_by(Book.year.desc(), Book.id.desc()).group_by(Book.id)
     query = _filter_books_query_by_params(query, query_params)
-
-    if user is not None:
-        query = query.where(Book.private.is_(False) | (Book.private.is_(True) & (Book.user_id == user.id)))
-    else:
-        query = query.where(Book.private.is_(False))
+    query = filter_books_by_user(query, user)
 
     return await get_paginated_books(session, query, query_params)
 
@@ -185,9 +182,11 @@ async def delete_book(session: AsyncSession, book_id: int) -> None:
     await get_storage().delete_book(book.id)
 
 
-@cached(60 * 60 * 24, "recent_books", variable_positions=[2])
-async def get_recent_books(session: AsyncSession, limit: int) -> list[BookSchema]:
+@cached(60 * 60 * 24, "recent_books", variable_positions=[2, 3])
+async def get_recent_books(session: AsyncSession, limit: int, user: User | None) -> list[BookSchema]:
     query = select(Book).order_by(Book.id.desc()).limit(limit)
+    query = filter_books_by_user(query, user)
+
     result = await session.execute(query)
     result.unique()
     books = result.scalars().all()
@@ -233,6 +232,8 @@ async def get_book_detail(session: AsyncSession, book_id: int, user: User | None
                 ),
             )
         )
+        query = filter_books_by_user(query, user)
+
         result = await session.execute(query)
         result.unique()
 

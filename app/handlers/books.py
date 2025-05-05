@@ -41,18 +41,20 @@ router = APIRouter(prefix="/books", tags=["books"])
 @router.get("/recent", response_model=list[BookSchema])
 async def get_recent_books_view(
     session: AsyncSession = Depends(get_session, use_cache=True),
+    current_user: Optional[User] = Depends(get_user_or_none),
 ):
     """Последние 25 добавленных книг."""
-    return await get_recent_books(session, 25)
+    return await get_recent_books(session, limit=25, user=current_user)
 
 
 @router.get("/publishers", response_model=list[str])
 async def get_publishers_view(
     name: str | None = Query(None, description="Издательство"),
     session: AsyncSession = Depends(get_session, use_cache=True),
+    current_user: Optional[User] = Depends(get_user_or_none),
 ):
     """Поиск издательств по названию."""
-    return await get_publishers(session, name)
+    return await get_publishers(session, search=name, user=current_user)
 
 
 @router.get("/last-viewed", response_model=BooksWithReadPagesPaginatedSchema)
@@ -139,16 +141,7 @@ async def get_book_view(
 ):
     """Просмотр книги"""
     book_schema = await get_book_detail(session, book_id, current_user)
-
-    if not book_schema.private or (
-        book_schema.private and current_user is not None and current_user.id == book_schema.user_id
-    ):
-        return book_schema
-
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="У вас нет прав на просмотр данной книги",
-    )
+    return book_schema
 
 
 @router.put("/{book_id}", response_model=BookSchemaWithDesc)

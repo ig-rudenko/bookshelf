@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.base import query_count
 from app.models import User, Book, UserData
+from app.orm.query_formats import filter_books_by_user
 from app.schemas.books import BookWithReadPagesSchema, BooksWithReadPagesPaginatedSchema
 from app.schemas.pdf_history import PDFHistoryFilesSchema, PdfJSHistorySchema, CreatePdfJSHistorySchema
 from app.services.paginator import paginate
@@ -46,6 +47,7 @@ async def get_last_viewed_books(
         .group_by(Book.id)
         .order_by(UserData.pdf_history_updated_at.desc())
     )
+    query = filter_books_by_user(query, user)
     query = paginate(query, page=paginator["page"], per_page=paginator["per_page"])
 
     result = await session.execute(query)
