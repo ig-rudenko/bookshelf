@@ -1,120 +1,150 @@
 <template>
-<div class="flex flex-wrap flex-column align-content-center">
+  <div class="flex flex-wrap flex-col content-center items-center w-full">
 
-  <div v-if="loading && bookFile" class="py-5 w-full p-5">
-    <MeterGroup :value="[{label: 'Загрузка файла', value: uploadProgress, color: 'primary', icon: '' }]"/>
-  </div>
-
-  <div class="flex flex-wrap justify-content-center pb-3 align-items-center">
-    <div id="drag-drop-area">
-      <div class="flex align-content-center">
-        <input ref="inputFile" id="book.file" accept="application/pdf" hidden type="file" @change="handleFileChange"/>
-
-        <div v-if="editMode && !bookFile" class="m-2 mr-4 border-round-3xl">
-          <div class="flex justify-content-center">
-            <Button icon="pi pi-file-pdf" label="Обновить файл книги" @click="() => {(<HTMLInputElement>$refs.inputFile).click()}"/>
-          </div>
-          <div>
-            <img v-if="editBookPreview" :src="editBookPreview" class="border-round-3xl w-full" alt="preview"/>
-            <div v-else class="border-round-3xl" style="padding: 18rem 15rem; background-color: rgba(204,204,204,0.09);"></div>
-          </div>
-        </div>
-
-        <label v-else-if="!bookFile" for="book.file" >
-          <span v-if="!isMobile" style="padding: 250px 150px" class="flex flex-column align-items-center cursor-pointer m-4 mr-4 border-1 border-purple-700 text-purple-700 hover:text-purple-300 hover:border-purple-300 border-round-3xl border-dashed">
-            <i style="font-size: 3rem;" class="pi pi-file-pdf pb-2"/>
-            <span>Загрузить файл</span>
-          </span>
-          <Button v-else icon="pi pi-file-pdf" label="Загрузить файл" @click="() => {(<HTMLInputElement>$refs.inputFile).click()}"/>
-        </label>
-
-        <div v-if="bookFile">
-          <div class="flex justify-content-center">
-            <Button icon="pi pi-file-pdf" :label="truncateString(bookFile?.name)" @click="() => {(<HTMLInputElement>$refs.inputFile).click()}"/>
-          </div>
-          <div v-if="bookPreview && !isMobile" class="px-4">
-            <object style="width: 520px; height: 750px" :data="bookPreview"/>
-          </div>
-        </div>
-      </div>
-
-
-    </div>
-    <div>
-      <div class="flex flex-column gap-2 mt-4">
-        <Button v-if="editMode && !loading" severity="success" label="Обновить" @click="createBook" />
-        <Button v-else-if="bookFile && !loading" severity="success" label="Создать" @click="createBook" />
-        <Button v-else-if="loading" disabled severity="success" icon="pi pi-spin pi-spinner" label="Загрузка..." />
-
-        <div class="flex flex-column gap-2 pb-2 w-25rem w-full">
-          <label for="book.title">Название книги</label>
-          <InputText id="book.title" class="w-full" :class="validator.title?'':'p-invalid'" v-model="book.title"/>
-          <InlineMessage class="zoomin cursor-pointer" v-tooltip="'Проверить заново'" severity="error" v-if="!validator.title" @click="validator.validateTitle(book.title)">Укажите от 1 до 128 символов</InlineMessage>
-        </div>
-        <div class="flex flex-column gap-2 pb-2">
-          <label for="book.authors">Авторы</label>
-          <InputText class="w-full" id="book.authors" v-model="book.authors" :class="validator.authors?'':'p-invalid'" />
-          <InlineMessage class="zoomin cursor-pointer" v-tooltip="'Проверить заново'" severity="error" v-if="!validator.authors" @click="validator.validateAuthors(book.authors)">Укажите от 1 до 254 символов</InlineMessage>
-        </div>
-        <div class="flex flex-column gap-2 pb-2">
-          <label for="book.publisher">Издательство</label>
-          <AutoComplete input-class="w-full" :class="validator.publisher?'':'p-invalid'"
-                        id="book.authors" v-model="book.publisher" :suggestions="publishersList" @complete="searchPublishers" />
-          <InlineMessage class="zoomin cursor-pointer" v-tooltip="'Проверить заново'" severity="error" v-if="!validator.publisher" @click="validator.validatePublisher(book.publisher)">Укажите от 1 до 128 символов</InlineMessage>
-        </div>
-        <div class="flex flex-column gap-2 pb-2">
-          <label for="book.year">Год издания</label>
-          <InputNumber input-class="w-6rem" :class="validator.year?'':'p-invalid'"
-                       id="book.year" v-model="book.year" suffix=" г." :useGrouping="false" aria-describedby="book.year-help"/>
-          <small id="book.year-help">Укажите год публикации оригинала</small>
-          <InlineMessage class="zoomin cursor-pointer" v-tooltip="'Проверить заново'" severity="error" v-if="!validator.year" @click="validator.validateYear(book.year)">Укажите год в пределах от 1000 до {{new Date().getFullYear()+1}}</InlineMessage>
-        </div>
-
-        <div class="flex flex-column gap-2 pb-2">
-          <label for="book.language">Язык книги</label>
-          <LanguageDropdown :language="book.language" @update="(l: string) => book.language=l" :class="validator.language?'':'p-invalid'"/>
-          <InlineMessage class="zoomin cursor-pointer" v-tooltip="'Проверить заново'" severity="error" v-if="!validator.language" @click="validator.validateLanguage(book.language)">Укажите от 1 до 128 символов</InlineMessage>
-        </div>
-
-        <div class="pb-2">
-          <Button @click="book.private=!book.private"
-                  :severity="book.private?'contrast':'primary'"
-                  :icon="book.private?'pi pi-eye-slash':'pi pi-eye'"
-                  :label="book.private?'Никто не увидит вашу книгу':'Книга будет доступна всем'" class="w-full" />
-        </div>
-
-        <div class="flex flex-column gap-2 pb-2">
-          <label for="book.tags">Теги</label>
-          <InputGroup>
-            <InputText @keydown.enter="addTag" id="book.tags" v-cloak v-model="currentTag" separator="," aria-describedby="book.tags-help" />
-            <Button icon="pi pi-plus" severity="success" @click="addTag" />
-          </InputGroup>
-          <div class="flex flex-column zoomin cursor-pointer" v-tooltip="'Проверить заново'" @click="validator.validateTags(book.tags)">
-            <InlineMessage severity="error" v-if="!validator.tagsCount">Укажите от 1 до 20 тегов</InlineMessage>
-            <InlineMessage severity="error" v-if="!validator.tagLength">Название тега должно быть от 1 до 128 символов</InlineMessage>
-          </div>
-        </div>
-      </div>
-
-      <div class="flex flex-wrap lg:max-w-20rem">
-        <Chip v-for="(tag, index) in book.tags" :key="index" :label="tag" icon="pi pi-tag" class="m-1" removable >
-          <template #removeicon>
-            <i @click="removeTag(index)" class="pi pi-times cursor-pointer ml-2" />
-          </template>
-        </Chip>
-      </div>
-
+    <div v-if="loading && bookFile" class="py-5 w-full p-5">
+      <MeterGroup
+          :value="[{label: 'Загрузка файла', value: uploadProgress, color: 'var(--p-primary-color)', icon: '' }]"/>
     </div>
 
-  </div>
+    <div class="flex flex-col md:flex-row justify-center pb-3 items-center not-md:w-full">
+      <div id="drag-drop-area" class="w-full">
+        <div>
+          <input ref="inputFile" id="book.file" accept="application/pdf" hidden type="file" @change="handleFileChange"/>
 
-  <div class="flex flex-column gap-2 pb-2">
-    <label for="book.description">Описание книги</label>
-    <Textarea id="book.description" v-model="book.description" rows="6" :class="validator.description?'':'p-invalid'"/>
-    <InlineMessage class="zoomin cursor-pointer" v-tooltip="'Проверить заново'" severity="error" @click="validator.validateDescription(book.description)" v-if="!validator.description">Укажите описание, но не более 4096 символов</InlineMessage>
-  </div>
+          <div v-if="editMode && !bookFile" class="m-2 mr-4 border-round-3xl">
+            <div class="flex justify-center">
+              <Button icon="pi pi-file-pdf" label="Обновить файл книги"
+                      @click="() => {(<HTMLInputElement>$refs.inputFile).click()}"/>
+            </div>
+            <div>
+              <img v-if="editBookPreview" :src="editBookPreview" class="border-round-3xl w-full" alt="preview"/>
+              <div v-else class="border-round-3xl"
+                   style="padding: 18rem 15rem; background-color: rgba(204,204,204,0.09);"></div>
+            </div>
+          </div>
 
-</div>
+          <label v-else-if="!bookFile" for="book.file">
+            <span v-if="!isMobile" style="padding: 290px 170px"
+                  class="flex flex-col items-center cursor-pointer m-4 mr-4 border-1 border-purple-700 text-purple-700 hover:text-purple-400 hover:border-purple-400 rounded-xl border-dashed">
+              <i class="pi pi-file-pdf pb-2 !text-[3rem]"/>
+              <span class="w-max">Загрузить файл</span>
+            </span>
+            <Button v-else icon="pi pi-file-pdf" label="Загрузить файл"
+                    @click="() => {(<HTMLInputElement>$refs.inputFile).click()}"/>
+          </label>
+
+          <div v-if="bookFile">
+            <div class="flex justify-center">
+              <Button icon="pi pi-file-pdf" :label="truncateString(bookFile?.name)"
+                      @click="() => {(<HTMLInputElement>$refs.inputFile).click()}"/>
+            </div>
+            <div v-if="bookPreview && !isMobile" class="px-4">
+              <object style="width: 520px; height: 750px" :data="bookPreview"/>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="w-full max-w-[500px] lg:min-w-[500px]">
+        <div class="flex flex-col gap-2 mt-4">
+          <Button v-if="editMode && !loading" severity="success" label="Обновить" @click="createBook"/>
+          <Button v-else-if="bookFile && !loading" severity="success" label="Создать" @click="createBook"/>
+          <Button v-else-if="loading" disabled severity="success" icon="pi pi-spin pi-spinner" label="Загрузка..."/>
+
+          <div class="flex flex-col gap-2 pb-2 w-25rem w-full">
+            <label for="book.title">Название книги</label>
+            <InputText id="book.title" class="w-full" :class="validator.title?'':'p-invalid'" v-model="book.title"/>
+            <Message class="zoomin cursor-pointer" v-tooltip="'Проверить заново'" severity="error"
+                     v-if="!validator.title" @click="validator.validateTitle(book.title)">Укажите от 1 до 128 символов
+            </Message>
+          </div>
+          <div class="flex flex-col gap-2 pb-2">
+            <label for="book.authors">Авторы</label>
+            <InputText class="w-full" id="book.authors" v-model="book.authors"
+                       :class="validator.authors?'':'p-invalid'"/>
+            <Message class="zoomin cursor-pointer" v-tooltip="'Проверить заново'" severity="error"
+                     v-if="!validator.authors" @click="validator.validateAuthors(book.authors)">Укажите от 1 до 254
+              символов
+            </Message>
+          </div>
+          <div class="flex flex-col gap-2 pb-2">
+            <label for="book.publisher">Издательство</label>
+            <AutoComplete input-class="w-full" :class="validator.publisher?'':'p-invalid'"
+                          id="book.authors" v-model="book.publisher" :suggestions="publishersList"
+                          @complete="searchPublishers"/>
+            <Message class="zoomin cursor-pointer" v-tooltip="'Проверить заново'" severity="error"
+                     v-if="!validator.publisher" @click="validator.validatePublisher(book.publisher)">Укажите от 1 до
+              128 символов
+            </Message>
+          </div>
+          <div class="flex flex-col gap-2 pb-2">
+            <label for="book.year">Год издания</label>
+            <InputNumber input-class="w-6rem" :class="validator.year?'':'p-invalid'"
+                         id="book.year" v-model="book.year" suffix=" г." :useGrouping="false"
+                         aria-describedby="book.year-help"/>
+            <small id="book.year-help">Укажите год публикации оригинала</small>
+            <Message class="zoomin cursor-pointer" v-tooltip="'Проверить заново'" severity="error"
+                     v-if="!validator.year" @click="validator.validateYear(book.year)">Укажите год в пределах от 1000 до
+              {{ new Date().getFullYear() + 1 }}
+            </Message>
+          </div>
+
+          <div class="flex flex-col gap-2 pb-2">
+            <label for="book.language">Язык книги</label>
+            <LanguageDropdown :language="book.language" @update="(l: string) => book.language=l"
+                              :class="validator.language?'':'p-invalid'"/>
+            <Message class="zoomin cursor-pointer" v-tooltip="'Проверить заново'" severity="error"
+                     v-if="!validator.language" @click="validator.validateLanguage(book.language)">Укажите от 1 до 128
+              символов
+            </Message>
+          </div>
+
+          <div class="pb-2">
+            <Button @click="book.private=!book.private"
+                    :severity="book.private?'contrast':'primary'"
+                    :icon="book.private?'pi pi-eye-slash':'pi pi-eye'"
+                    :label="book.private?'Никто не увидит вашу книгу':'Книга будет доступна всем'" class="w-full"/>
+          </div>
+
+          <div class="flex flex-col gap-2 pb-2">
+            <label for="book.tags">Теги</label>
+            <InputGroup>
+              <InputText @keydown.enter="addTag" id="book.tags" v-cloak v-model="currentTag" separator=","
+                         aria-describedby="book.tags-help"/>
+              <Button icon="pi pi-plus" severity="success" @click="addTag"/>
+            </InputGroup>
+            <div class="flex flex-col zoomin cursor-pointer" v-tooltip="'Проверить заново'"
+                 @click="validator.validateTags(book.tags)">
+              <Message severity="error" v-if="!validator.tagsCount">Укажите от 1 до 20 тегов</Message>
+              <Message severity="error" v-if="!validator.tagLength">Название тега должно быть от 1 до 128 символов
+              </Message>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap lg:max-w-[20rem] gap-2">
+          <Badge v-for="(tag, index) in book.tags" :key="index" icon="pi pi-tag" size="large">
+            {{ tag }}
+            <i @click="removeTag(index)" class="pi pi-times cursor-pointer ml-2"/>
+          </Badge>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="flex flex-col gap-2 pb-2 max-w-[1000px] w-full">
+      <label for="book.description">Описание книги</label>
+      <Textarea id="book.description" v-model="book.description" rows="4" class="w-full" auto-resize
+                :class="validator.description?'':'p-invalid'"/>
+      <Message class="zoomin cursor-pointer" v-tooltip="'Проверить заново'" severity="error"
+               @click="validator.validateDescription(book.description)" v-if="!validator.description">Укажите описание,
+        но не более 4096 символов
+      </Message>
+    </div>
+
+  </div>
 </template>
 
 <script lang="ts">
@@ -134,17 +164,17 @@ export default defineComponent({
     editBookId: {required: false, type: Number, default: 0},
   },
   data() {
-      return {
-        bookFile: null as (File|null),
-        editBookPreview: "",
-        book: new CreateBook(),
-        validator: new BookValidator(),
-        currentTag: "",
-        windowWidth: window.innerWidth,
-        publishersList: [] as string[],
-        loading: false,
-        uploadProgress: 0,
-      }
+    return {
+      bookFile: null as (File | null),
+      editBookPreview: "",
+      book: new CreateBook(),
+      validator: new BookValidator(),
+      currentTag: "",
+      windowWidth: window.innerWidth,
+      publishersList: [] as string[],
+      loading: false,
+      uploadProgress: 0,
+    }
   },
   mounted() {
     this.addDragAndDropListeners()
@@ -184,7 +214,7 @@ export default defineComponent({
     },
 
     searchPublishers(event: AutoCompleteCompleteEvent) {
-      api.get("/books/publishers?name="+event.query)
+      api.get("/books/publishers?name=" + event.query)
           .then(
               (value: AxiosResponse<string[]>) => {
                 this.publishersList = value.data;
@@ -240,7 +270,7 @@ export default defineComponent({
         if (book && this.bookFile) {
           await this.uploadBookFile(book)
         } else {
-          document.location.href = "/book/"+this.editBookId;
+          document.location.href = "/book/" + this.editBookId;
         }
         this.loading = false;
 
@@ -258,15 +288,15 @@ export default defineComponent({
 
     async uploadBookFile(bookData: BookWithDesc) {
       const status = await bookService.uploadBookFile(bookData, (<Blob>this.bookFile), this.onUploadProgress);
-      if (status) document.location.href = "/book/"+(this.editBookId||bookData.id);
+      if (status) document.location.href = "/book/" + (this.editBookId || bookData.id);
     },
 
     onUploadProgress(progressEvent: AxiosProgressEvent) {
-      this.uploadProgress = (progressEvent.progress||0) * 100;
+      this.uploadProgress = (progressEvent.progress || 0) * 100;
     },
 
     getEditBook() {
-      api.get("/books/"+this.editBookId)
+      api.get("/books/" + this.editBookId)
           .then(
               (response: AxiosResponse<BookDetail>) => {
                 if (response.status !== 200) return;
@@ -292,7 +322,3 @@ export default defineComponent({
   }
 });
 </script>
-
-<style scoped>
-
-</style>

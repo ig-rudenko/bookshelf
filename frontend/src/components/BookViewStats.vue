@@ -1,9 +1,17 @@
 <script lang="ts">
 import {defineComponent, PropType} from 'vue'
-import {AxiosResponse} from "axios";
 
 import api from "@/services/api";
 import {BookDetail} from "@/books.ts";
+import TimeAgo from "javascript-time-ago";
+import ru from "javascript-time-ago/locale/ru";
+import {getReadPagesCountColor} from "@/formatter.ts";
+
+interface BookHistory {
+  id: number;
+  pdfHistoryUpdatedAt: string;
+  pdfHistory: string
+}
 
 export default defineComponent({
   name: "BookViewStats",
@@ -11,12 +19,14 @@ export default defineComponent({
     book: {required: true, type: Object as PropType<BookDetail>},
   },
   data() {
-      return {
-        bookHistory: null as any|null,
-      }
+    return {
+      bookHistory: null as any | null,
+      pdfHistoryUpdatedAt: null as Date | null,
+    }
   },
   mounted() {
-      this.getBookHistory();
+    TimeAgo.addDefaultLocale(ru)
+    this.getBookHistory();
   },
   computed: {
     currentPage() {
@@ -28,17 +38,23 @@ export default defineComponent({
       return 0;
     },
     percents() {
-      return this.currentPage/this.book.pages*100
+      return this.currentPage / this.book.pages * 100
     },
     verboseValue() {
-      return `Прочитано страниц: ${this.currentPage}/${this.book.pages}`;
+      const timeAgo = new TimeAgo('ru-RU');
+      const lastRead = this.pdfHistoryUpdatedAt ? timeAgo.format(this.pdfHistoryUpdatedAt) : "";
+      return `Прочитано страниц: ${this.currentPage}/${this.book.pages} | ${lastRead}`;
     }
   },
   methods: {
+    getReadPagesCountColor,
     getBookHistory() {
-      api.get(`/user-data/book/${this.book.id}/pdf-history`).then(
-          (res: AxiosResponse<{pdfHistory: string}>) => {
-            if (res.status == 200) this.bookHistory = JSON.parse(res.data.pdfHistory);
+      api.get<BookHistory>(`/user-data/book/${this.book.id}/pdf-history`).then(
+          res => {
+            if (res.status == 200) {
+              this.bookHistory = JSON.parse(res.data.pdfHistory);
+              this.pdfHistoryUpdatedAt = new Date(res.data.pdfHistoryUpdatedAt)
+            }
           },
       )
     }
@@ -48,10 +64,6 @@ export default defineComponent({
 
 <template>
   <div v-if="currentPage" class="p-2 pb-4">
-    <MeterGroup :value="[{label: verboseValue, value: percents, color: 'primary', icon: '' }]"/>
+    <MeterGroup :value="[{label: verboseValue, value: percents, color: getReadPagesCountColor(percents), icon: '' }]"/>
   </div>
 </template>
-
-<style scoped>
-
-</style>

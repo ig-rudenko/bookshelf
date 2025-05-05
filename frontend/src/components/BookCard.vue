@@ -1,48 +1,72 @@
 <template>
 
-  <div class="card-plate" :style="cardStyle">
-    <div v-if="showImage" class="flex">
-      <img @click="$emit('click:book', book.id)" :src="book.previewImage" class="book-image cursor-pointer" alt="book"/>
+  <div
+      class="flex md:flex-wrap border-gray-400 dark:border-gray-600 rounded-xl shadow-md hover:shadow-xl items-center"
+      :class="{'w-full md:w-[45rem] border-1': !compactView}"
+  >
+    <div v-if="showImage" class="border-r-1 h-full flex items-center border-gray-400 dark:border-gray-600"
+         :class="{ 'border-none': compactView}">
+      <img @click="$emit('click:book', book.id)" :src="book.previewImage"
+           class="max-h-[250px] max-w-[150px] sm:max-h-[300px] sm:max-w-[200px] md:max-h-[400px] md:max-w-[300px] w-[15.9rem] rounded-l-xl cursor-pointer"
+           :class="{ 'rounded-xl border-1 hover:shadow-xl border-gray-400 dark:border-gray-600': compactView, ...imageClasses}"
+           alt="book"/>
     </div>
 
-    <div class="book-about px-2" v-if="!compactView" style="font-size: 0.83rem;">
-      <h2 class="book-title">
-        <a class="no-underline text-900" :href="'/book/'+book.id">{{book.title}}</a>
-      </h2>
-      <div class="align-items-end flex m-2 flex-wrap justify-content-center gap-1" :style="{'font-size': isMobile?'0.7rem':'1rem'}">
-        <span v-if="!isMobile" class="mr-2">Издательство</span><i class="pi pi-building mr-2"/>
-        <span @click="$emit('select:publisher', book.publisher.name)" class="text-primary cursor-pointer">{{book.publisher.name}}</span>
-        <span class="ml-2">{{book.year}} г.</span>
+    <div class="max-w-[28rem] w-full flex flex-col items-center p-2 text-sm" v-if="!compactView">
+      <div class="text-sm sm:text-xl text-center">
+        <a :href="'/book/'+book.id">{{ book.title }}</a>
       </div>
 
-      <div class="flex align-items-center" :style="{'flex-direction': isMobile?'row':'column'}">
+      <div class="items-center flex m-2 flex-wrap justify-center gap-1">
+        <span v-if="!isMobile" class="mr-2">
+          Издательство
+        </span>
+        <i class="pi pi-building mr-2"/>
+        <span @click="$emit('select:publisher', book.publisher.name)"
+              class="text-primary cursor-pointer text-center">
+          {{ book.publisher.name }}
+        </span>
+        <span class="ml-2 text-xs sm:text-sm">{{ book.year }} г.</span>
+      </div>
 
-        <div v-if="isMobile" class="chips">
+      <div class="flex items-center" :style="{'flex-direction': isMobile?'row':'column'}">
+
+        <div v-if="isMobile">
           <i class="pi pi-tag" @click="toggleTagsOverlay"/>
-          <OverlayPanel ref="tags">
-            <Chip v-for="(tag, index) in book.tags" :key="index" :label="tag.name" @click="selectTag(tag.name)" class="m-1 cursor-pointer" style="font-size: 0.7rem;" icon="pi pi-tag" />
-          </OverlayPanel>
+          <Popover ref="tags">
+            <div class="text-sm pb-2">Теги:</div>
+            <div class="flex flex-wrap gap-1">
+              <Badge v-for="(tag, index) in book.tags" :key="index"
+                     @click="selectTag(tag.name)" class="cursor-pointer" style="font-size: 0.8rem;" icon="pi pi-tag">
+                {{ tag.name }}
+              </Badge>
+            </div>
+          </Popover>
         </div>
 
-        <div class="m-2 flex flex-row align-items-center">
-          <span v-if="!isMobile" class="mr-2">Язык книги: {{book.language}}</span>
-          <img :alt="book.language" :src="`https://flagcdn.com/${getLanguagePairByLabel(book.language).code}.svg`" class="border-1 border-500" style="width: 24px" />
+        <div class="m-2 flex flex-row items-center">
+          <span v-if="!isMobile" class="mr-2">Язык книги: {{ book.language }}</span>
+          <img :alt="book.language" :src="`https://flagcdn.com/${getLanguagePairByLabel(book.language).code}.svg`"
+               class="border-1 border-gray-400 w-[22px]"/>
         </div>
 
       </div>
 
-      <div v-if="!isMobile" class="flex flex-column align-items-center">
+      <div v-if="!isMobile" class="flex flex-col items-center">
 
-        <div class="m-2 text-center flex flex-row align-items-center">
+        <div class="m-2 text-center flex flex-row items-center">
           <i class="pi pi-users mr-2"/>
-          <span>{{book.authors}}</span>
+          <span>{{ book.authors }}</span>
         </div>
 
         <div class="m-2 text-center">
-          <i class="pi pi-book mx-2"/>{{book.pages}} стр. <i class="pi pi-file mx-2"/>{{formatBytes(book.size)}}
+          <i class="pi pi-book mx-2"/>{{ book.pages }} стр. <i class="pi pi-file mx-2"/>{{ formatBytes(book.size) }}
         </div>
-        <div class="m-2 chips">
-          <Chip v-for="(tag, index) in book.tags" :key="index" :label="tag.name" @click="selectTag(tag.name)" class="m-1 cursor-pointer" style="font-size: 0.8rem;" icon="pi pi-tag" />
+        <div class="flex items-center justify-center flex-wrap gap-1">
+          <Badge v-for="(tag, index) in book.tags" :key="index"
+                 @click="selectTag(tag.name)" class="cursor-pointer" style="font-size: 0.8rem;" icon="pi pi-tag">
+            {{ tag.name }}
+          </Badge>
         </div>
       </div>
 
@@ -53,12 +77,10 @@
 
 <script lang="ts">
 import {defineComponent, PropType} from 'vue';
-
 import {Book} from "@/books";
 import {formatBytes} from "../formatter";
 import {getLanguagePairByLabel} from "@/languages";
 import MarkFavorite from "@/components/Bookmarks.vue";
-import OverlayPanel from "primevue/overlaypanel";
 
 export default defineComponent({
   name: "BookCard",
@@ -67,39 +89,22 @@ export default defineComponent({
     book: {required: true, type: Object as PropType<Book>},
     compactView: {required: false, type: Boolean, default: false},
     showImage: {required: false, type: Boolean, default: true},
+    imageClasses: {required: false, type: Object as PropType<{ [key: string]: boolean }>, default: {'': false}},
   },
   emits: ['select:tag', 'select:publisher', 'click:book'],
   data() {
-      return {
-        windowWidth: window.innerWidth,
-        showTagsOverlay: false
-      }
+    return {
+      windowWidth: window.innerWidth,
+      showTagsOverlay: false
+    }
   },
   mounted() {
     window.addEventListener('resize', () => this.windowWidth = window.innerWidth);
   },
   computed: {
     isMobile() {
-      return this.windowWidth <= 768;
+      return this.windowWidth <= 568;
     },
-    cardStyle(): any {
-      let style: any = {
-        width: this.compactView?'16rem':'45rem',
-      }
-      if (this.compactView) {
-        style["border"] = "none"
-        style["box-shadow"] = "none!important"
-      }
-      if (this.compactView && this.isMobile) {
-        style.width = '6rem'
-      }
-
-      if (!this.showImage) {
-        style.width = "28rem";
-      }
-
-      return style;
-    }
   },
   methods: {
     getLanguagePairByLabel,
@@ -112,113 +117,10 @@ export default defineComponent({
     },
 
     toggleTagsOverlay(event: Event) {
-      (<OverlayPanel>this.$refs.tags).toggle(event);
+      (<any>this.$refs.tags).toggle(event);
     }
 
   }
 })
 
 </script>
-
-<style scoped>
-.card-plate {
-  width: 45rem;
-  display: -webkit-box!important;
-  display: -ms-flexbox!important;
-  display: flex!important;
-  flex-wrap: wrap!important;
-  border-width: 1px!important;
-  border-style: solid;
-  border-radius: 0.75rem!important;
-  -webkit-box-shadow: 0 4px 10px rgba(0,0,0,.03),0 0 2px rgba(0,0,0,.06),0 2px 6px rgba(0,0,0,.12)!important;
-  box-shadow: 0 4px 10px rgba(0,0,0,.03),0 0 2px rgba(0,0,0,.06),0 2px 6px rgba(0,0,0,.12)!important;
-  border-color: var(--surface-100)!important;
-  -webkit-box-align: center!important;
-  -ms-flex-align: center!important;
-  align-items: center!important;
-  -webkit-box-pack: center!important;
-  -ms-flex-pack: center!important;
-  justify-content: space-between!important;
-}
-
-.chips {
-  display: -webkit-box!important;
-  display: -ms-flexbox!important;
-  display: flex!important;
-  flex-wrap: wrap!important;
-  -webkit-box-pack: center!important;
-  -ms-flex-pack: center!important;
-  justify-content: center!important;
-}
-
-.book-title {
-  font-size: 1.4rem;
-  padding: 1.5rem 0;
-  cursor: pointer!important;
-  margin-bottom: 0.5rem!important;
-  display: -webkit-box!important;
-  display: -ms-flexbox!important;
-  display: flex!important;
-  -webkit-box-pack: center!important;
-  -ms-flex-pack: center!important;
-  justify-content: center!important;
-  text-align: center!important;
-  text-wrap: balance;
-}
-
-.book-about {
-  max-width: 28rem;
-  width: 100%;
-  display: -webkit-box!important;
-  display: -ms-flexbox!important;
-  display: flex!important;
-  -webkit-box-direction: normal!important;
-  -ms-flex-direction: column!important;
-  flex-direction: column!important;
-  -webkit-box-orient: vertical!important;
-  -webkit-box-align: center!important;
-  -ms-flex-align: center!important;
-  align-items: center!important;
-}
-
-.book-image {
-  border-radius:.75rem!important;
-  max-height: 400px;
-  max-width: 300px;
-  width: 15.9rem;
-  margin-top: 5px;
-  margin-right: 6px;
-  box-shadow: 7px -2px 2px #bbbbbb;
-  border-left: 1px solid #e3e3e3;
-  border-bottom: 1px solid #e3e3e3;
-}
-
-@media (width < 768px) {
-  .card-plate {
-    padding-left: 0.5rem;
-    flex-wrap: nowrap!important;
-    border: none!important;
-    box-shadow: none!important;
-    flex-direction: row;
-  }
-
-  .book-title {
-    font-size: 0.8rem;
-    margin: 0!important;
-    padding: 0!important;
-  }
-
-  .book-about {
-    font-size: 0.7rem;
-    max-width: none;
-    flex-wrap: wrap;
-  }
-
-  .book-image {
-    border-radius: 0!important;
-    max-height: 150px;
-    max-width: 95px;
-  }
-
-}
-</style>

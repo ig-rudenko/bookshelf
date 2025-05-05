@@ -1,12 +1,13 @@
 <template>
-  <div id="search-block" class="flex flex-wrap justify-content-center p-2">
+  <div id="search-block" class="flex flex-wrap justify-center p-2">
     <SearchBookForm
         :initialCompactView="initialCompactView"
         @compactView="(v: boolean) => compactView = v"
-        :filterData="filters" @filtered="(f: any) => {filters = f; getBooksList(1, f)}" />
+        :filterData="filters" @filtered="(f: any) => {filters = f; getBooksList(1, f)}"/>
   </div>
 
-  <div class="flex flex-wrap justify-content-center align-content-center">
+  <div class="flex flex-wrap justify-center content-center gap-2 md:gap-5 p-2"
+       :class="{'!gap-x-1 md:!gap-x-3 items-baseline gap-y-4': compactView}">
     <template v-if="results && !loadingBooks">
       <BookCard
           @click:book="book_id => $emit('click:book', book_id)"
@@ -14,23 +15,31 @@
           @select:publisher="selectPublisher"
           v-for="(book, index) in results.books" :key="index"
           :compactView="compactView"
-          :book="book"
-          class="m-2"/>
+          :book="book"/>
     </template>
 
     <template v-else-if="loadingBooks">
       <!--Заглушка-->
-      <Skeleton v-for="i in [1,2,3,4]" :key="i" width="45rem" height="23.5rem" class="m-2 border-round-2xl shadow-2"></Skeleton>
+      <Skeleton v-for="i in [1,2,3,4]" :key="i" width="45rem" height="23.5rem"
+                class="m-2 rounded-2xl shadow-xl"></Skeleton>
     </template>
 
   </div>
 
-  <Paginator v-if="results"
+  <Paginator v-if="results?.totalCount" class="text-xs md:text-base"
              @page="(event: any) => getBooksList(event.page+1, filters)"
              @update:rows="(value: number) => results!.perPage = value"
              :pages="3"
+             :always-show="false"
              v-model="results.currentPage"
-             :rows="results.perPage" :totalRecords="results.totalCount" :rowsPerPageOptions="[initialPerPage || 10, 25, 50]" />
+             :rows="results.perPage" :totalRecords="results.totalCount"
+             :rowsPerPageOptions="[10, 25, 50]"/>
+
+  <div v-else>
+    <div class="flex justify-center content-center text-center text-2xl font-bold py-4">Нет результатов по вашему
+      запросу
+    </div>
+  </div>
 
 </template>
 
@@ -54,7 +63,7 @@ export default defineComponent({
 
   data() {
     return {
-      results: null as PaginatedBookResult|null,
+      results: null as PaginatedBookResult | null,
       lastUrlParams: "",
       filters: new FilterBook(),
       compactView: this.initialCompactView,
@@ -73,16 +82,18 @@ export default defineComponent({
     },
   },
   methods: {
-    getBooksList(page: number, filter: null|FilterBook=null) {
+    getBooksList(page: number, filter: null | FilterBook = null) {
       this.loadingBooks = true
       if (this.authScrollToSearchBlock) location.hash = "#search-block";
 
       bookService.getBooksList(page, filter, this.results?.perPage || this.initialPerPage).then(
-          (value: PaginatedBookResult|null) => {
+          (value: PaginatedBookResult | null) => {
             if (value) this.results = this.replaceThumb(value);
             this.loadingBooks = false;
           }
-      ).catch(() => {this.loadingBooks = false})
+      ).catch(() => {
+        this.loadingBooks = false
+      })
     },
 
     replaceThumb(data: PaginatedBookResult): PaginatedBookResult {
@@ -109,7 +120,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style scoped>
-
-</style>

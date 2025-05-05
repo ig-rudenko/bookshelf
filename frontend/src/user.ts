@@ -33,7 +33,7 @@ class RegisterUserIsValid extends LoginUserIsValid {
 
     validatePasswordPair(pass1: string, pass2: string) {
         this.validatePassword(pass1)
-        this.passwordError += validateTwoPasswords(pass1, pass2);
+        this.passwordError = validateTwoPasswords(pass1, pass2);
         this.password = this.passwordError.length == 0;
     }
 
@@ -41,7 +41,6 @@ class RegisterUserIsValid extends LoginUserIsValid {
         return this.username && this.password && this.email;
     }
 }
-
 
 
 class LoginUser {
@@ -91,14 +90,16 @@ class User {
         public lastName?: string,
         public email?: string,
         public dateJoin?: string,
-    ) {}
+    ) {
+    }
 }
 
 class UserTokens {
     constructor(
         public accessToken: string | null = null,
         public refreshToken: string | null = null
-    ) {}
+    ) {
+    }
 }
 
 function createNewUser(data: any): User {
@@ -110,7 +111,8 @@ class ChangePassword {
     constructor(
         public password1: string = "",
         public password2: string = ""
-    ) {}
+    ) {
+    }
 
     public get valid() {
         return this.password1 === this.password2 && this.password1.length >= 8

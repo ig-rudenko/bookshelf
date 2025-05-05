@@ -1,4 +1,4 @@
-function formatBytes(bytes: number, decimals = 2): string {
+export function formatBytes(bytes: number, decimals = 2): string {
     if (!+bytes) return '0 Bytes'
     const k: number = 1024
     const dm: number = decimals < 0 ? 0 : decimals
@@ -7,19 +7,19 @@ function formatBytes(bytes: number, decimals = 2): string {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
 }
 
-function verboseDate(dateString: string): string {
+export function verboseDate(dateString: string): string {
     const date: Date = new Date(dateString);
     return date.toLocaleDateString('ru-RU', {})
 }
 
-function textToHtml(text: string): string {
+export function textToHtml(text: string): string {
     return text.replace(/\n/g, '<br>')
 }
 
 
-function wrapLinks(text: string): string {
+export function wrapLinks(text: string): string {
     let regex: RegExp = /\[([\S\s]+?)]\((https?:\/\/\S+)\)/g;
-    text = text.replace(regex, '<a href="$2" target="_blank">$1</a>')
+    text = text.replace(regex, '<a href="$2" class="text-primary" target="_blank">$1</a>')
 
     // Создаем регулярное выражение для поиска ссылок
     regex = /(?<!(\S]\()|(href="))(https?:\/\/\S+)/g;
@@ -27,4 +27,10 @@ function wrapLinks(text: string): string {
     return text.replace(regex, '<a href="$3" target="_blank">$3</a>')
 }
 
-export {formatBytes, verboseDate, textToHtml, wrapLinks}
+
+export function getReadPagesCountColor(percent: number): string {
+    if (percent < 20) return 'var(--p-surface-500)';
+    if (percent < 50) return 'var(--p-primary-500)';
+    if (percent < 90) return 'var(--p-blue-400)';
+    return 'var(--p-purple-500)';
+}

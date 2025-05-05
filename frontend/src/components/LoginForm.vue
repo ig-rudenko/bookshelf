@@ -1,6 +1,6 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
-import {mapState, mapActions} from "vuex";
+import {mapActions, mapState} from "vuex";
 
 import {LoginUser} from "@/user";
 import {AxiosError, AxiosResponse} from "axios";
@@ -35,7 +35,7 @@ export default defineComponent({
     handleLogin() {
       this.login(this.user)
           .then(
-              (value: AxiosResponse|AxiosError) => {
+              (value: AxiosResponse | AxiosError) => {
                 if (value.status == 200) {
                   this.$router.push("/");
                 } else {
@@ -45,10 +45,10 @@ export default defineComponent({
               () => this.userError = 'Неверный логин или пароль'
           )
           .catch(
-          (reason: AxiosError<any>) => {
-            this.userError = getVerboseAxiosError(reason)
-          }
-      );
+              (reason: AxiosError<any>) => {
+                this.userError = getVerboseAxiosError(reason)
+              }
+          );
     },
 
     goToForgotPassword() {
@@ -60,46 +60,44 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="p-4 shadow-2 border-round w-full lg:w-4">
+  <div class="p-3 md:p-10 rounded-xl md:shadow-border">
     <div class="text-center mb-5">
       <div class="text-900 text-3xl font-medium mb-3">Добро пожаловать</div>
       <span class="text-600 font-medium line-height-3">Нет аккаунта?</span>
-      <a href="/signup" class="font-medium no-underline ml-2 text-blue-500 cursor-pointer">Создать</a>
+      <router-link to="/signup" class="font-medium no-underline ml-2 text-blue-500 cursor-pointer">Создать</router-link>
     </div>
 
-    <div>
-      <div v-if="userError.length" class="flex justify-content-center mb-5">
-        <InlineMessage @click="userError = ''" severity="error"><span v-html="userError"></span></InlineMessage>
+    <div class="flex flex-col gap-4">
+      <div v-if="userError.length" class="flex justify-center">
+        <Message closable severity="error" @click="userError = ''">
+          <span v-html="userError"></span>
+        </Message>
       </div>
 
-      <div class="mb-5">
-        <FloatLabel>
-          <InputText @keydown.enter="handleLogin" v-model="user.username" id="username-input" type="text" autofocus :class="getClassesFor(user.valid.username)" />
-          <label for="username-input" class="block text-900 mb-2">Username</label>
+      <div>
+        <FloatLabel variant="on">
+          <InputText @keydown.enter="handleLogin" v-model="user.username" id="username-input" type="text" autofocus
+                     :class="getClassesFor(user.valid.username)"/>
+          <label for="username-input" class="text-900 mb-2">Логин</label>
         </FloatLabel>
       </div>
 
-      <div class="mb-5">
-        <FloatLabel>
-          <label for="password-input" class="block text-900 mb-2">Password</label>
-          <InputText @keydown.enter="handleLogin" v-model="user.password" id="password-input" type="password" :class="getClassesFor(user.valid.password)" />
+      <div>
+        <FloatLabel variant="on">
+          <label for="password-input" class="text-900 mb-2">Пароль</label>
+          <InputText @keydown.enter="handleLogin" v-model="user.password" id="password-input" type="password"
+                     :class="getClassesFor(user.valid.password)"/>
         </FloatLabel>
       </div>
 
-      <div class="mb-4">
-        <a @click="goToForgotPassword" class="font-medium no-underline ml-2 text-blue-500 text-right cursor-pointer">Забыли пароль?</a>
+      <div>
+        <router-link to="/forgot-password"
+                     class="font-medium no-underline ml-2 text-blue-500 text-right cursor-pointer">
+          Забыли пароль?
+        </router-link>
       </div>
 
-      <Button label="Sign In" icon="pi pi-user" @click="handleLogin" class="w-full"></Button>
+      <Button label="Войти" icon="pi pi-user" @click="handleLogin" class="w-full"></Button>
     </div>
   </div>
 </template>
-
-<style scoped>
-
-@media (width < 600px) {
-  .shadow-2 {
-    box-shadow: none!important;
-  }
-}
-</style>

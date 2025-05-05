@@ -12,18 +12,18 @@ export default defineComponent({
   },
   emits: ['created'],
   data() {
-      return {
-        text: "",
-        error: "",
-      }
+    return {
+      text: "",
+      error: "",
+    }
   },
   methods: {
     sendComment() {
       if (this.text.length < 1) return;
 
-      api.post("/comments/book/"+this.bookId, {text: this.text})
+      api.post("/comments/book/" + this.bookId, {text: this.text})
           .then(
-              (res: AxiosResponse<Comment>|AxiosError) => {
+              (res: AxiosResponse<Comment> | AxiosError) => {
                 if (res.status == 201) {
                   this.$emit("created", (<AxiosResponse<Comment>>res).data);
                   this.text = "";
@@ -44,22 +44,23 @@ export default defineComponent({
 
 <template>
 
-  <div class="w-full" style="max-width: 45rem;">
-    <Accordion>
-      <AccordionTab ref="createComment" header="Создать комментарий">
-        <div v-if="error" class="flex justify-content-center pb-4">
-          <InlineMessage @click="error = ''" severity="error"><span v-html="error"></span></InlineMessage>
-        </div>
-        <div>
-          <Textarea class="w-full" rows="7" v-model="text"/>
-        </div>
-        <Button @click="sendComment" label="Отправить"/>
-      </AccordionTab>
+  <div class="w-full max-w-[45rem]">
+    <Accordion value="1">
+      <AccordionPanel value="0">
+        <AccordionHeader>Создать комментарий</AccordionHeader>
+        <AccordionContent>
+          <div class="pt-3">
+            <div v-if="error" class="flex justify-center pb-4">
+              <Message @click="error = ''" severity="error"><span v-html="error"></span></Message>
+            </div>
+            <div>
+              <Textarea class="w-full" auto-resize rows="3" v-model="text"/>
+            </div>
+            <Button @click="sendComment" label="Отправить"/>
+          </div>
+        </AccordionContent>
+      </AccordionPanel>
     </Accordion>
   </div>
 
 </template>
-
-<style scoped>
-
-</style>

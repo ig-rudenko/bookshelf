@@ -1,45 +1,45 @@
 <template>
-  <Menu/>
-  <div class="flex justify-content-center align-items-center pt-7">
-    <div class="p-4 shadow-2 border-round w-full lg:w-4">
+  <div class="mx-auto w-full sm:w-[650px] pt-7">
+    <div class="p-4 border-round w-full lg:w-4">
       <div v-if="resetTokenIsValid===true && resetUser && resetStatus.length == 0">
 
         <div class="text-center mb-5">
           <div class="text-900 text-3xl font-medium mb-3">Сброс пароля</div>
-          <h4>Смена пароля для пользователя {{resetUser.username}}</h4>
+          <h4>Смена пароля для пользователя {{ resetUser.username }}</h4>
         </div>
 
-        <div v-if="error.length" class="flex justify-content-center mb-5">
-          <InlineMessage @click="error = ''" severity="error"><span v-html="error"></span></InlineMessage>
+        <div v-if="error.length" class="flex justify-center mb-5">
+          <Message @click="error = ''" severity="error"><span v-html="error"></span></Message>
         </div>
         <div class="mb-5">
           <FloatLabel>
-            <InputText @keydown.enter="resetPassword" v-model="password1" id="password1-input" type="password" :class="getClassesFor(isValid)" />
+            <InputText @keydown.enter="resetPassword" v-model="password1" id="password1-input" type="password"
+                       :class="getClassesFor(isValid)"/>
             <label for="password1-input" class="block text-900 mb-2">Новый пароль</label>
           </FloatLabel>
         </div>
         <div class="mb-5">
           <FloatLabel>
-            <InputText @keydown.enter="resetPassword" v-model="password2" id="password1-input" type="password" :class="getClassesFor(isValid)" />
+            <InputText @keydown.enter="resetPassword" v-model="password2" id="password1-input" type="password"
+                       :class="getClassesFor(isValid)"/>
             <label for="password1-input" class="block text-900 mb-2">Подтвердите пароль</label>
           </FloatLabel>
         </div>
         <Button label="Изменить пароль" @click="resetPassword" class="w-full"></Button>
       </div>
 
-      <div v-if="resetTokenIsValid===false" class="flex justify-content-center">
-        <InlineMessage severity="error" class="w-full">{{error}}</InlineMessage>
+      <div v-if="resetTokenIsValid===false" class="flex justify-center">
+        <Message severity="error" class="w-full">{{ error }}</Message>
       </div>
 
       <div v-if="resetStatus.length>0">
-        <InlineMessage severity="success" class="w-full mb-3">Пароль был успешно обновлен</InlineMessage>
+        <Message severity="success" class="w-full mb-3">Пароль был успешно обновлен</Message>
         <Button label="Войти" @click="goToLoginPage" class="w-full"></Button>
       </div>
 
     </div>
 
   </div>
-  <Footer/>
 </template>
 
 <script lang="ts">
@@ -47,21 +47,18 @@ import {defineComponent} from 'vue'
 import {AxiosError, AxiosResponse} from "axios";
 
 import api from "@/services/api";
-import Menu from "@/components/Menu.vue";
-import Footer from "@/components/Footer.vue";
 import getVerboseAxiosError from "@/errorFmt";
 import {validateTwoPasswords} from "@/validators";
 import {User} from "@/user.ts";
 
 export default defineComponent({
   name: "ResetPassword",
-  components: {Footer, Menu},
   data() {
     return {
-      resetTokenIsValid: null as boolean|null,
+      resetTokenIsValid: null as boolean | null,
       resetStatus: "",
 
-      resetUser: null as User|null,
+      resetUser: null as User | null,
       resetInProcess: false,
       error: "",
       password1: "",
@@ -72,7 +69,7 @@ export default defineComponent({
 
   mounted() {
     document.title = "Восстановление пароля";
-    api.get('/auth/reset-password/verify/'+this.token)
+    api.get('/auth/reset-password/verify/' + this.token)
         .then(
             (result: AxiosResponse<User>) => {
               if (result.status == 200) {
@@ -139,12 +136,3 @@ export default defineComponent({
   }
 });
 </script>
-
-<style scoped>
-
-@media (width < 600px) {
-  .shadow-2 {
-    box-shadow: none!important;
-  }
-}
-</style>

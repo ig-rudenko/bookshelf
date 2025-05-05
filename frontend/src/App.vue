@@ -1,19 +1,21 @@
-<template>
-  <router-view />
-</template>
 <script lang="ts">
 import {defineComponent} from "vue";
-import themeSwitch from "@/theming";
-import { useRecaptchaProvider } from 'vue-recaptcha'
+import {useRecaptchaProvider} from 'vue-recaptcha';
+
+import Header from "@/components/Header.vue";
+import Footer from "@/components/Footer.vue";
 
 export default defineComponent({
+  components: {Footer, Header},
   setup() {
     useRecaptchaProvider()
   },
   name: "App",
-  mounted() {
-    this.$primevue.changeTheme(themeSwitch.other, themeSwitch.current, "theme-link", () => {})
-  }
 });
-
 </script>
+
+<template>
+  <Header/>
+  <router-view/>
+  <Footer/>
+</template>

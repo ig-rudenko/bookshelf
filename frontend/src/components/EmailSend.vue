@@ -1,28 +1,31 @@
 <template>
-  <div class="p-4 shadow-2 border-round w-full lg:w-4">
+  <div class="p-3 md:p-10 rounded-xl md:shadow-border">
     <div class="text-center mb-5">
       <div class="text-900 text-3xl font-medium mb-3">Восстановление пароля</div>
-      <span class="text-blue-500 font-medium line-height-3 cursor-pointer" @click="goToLoginPage">Я вспомнил пароль!</span>
+      <router-link to="/login" class="text-blue-500 font-medium line-height-3 cursor-pointer">
+        Я вспомнил пароль!
+      </router-link>
     </div>
 
     <div>
-      <div v-if="sentDetail" class="flex justify-content-center mb-5">
-        <InlineMessage :severity="sentDetail.success?'success':'error'">{{sentDetail.detail}}</InlineMessage>
+      <div v-if="sentDetail" class="flex justify-center mb-5">
+        <Message :severity="sentDetail.success?'success':'error'">{{ sentDetail.detail }}</Message>
       </div>
-      <div v-if="error.length" class="flex justify-content-center mb-5">
-        <InlineMessage @click="error = ''" severity="error"><span v-html="error"></span></InlineMessage>
+      <div v-if="error.length" class="flex justify-center mb-5">
+        <Message @click="error = ''" severity="error"><span v-html="error"></span></Message>
       </div>
 
       <div class="mb-3">
-        <FloatLabel>
-          <InputText @keydown.enter="verifyCaptcha" v-model="email" id="email-input" type="text" autofocus :class="getClassesFor(isValid)" />
+        <FloatLabel variant="on">
+          <InputText @keydown.enter="verifyCaptcha" v-model="email" id="email-input" type="text" autofocus
+                     :class="getClassesFor(isValid)"/>
           <label for="email-input" class="block text-900 mb-2">Email</label>
         </FloatLabel>
       </div>
-      <ChallengeV2 @success="sendEmail" @error="(e: Error) => error = e.toString()" ref="recaptcha" />
+      <ChallengeV2 @success="sendEmail" @error="(e: Error) => error = e.toString()" ref="recaptcha"/>
 
       <div v-if="timeout>0" class="mb-2 text-600">
-        <small>Отправить повторно можно будет через: {{timeout}} секунд</small>
+        <small>Отправить повторно можно будет через: {{ timeout }} секунд</small>
       </div>
 
       <Button :disabled="timeout>0" label="Отправить письмо" @click="verifyCaptcha" class="w-full"></Button>
@@ -48,14 +51,14 @@ export default defineComponent({
   name: "EmailSend",
   components: {ChallengeV2,},
   data() {
-      return {
-        sentDetail: null as SentEmailResponse|null,
-        timeout: 0,
-        email: "",
-        error: "",
-        isValid: true,
-        recaptchaToken: "",
-      }
+    return {
+      sentDetail: null as SentEmailResponse | null,
+      timeout: 0,
+      email: "",
+      error: "",
+      isValid: true,
+      recaptchaToken: "",
+    }
   },
   methods: {
     getClassesFor(isValid: boolean): string[] {
@@ -84,7 +87,7 @@ export default defineComponent({
       }
     },
 
-    sendEmail(recaptchaToken: string){
+    sendEmail(recaptchaToken: string) {
       this.recaptchaToken = recaptchaToken
       console.log(recaptchaToken)
       const data = {
@@ -105,22 +108,10 @@ export default defineComponent({
           .catch(
               (error: AxiosError) => {
                 console.log(error)
-                this.sentDetail = { success: false, detail: getVerboseAxiosError(error)}
+                this.sentDetail = {success: false, detail: getVerboseAxiosError(error)}
               }
           )
     },
-    goToLoginPage() {
-      this.$router.push("/login")
-    }
   }
 })
 </script>
-
-<style scoped>
-
-@media (width < 600px) {
-  .shadow-2 {
-    box-shadow: none!important;
-  }
-}
-</style>

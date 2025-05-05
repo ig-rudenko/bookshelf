@@ -1,38 +1,40 @@
 <template>
-  <Card class="m-1 border-1 border-100" style="max-width: 45rem; width: 100%">
+  <Card class="border-1 max-w-[45rem] w-full border-gray-400 dark:border-gray-600">
     <template #subtitle>
-      <div class="flex align-items-center justify-content-between text-900">
-        <div class="flex align-items-center">
-          <Avatar size="normal" :image="'https://ui-avatars.com/api/?size=32&name='+comment.user.username+'&font-size=0.33&background=random&rounded=true'"/>
-          <span class="mx-2">{{comment.user.username}}</span>
-          <div v-if="comment.user.id == user?.id">
-            <Button @click="editMode = !editMode" rounded text icon="pi pi-pencil" size="small" severity="warning"/>
-            <Button @click="deleteDialogVisible = true" rounded text icon="pi pi-trash" size="small" severity="danger"/>
+      <div class="flex flex-row items-center justify-between">
+        <div class="flex flex-row items-center gap-2">
+          <Avatar size="normal"
+                  :image="'https://ui-avatars.com/api/?size=32&name='+comment.user.username+'&font-size=0.33&background=random&rounded=true'"/>
+          <span class="mx-2">{{ comment.user.username }}</span>
+          <div class="text-sm flex items-center gap-2">
+            <i class="pi pi-calendar"/>
+            <div>{{ verboseDate(comment.createdAt) }}</div>
           </div>
         </div>
-        <div>
-          {{verboseDate(comment.createdAt)}}
+        <div v-if="comment.user.id == user?.id">
+          <Button @click="editMode = !editMode" rounded text icon="pi pi-pencil" size="small" severity="warn"/>
+          <Button @click="deleteDialogVisible = true" rounded text icon="pi pi-trash" size="small" severity="danger"/>
         </div>
       </div>
     </template>
     <template #content>
       <div v-if="editMode">
-        <Textarea class="w-full" rows="7" v-model="commentText" />
-        <Button severity="success" label="Обновить" @click="updateComment" />
+        <Textarea class="w-full" rows="7" v-model="commentText"/>
+        <Button severity="success" label="Обновить" @click="updateComment"/>
       </div>
       <div v-else v-html="textToHtml(wrapLinks(comment.text))"></div>
     </template>
   </Card>
 
   <Dialog v-model:visible="deleteDialogVisible" class="pt-2" :show-header="false" modal :style="{ width: '25rem' }">
-    <div class="flex align-items-center py-4">
-      <i class="text-5xl pi pi-exclamation-circle mr-2" />
-      <h3>Вы уверены, что хотите удалить комментарий?</h3>
+    <div class="text-xl flex items-center gap-4 py-5">
+      <i class="pi pi-exclamation-circle text-red-500 !text-3xl"/>
+      Вы уверены, что хотите удалить комментарий?
     </div>
-
-    <div class="flex justify-content-end gap-2">
-      <Button type="button" severity="secondary" label="Не удалять" @click="deleteDialogVisible = false"></Button>
-      <Button type="button" severity="danger" label="Удалить" @click="deleteComment"></Button>
+    <div class="flex justify-end gap-2">
+      <Button type="button" severity="success" icon="pi pi-times" label="Не удалять" autofocus
+              @click="deleteDialogVisible = false"></Button>
+      <Button type="button" severity="danger" icon="pi pi-trash" label="Удалить" @click="deleteComment"></Button>
     </div>
   </Dialog>
 
@@ -54,12 +56,12 @@ export default defineComponent({
   },
   emits: ['comment:delete', 'comment:update'],
   data() {
-      return {
-        deleteDialogVisible: false,
-        error: "",
-        commentText: this.comment.text,
-        editMode: false,
-      }
+    return {
+      deleteDialogVisible: false,
+      error: "",
+      commentText: this.comment.text,
+      editMode: false,
+    }
   },
   computed: {
     ...mapState({
@@ -100,7 +102,3 @@ export default defineComponent({
   },
 })
 </script>
-
-<style scoped>
-
-</style>

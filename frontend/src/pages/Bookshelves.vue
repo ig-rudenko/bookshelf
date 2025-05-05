@@ -1,16 +1,13 @@
 <template>
-  <Menu/>
-  <div class="flex justify-content-center">
-    <div class="flex align-items-center gap-3" style="width: 90vw;">
-      <h1 class="border-bottom-3 w-fit p-2"><i class="pi pi-book text-2xl mr-2"/>Книжные полки</h1>
-      <div v-if="loggedIn && user?.isSuperuser">
-        <Button icon="pi pi-plus" @click="goToCreateBookshelfPage" outlined severity="success" />
-      </div>
-    </div>
+  <div class="flex items-center mx-auto gap-3 w-full p-2 md:p-6">
+    <div class="sm:text-xl border-b-2 p-2"><i class="pi pi-book text-2xl mr-2"/>Книжные полки</div>
+    <a href="/bookshelves/create" v-if="loggedIn && user?.isSuperuser">
+      <Button icon="pi pi-plus" link outlined size="small" severity="success"/>
+    </a>
   </div>
 
-  <div id="search-block" class="flex justify-content-center p-2">
-    <IconField class="max-w-30rem w-full" iconPosition="left">
+  <div id="search-block" class="flex justify-center p-2">
+    <IconField class="max-w-[30rem] w-full" iconPosition="left">
       <InputIcon class="pi pi-search"/>
       <InputText class="w-full" @keydown.enter="getBookshelvesList(1)" v-model="search" placeholder="Поиск"/>
     </IconField>
@@ -18,14 +15,14 @@
   </div>
 
 
-  <div class="flex flex-wrap justify-content-center align-content-center">
+  <div class="flex flex-wrap justify-center content-center">
     <template v-if="results && !loadingBooks">
       <BookshelfRow v-for="bs in results?.bookshelves" :bookshelf="bs"/>
     </template>
 
     <template v-else-if="loadingBooks">
       <!--Заглушка-->
-      <Skeleton v-for="i in [1,2]" :key="i" width="100%" height="20rem" class="m-4 border-round-2xl shadow-2"/>
+      <Skeleton v-for="i in [1,2]" :key="i" width="100%" height="20rem" class="m-4 rounded-2xl shadow-xl"/>
     </template>
 
   </div>
@@ -37,14 +34,10 @@
              v-model="results.currentPage"
              :rows="results.perPage" :totalRecords="results.totalCount" :rowsPerPageOptions="[10, 25, 50]"/>
 
-  <Footer/>
-
 </template>
 
 <script lang="ts">
 import {defineComponent} from 'vue';
-import Footer from "@/components/Footer.vue";
-import Menu from '@/components/Menu.vue';
 import SearchBookForm from "@/components/SearchBookForm.vue";
 import bookshelvesService, {PaginatedBookshelvesResult} from "@/services/bookshelves.ts";
 import BookshelfRow from "@/components/BookshelfRow.vue";
@@ -53,7 +46,7 @@ import {mapState} from "vuex";
 
 export default defineComponent({
   name: "Bookshelves",
-  components: {BookCard, BookshelfRow, SearchBookForm, Footer, Menu},
+  components: {BookCard, BookshelfRow, SearchBookForm},
   data() {
     return {
       search: this.$route.query.search?.toString() || "",
@@ -87,15 +80,7 @@ export default defineComponent({
       ).catch(() => this.loadingBooks = false)
     },
 
-    goToCreateBookshelfPage() {
-      location.href = '/bookshelves/create'
-    }
-
   },
 
 });
 </script>
-
-<style scoped>
-
-</style>

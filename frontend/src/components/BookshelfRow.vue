@@ -1,24 +1,24 @@
 <template>
   <div class="my-2">
-    <div class="flex align-items-center">
-      <h2 :id="'bookshelf-name-'+bookshelf.id" class="bookshelf-name flex align-items-center">
+    <div class="flex items-center">
+      <div :id="'bookshelf-name-'+bookshelf.id" class="flex items-center text-xl pl-5">
         {{ bookshelf.name }}
-      </h2>
-
-      <div class="flex align-items-center relative">
-        <Button icon="pi pi-share-alt" size="small" @click="copyClipboard" outlined text/>
-        <Badge v-if="copyClipboardText" class="text-xs absolute" style="top: -25px">{{copyClipboardText}}</Badge>
       </div>
 
-      <div>
-        <Button v-if="user?.id == bookshelf.userId" @click="goToEditBookshelfPage" icon="pi pi-pencil" size="small"
+      <div class="flex items-center relative">
+        <Button icon="pi pi-share-alt" size="small" @click="copyClipboard" outlined text/>
+        <Badge v-if="copyClipboardText" class="text-xs absolute" style="top: -25px">{{ copyClipboardText }}</Badge>
+      </div>
+
+      <div v-if="user?.id == bookshelf.userId">
+        <Button @click="goToEditBookshelfPage" icon="pi pi-pencil" size="small" rounded
                 outlined severity="warning"/>
-        <Button v-if="user?.id == bookshelf.userId" @click="showDeleteDialog=true" icon="pi pi-trash" size="small"
+        <Button @click="showDeleteDialog=true" icon="pi pi-trash" size="small" rounded
                 outlined severity="danger"/>
       </div>
     </div>
 
-    <div class="bookshelf-desc">{{ bookshelf.description }}</div>
+    <div class="pl-5">{{ bookshelf.description }}</div>
 
     <div :id="'bookshelf-'+bookshelf.id">
       <BookshelfImages @maximize="processMaximizeChange" @click:book="showBookPage" :booksID="bookshelf.books"/>
@@ -26,11 +26,10 @@
 
   </div>
 
-
   <Dialog v-model:visible="showDeleteDialog" modal header="Вы уверены, что хотите удалить книжную полку"
           :style="{ width: '25rem' }">
-    <div class="flex justify-content-end gap-2">
-      <Button type="button" label="Нет" severity="secondary" @click="showDeleteDialog = false"></Button>
+    <div class="flex justify-end gap-2">
+      <Button type="button" label="Нет" autofocus severity="secondary" @click="showDeleteDialog = false"></Button>
       <Button type="button" label="Удалить" severity="danger" @click="deleteBookshelf"></Button>
     </div>
   </Dialog>
@@ -100,16 +99,3 @@ export default defineComponent({
 
 });
 </script>
-
-<style scoped>
-@media (width < 768px) {
-  .bookshelf-name {
-    padding: 0 1rem;
-  }
-
-  .bookshelf-desc {
-    padding: 0 1rem;
-  }
-}
-
-</style>

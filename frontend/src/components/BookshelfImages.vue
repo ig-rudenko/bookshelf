@@ -1,15 +1,15 @@
 <template>
 
-  <div class="sticky text-right z-5 w-full" style="top: 0;">
-    <Button v-if="maximize" @click="() => changeMaximize(false)" v-tooltip.left="'Свернуть'" class="absolute"
+  <div class="sticky text-right z-5">
+    <Button v-if="maximize" @click="() => changeMaximize(false)" v-tooltip.left="'Свернуть'" class="!absolute"
             icon="pi pi-angle-double-up" style="right: 10px; top: 10px"/>
-    <Button v-else @click="() => changeMaximize(true)" v-tooltip.left="'Развернуть'" class="absolute"
+    <Button v-else @click="() => changeMaximize(true)" v-tooltip.left="'Развернуть'" class="!absolute"
             icon="pi pi-angle-double-down" style="right: 10px; top: 10px"/>
   </div>
 
   <!--Подсказка-->
   <div class="sticky z-1">
-    <div v-if="!isMobile && maximize" class="absolute flex align-items-center left-0 p-4 text-400 text-xs top-0">
+    <div v-if="!isMobile && maximize" class="absolute flex items-center left-0 p-4 text-400 text-xs top-0">
       <span class="pr-1">Листайте вправо с зажатым</span>
       <Button outlined style="padding: 2px; font-size: 12px">Shift</Button>
     </div>
@@ -25,8 +25,9 @@
              class="book-image" :style="bookImageStyle" alt="book-preview"/>
 
         <!--Описание книги-->
-        <div v-if="currentBook" class="book-detail p-0 m-0" :class="isMobile?'absolute':''">
-          <BookCard :book="currentBook" :show-image="false" style="background-color: var(--primary-color-text)"/>
+        <div v-if="currentBook" class="book-detail" :class="isMobile?'absolute':''">
+          <BookCard :book="currentBook" :show-image="false"
+                    class="bg-white dark:bg-surface-800 !shadow-none !max-w-[30rem] text-wrap"/>
         </div>
       </div>
     </div>
@@ -132,11 +133,10 @@ export default defineComponent({
   white-space: nowrap;
   overflow-y: auto;
   border: none;
-  border-bottom: 10px solid var(--surface-700);
-  box-shadow: 1px 1px 5px var(--surface-700);
+  border-bottom: 10px solid var(--p-surface-700);
+  box-shadow: 1px 1px 5px var(--p-surface-700);
   border-radius: 10px;
 }
-
 
 .book-block {
   min-height: 300px;

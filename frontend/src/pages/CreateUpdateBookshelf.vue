@@ -1,47 +1,44 @@
 <template>
-  <Menu/>
-  <div class="align-content-center flex flex-column flex-wrap justify-content-center p-2">
-    <h1 class="text-center">{{ actionVerbosePrefix }} книжной полки</h1>
+  <div class="align-center flex flex-col flex-wrap justify-center items-center mx-auto p-2 w-full">
+    <div class="text-center text-3xl px-2 py-5 w-full">{{ actionVerbosePrefix }} книжной полки</div>
 
-    <InlineMessage class="mb-3" v-if="formError" @click="formError=''">{{ formError }}</InlineMessage>
+    <Message class="mb-3" v-if="formError" @click="formError=''">{{ formError }}</Message>
 
-    <div v-if="formIsValid" class="flex justify-content-center">
-      <Button @click="editBookshelfID?updateBookshelf():createBookshelf()" :label="editBookshelfID?'Обновить':'Создать'" severity="success" icon="pi pi-check"/>
+    <div v-if="formIsValid" class="flex justify-center">
+      <Button @click="editBookshelfID?updateBookshelf():createBookshelf()" :label="editBookshelfID?'Обновить':'Создать'"
+              severity="success" icon="pi pi-check"/>
     </div>
 
-    <div class="flex flex-column justify-content-center">
+    <div class="flex flex-col justify-center max-w-5xl w-full">
       <div>
-        <div class="flex flex-column gap-2 pb-2 w-25rem w-full">
+        <div class="flex flex-col gap-2 pb-2">
           <label for="book.title">Название книжной полки</label>
           <InputText id="book.title" class="w-full" v-model="form.name"/>
         </div>
 
-        <div class="flex flex-column gap-2 pb-2 w-full">
+        <div class="flex flex-col gap-2 pb-2">
           <label for="book.description">Описание</label>
-          <Textarea id="book.description" v-model="form.description" rows="3"/>
+          <Textarea id="book.description" v-model="form.description" auto-resize rows="3"/>
         </div>
-      </div>
-
-      <div>
-        <BookshelfImages :booksID="form.books" @click:book="bookID => removeElement(form.books, bookID)"/>
       </div>
 
     </div>
   </div>
 
-  <div class="w-full">
+  <div class="relative mx-auto" v-if="form.books.length">
+    <BookshelfImages :booksID="form.books" @click:book="bookID => removeElement(form.books, bookID)"/>
+  </div>
+
+  <div>
     <FullSearchBooks @click:book="bookID => addElement(form.books, bookID)" :initial-per-page="10"
                      :auth-scroll-to-search-block="false"
                      :initial-compact-view="true"/>
   </div>
 
-  <Footer/>
 </template>
 
 <script lang="ts">
 import {defineComponent} from 'vue';
-import Menu from "@/components/Menu.vue";
-import Footer from "@/components/Footer.vue";
 import {mapState} from "vuex";
 import bookshelvesService, {EditBookshelf} from "@/services/bookshelves.ts";
 import SearchBookForm from "@/components/SearchBookForm.vue";
@@ -56,7 +53,7 @@ import getVerboseAxiosError from "@/errorFmt.ts";
 
 export default defineComponent({
   name: "CreateBookshelf",
-  components: {BookshelfImages, BookshelfRow, FullSearchBooks, SearchBookForm, Footer, Menu},
+  components: {BookshelfImages, BookshelfRow, FullSearchBooks, SearchBookForm},
   data() {
     return {
       windowWidth: window.innerWidth,
@@ -93,7 +90,7 @@ export default defineComponent({
     },
 
     actionVerbosePrefix() {
-      return this.editBookshelfID?'Обновление':'Создание'
+      return this.editBookshelfID ? 'Обновление' : 'Создание'
     }
   },
 
@@ -119,12 +116,12 @@ export default defineComponent({
     createBookshelf() {
       this.formError = ''
       bookshelvesService.createBookshelf(this.form)
-          .then(data => location.href = "/bookshelves?search="+data.name)
+          .then(data => location.href = "/bookshelves?search=" + data.name)
           .catch(
-          (reason: AxiosError<any>) => {
-            this.formError = getVerboseAxiosError(reason)
-          }
-      );
+              (reason: AxiosError<any>) => {
+                this.formError = getVerboseAxiosError(reason)
+              }
+          );
     },
 
     updateBookshelf() {
@@ -134,12 +131,12 @@ export default defineComponent({
         return
       }
       bookshelvesService.updateBookshelf(this.editBookshelfID, this.form)
-          .then(data => location.href = "/bookshelves?search="+data.name)
+          .then(data => location.href = "/bookshelves?search=" + data.name)
           .catch(
-          (reason: AxiosError<any>) => {
-            this.formError = getVerboseAxiosError(reason)
-          }
-      );
+              (reason: AxiosError<any>) => {
+                this.formError = getVerboseAxiosError(reason)
+              }
+          );
     },
 
     getBooksList(page: number, filter: null | FilterBook = null) {
@@ -177,7 +174,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style scoped>
-
-</style>

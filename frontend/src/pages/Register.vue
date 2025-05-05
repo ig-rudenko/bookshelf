@@ -1,13 +1,11 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
 
-import Menu from "@/components/Menu.vue";
 import RegisterForm from "@/components/RegisterForm.vue";
-import Footer from "@/components/Footer.vue";
 
 export default defineComponent({
   name: "Register",
-  components: {Footer, Menu, RegisterForm},
+  components: {RegisterForm},
   mounted() {
     document.title = "Регистрация";
   }
@@ -15,13 +13,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <Menu/>
-  <div class="flex justify-content-center align-items-center pt-7">
+  <div class="mx-auto w-full sm:w-[650px] pt-7">
     <RegisterForm/>
   </div>
-  <Footer/>
 </template>
-
-<style scoped>
-
-</style>

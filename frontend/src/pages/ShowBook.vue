@@ -54,9 +54,7 @@ export default defineComponent({
 </script>
 
 <template>
-<Vue3PdfApp v-if="loadHistory" @pages-rendered="openHandler" style="height: 100vh" :pdf="'/api/v1/books/'+bookId+'/download'" />
+  <Vue3PdfApp v-if="loadHistory" @pages-rendered="openHandler" style="height: 100vh; width: 100vw;"
+              class="absolute z-50"
+              :pdf="'/api/v1/books/'+bookId+'/download'"/>
 </template>
-
-<style scoped>
-
-</style>
