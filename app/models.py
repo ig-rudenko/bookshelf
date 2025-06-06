@@ -193,5 +193,5 @@ class UserData(OrmBase, Manager):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     book_id: Mapped[int] = mapped_column(ForeignKey("books.id", ondelete="CASCADE"))
 
-    pdf_history: Mapped[str] = mapped_column(String(256), nullable=True)
+    pdf_history: Mapped[str] = mapped_column(String(4096), nullable=True)
     pdf_history_updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -20,7 +20,7 @@ class PDFHistoryFilesSchema(BaseModel):
 
 
 class CreatePdfJSHistorySchema(CamelAliasModel):
-    pdf_history: str = Field(..., max_length=256)
+    pdf_history: str = Field(..., max_length=4096)
 
 
 class PdfJSHistorySchema(CamelSerializerModel):
