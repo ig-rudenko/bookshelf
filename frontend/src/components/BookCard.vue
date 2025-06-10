@@ -1,7 +1,7 @@
 <template>
 
   <div
-      class="flex md:flex-wrap border-gray-400 dark:border-gray-600 rounded-xl shadow-md hover:shadow-xl items-center"
+      class="flex md:flex-wrap border-gray-400 dark:border-gray-600 rounded-xl shadow-md hover:shadow-xl items-center relative"
       :class="{'w-full md:w-[45rem] border-1': !compactView}"
   >
     <div v-if="showImage" class="border-r-1 h-full flex items-center border-gray-400 dark:border-gray-600"
@@ -15,6 +15,11 @@
     <div class="max-w-[28rem] w-full flex flex-col items-center p-2 text-sm" v-if="!compactView">
       <div class="text-sm sm:text-xl text-center">
         <a :href="'/book/'+book.id">{{ book.title }}</a>
+        <Badge v-tooltip="'Данную книгу кроме вас никто не видит'"
+               class="absolute top-[10px] right-[10px] cursor-pointer" v-if="book.private" severity="success"
+               size="large">
+          <i class="pi pi-lock" style="font-size: 1.25rem"/>
+        </Badge>
       </div>
 
       <div class="items-center flex m-2 flex-wrap justify-center gap-1">
