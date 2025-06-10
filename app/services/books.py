@@ -10,6 +10,7 @@ from starlette import status
 
 from app.crud.base import query_count
 from app.media_storage import get_storage, AbstractStorage
+from app.media_storage.media import get_media_url
 from app.models import (
     Book,
     User,
@@ -27,7 +28,6 @@ from app.services.cache.deco import cached
 from app.services.paginator import paginate
 from app.services.publishers import get_or_create_publisher
 from app.services.thumbnail import get_thumbnail
-from app.settings import settings
 
 _QT = TypeVar("_QT", bound=Select)
 
@@ -49,7 +49,7 @@ async def get_paginated_books(session: AsyncSession, query: _QT, paginator) -> B
 
     # Заменяем оригинальные картинки на миниатюры
     for book in books:
-        book.preview_image = get_thumbnail(book.preview_image, "medium")
+        book.preview_image = get_media_url(get_thumbnail(book.preview_image, "medium"))
 
     return BooksSchemaPaginated(
         books=books,
@@ -137,7 +137,7 @@ async def create_book_preview_and_update_pages_count(storage: AbstractStorage, b
     # noinspection PyArgumentList
     async with scoped_session() as session:
         book = await Book.get(session, id=book_id)
-        book.preview_image = f"{settings.media_url}/{preview_name}"
+        book.preview_image = preview_name
         book.pages = total_pages
         await book.save(session)
     return preview_name
@@ -192,7 +192,7 @@ async def get_recent_books(session: AsyncSession, limit: int, user: User | None)
     books = result.scalars().all()
     books_schemas = [BookSchema.model_validate(book) for book in books]
     for book in books_schemas:
-        book.preview_image = get_thumbnail(book.preview_image, "medium")
+        book.preview_image = get_media_url(get_thumbnail(book.preview_image, "medium"))
     return books_schemas
 
 
@@ -241,6 +241,9 @@ async def get_book_detail(session: AsyncSession, book_id: int, user: User | None
         schema = BookSchemaDetail.model_validate(data[0])
         schema.favorite = data[1] is not None
         schema.read = data[2] is not None
+
+        schema.preview_image = get_media_url(schema.preview_image)
+
         return schema
 
     except NoResultFound:

@@ -6,6 +6,7 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.base import query_count
+from app.media_storage.media import get_media_url
 from app.models import User, Book, UserData
 from app.orm.query_formats import filter_books_by_user
 from app.schemas.books import BookWithReadPagesSchema, BooksWithReadPagesPaginatedSchema
@@ -65,7 +66,7 @@ async def get_last_viewed_books(
                 schema = BookWithReadPagesSchema.model_validate(book)
                 schema.read_pages = history.files[-1].page
                 schema.last_time_read = user_data.pdf_history_updated_at
-                schema.preview_image = get_thumbnail(book.preview_image, "medium")
+                schema.preview_image = get_media_url(get_thumbnail(book.preview_image, "medium"))
                 books_schemas.append(schema)
 
     return BooksWithReadPagesPaginatedSchema(

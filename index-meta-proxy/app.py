@@ -100,9 +100,10 @@ async def replace_meta_data(book_id: int) -> str:
         lambda m: f"{m.group(1)}/book/{book_id}{m.group(3)}",
         index_data,
     )
+    image_prefix = API_URL if not book_data.preview_image.startswith("http") else ""
     index_data = re.sub(
         r'<meta property="og:image" content=".+?">',
-        f"""<meta property="og:image" content="{API_URL}{book_data.preview_image}">
+        f"""<meta property="og:image" content="{image_prefix}{book_data.preview_image}">
         <meta property="og:image:alt" content="{book_data.title}">""",
         index_data,
     )
