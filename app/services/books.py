@@ -284,6 +284,7 @@ async def update_book(session: AsyncSession, book: Book, book_data: CreateBookSc
     book.description = book_data.description
     book.year = book_data.year
     book.language = book_data.language
+    book.private = book_data.private
     book.tags = tags
     await book.save(session)
     await session.commit()
