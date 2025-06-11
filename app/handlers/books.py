@@ -204,7 +204,11 @@ async def download_book_file(
 ):
     """Скачивание файла книги"""
     book = await get_book(session, book_id)
-    await check_book_owner_permission(session, user.id if user else 0, book)
+    if book.private and (user is None or book.user_id != user.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="У вас нет прав на скачивание файла данной книги",
+        )
     storage = get_storage()
 
     headers = {
