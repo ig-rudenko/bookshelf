@@ -105,10 +105,10 @@ class S3Storage(AbstractStorage):
                 os.remove(tmp_path)
 
     async def delete_book(self, book_id: int) -> None:
-        prefix = self._book_prefix(book_id)
         async with self._s3_async.client("s3", endpoint_url=self.endpoint_url) as s3:
-            response = await s3.list_objects_v2(Bucket=self.bucket_name, Prefix=prefix)
-            contents = response.get("Contents")
-            if contents:
-                for obj in contents:
-                    await s3.delete_object(Bucket=self.bucket_name, Key=obj["Key"])
+            for prefix in [f"previews/{book_id}/", self._book_prefix(book_id)]:
+                response = await s3.list_objects_v2(Bucket=self.bucket_name, Prefix=prefix)
+                contents = response.get("Contents")
+                if contents:
+                    for obj in contents:
+                        await s3.delete_object(Bucket=self.bucket_name, Key=obj["Key"])
