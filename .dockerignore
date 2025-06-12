@@ -3,7 +3,7 @@
 !migrations
 !alembic.ini
 !main.py
-!poetry.lock
+!uv.lock
 !pyproject.toml
 !run.sh
 

@@ -20,13 +20,13 @@ services:
       - "${DH_PARAMS:-/etc/letsencrypt/ssl-dhparams.pem}:/etc/ssl/ssl-dhparams.pem:ro"
     depends_on:
       api-1:
-        condition: service_healthy
+        condition: service_started
     networks:
       - frontend
 
   api-1: &backend
     build: .
-    image: bookshelf:0.4
+    image: bookshelf:0.7.1
     command: /bin/sh run.sh
     restart: always
     logging: *logging
@@ -42,12 +42,6 @@ services:
       database:
         condition: service_healthy
 
-    healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:8000/ping"]
-      start_period: 5s
-      timeout: 10s
-      interval: 5s
-      retries: 5
     networks:
       - frontend
       - backend

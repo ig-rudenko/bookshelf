@@ -1,49 +1,57 @@
 FROM python:3.13.2-slim AS builder
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+ARG python_version=3.13
 
-# Устанавливаем Poetry
-RUN curl -sSL https://install.python-poetry.org | python -
-
-# Добавляем Poetry в PATH
-ENV PATH="/root/.local/bin:$PATH"
+SHELL ["/bin/sh", "-exc"]
 
 WORKDIR /app
 
-RUN pip install --upgrade --no-cache-dir pip && pip install pymupdf --no-cache-dir;
+# The installer requires curl (and certificates) to download the release archive
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
+ADD https://astral.sh/uv/install.sh /uv-installer.sh
+RUN sh /uv-installer.sh
 
-COPY pyproject.toml poetry.lock /app/
+ENV PATH="/root/.local/bin/:$PATH" \
+    UV_PYTHON="python$python_version" \
+    UV_PYTHON_DOWNLOADS=never \
+    UV_PROJECT_ENVIRONMENT=/app/venv \
+    UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1 \
+    PYTHONOPTIMIZE=1
 
-RUN poetry config virtualenvs.create false && \
-    poetry install --no-root --only main --no-interaction --no-ansi --no-cache;
+COPY pyproject.toml uv.lock /app/
+
+RUN --mount=type=cache,destination=/root/.cache/uv uv sync \
+  --no-dev \
+  --no-install-project \
+  --frozen
 
 
 FROM python:3.13.2-slim
 
-ENV PYTHONUNBUFFERED=1
-
-RUN addgroup --gid 10001 app \
-    && adduser --disabled-password --home /app --uid 10001 --gid 10001 app \
-    && chown -R app:app /app;
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+ARG user_id=1000
+ARG group_id=1000
 
 WORKDIR /app
 
-# Копируем зависимости из builder-этапа
-COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+SHELL ["/bin/sh", "-exc"]
 
-COPY --chown=app:app . /app
+RUN addgroup --gid $group_id app \
+    && adduser --disabled-password --home /app --uid $user_id --gid $group_id app \
+    && chown -R app:app /app;
+
+ENV PATH=/app/venv/bin:$PATH \
+    PYTHONOPTIMIZE=1 \
+    PYTHONFAULTHANDLER=1 \
+    PYTHONUNBUFFERED=1
+
+COPY --chown=$user_id:$group_id . /app
+COPY --link --from=builder /app/venv/ /app/venv
 
 RUN chmod +x run.sh
 
-USER app
-
-EXPOSE 8000
+USER $user_id:$group_id
+EXPOSE 8000/tcp
+STOPSIGNAL SIGINT
 
 CMD ["/bin/bash", "/app/run.sh"]
