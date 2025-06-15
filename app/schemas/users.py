@@ -26,3 +26,16 @@ class UserCreateSchema(CamelAliasModel):
     email: EmailStr = Field(..., max_length=254)
     password: str = Field(..., min_length=8, max_length=50)
     recaptcha_token: str
+
+
+class UserDetailSchema(UserSchema):
+    favorites_count: int = 0
+    read_count: int = 0
+
+
+class UserSchemaPaginated(CamelSerializerModel):
+    results: list[UserDetailSchema]
+    total_count: int
+    current_page: int
+    max_pages: int
+    per_page: int

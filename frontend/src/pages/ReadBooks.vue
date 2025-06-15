@@ -36,7 +36,7 @@
     <template v-if="result?.books.length == 0">
       <div class="align-content-center flex flex-wrap w-full justify-center">
         <div class="flex justify-center w-full library-image">
-          <div><h2 class="bg-gray-300 border-round-2xl p-3 m-3">Вы не прочли еще ни одной книги!</h2></div>
+          <div><h2 class="border-round-2xl p-3 m-3">Не было прочитано еще ни одной книги!</h2></div>
         </div>
       </div>
     </template>
@@ -67,6 +67,9 @@ import api from "@/services/api";
 export default defineComponent({
   name: "ReadBooks",
   components: {SearchBookForm, BookCard},
+  props: {
+    userID: {type: Number, required: false, default: false}
+  },
   data() {
     return {
       result: null as PaginatedBookResult | null,
@@ -89,8 +92,14 @@ export default defineComponent({
       document.location.href = `/book/${bookID}`;
     },
     getBooksList(page: number) {
+      let url
+      if (this.userID) {
+        url = "/admin/users/" + this.userID + "/read"
+      } else {
+        url = "/bookmarks/read"
+      }
       let urlParams = `?page=${page}`;
-      api.get<PaginatedBookResult>("/bookmarks/read" + urlParams)
+      api.get<PaginatedBookResult>(url + urlParams)
           .then(value => this.result = value.data)
     },
 

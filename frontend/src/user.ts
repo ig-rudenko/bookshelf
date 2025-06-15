@@ -119,4 +119,12 @@ class ChangePassword {
     }
 }
 
-export {User, LoginUser, RegisterUser, ChangePassword, createNewUser, UserTokens}
+
+function getUserAvatar(username: string): string {
+    if (username) {
+        return 'https://ui-avatars.com/api/?size=32&name=' + username + '&font-size=0.33&background=random&rounded=true'
+    }
+    return ""
+}
+
+export {User, LoginUser, RegisterUser, ChangePassword, createNewUser, UserTokens, getUserAvatar}

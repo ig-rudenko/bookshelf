@@ -318,7 +318,7 @@ class UpdateBookTest(BaseBookTest):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
         with self.assertRaises(HTTPException) as context:
             self.client.put(
-                f"/books/0",
+                "/books/0",
                 headers={"Authorization": f"Bearer {token_pair.access_token}"},
                 json=self.book_update_data_with_new_tag,
             )
@@ -361,7 +361,7 @@ class DeleteBookTest(BaseBookTest):
     async def test_delete_invalid_book(self):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
         with self.assertRaises(HTTPException) as context:
-            self.client.delete(f"/books/0", headers={"Authorization": f"Bearer {token_pair.access_token}"})
+            self.client.delete("/books/0", headers={"Authorization": f"Bearer {token_pair.access_token}"})
         self.assertEqual(context.exception.status_code, 404)
 
 
@@ -428,5 +428,5 @@ class UploadBookFileTest(BaseBookTest):
     async def test_upload_to_non_existing_book(self):
         with self.assertRaises(HTTPException) as context:
             with open(self.file_path, "rb") as file:
-                self.client.post(f"/books/0/upload", files={"file": file})
+                self.client.post("/books/0/upload", files={"file": file})
         self.assertEqual(context.exception.status_code, 401)

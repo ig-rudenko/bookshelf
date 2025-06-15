@@ -25,7 +25,7 @@
     <template v-if="result?.books.length == 0">
       <div class="align-content-center flex flex-wrap w-full justify-center">
         <div class="flex justify-center w-full">
-          <div><h2 class="p-3 m-3">У вас нет избранных книг</h2></div>
+          <div><h2 class="p-3 m-3">Нет избранных книг</h2></div>
         </div>
       </div>
     </template>
@@ -57,6 +57,9 @@ import api from "@/services/api";
 export default defineComponent({
   name: "Favorites",
   components: {SearchBookForm, BookCard},
+  props: {
+    userID: {type: Number, required: false, default: false}
+  },
   data() {
     return {
       result: null as PaginatedBookResult | null,
@@ -79,8 +82,16 @@ export default defineComponent({
       document.location.href = `/book/${bookID}`;
     },
     getBooksList(page: number) {
+      let url
+      if (this.userID) {
+        url = "/admin/users/" + this.userID + "/favorite"
+      } else {
+        url = "/bookmarks/favorite"
+      }
+
       let urlParams = `?page=${page}`;
-      api.get("/bookmarks/favorite" + urlParams)
+
+      api.get(url + urlParams)
           .then((value: AxiosResponse<PaginatedBookResult>) => this.result = value.data)
     },
     filterBooksByPublisher(publisher: string) {

@@ -42,7 +42,7 @@ class TestFavoriteBooks(BaseBookTest):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
         with self.assertRaises(HTTPException) as context:
             self.client.post(
-                f"/bookmarks/0/favorite",
+                "/bookmarks/0/favorite",
                 headers={"Authorization": f"Bearer {token_pair.access_token}"},
             )
         self.assertEqual(context.exception.status_code, 404)
@@ -73,7 +73,7 @@ class TestFavoriteBooks(BaseBookTest):
         )
 
         response = self.client.get(
-            f"/bookmarks/favorite",
+            "/bookmarks/favorite",
             headers={"Authorization": f"Bearer {token_pair.access_token}"},
         )
         self.assertEqual(response.status_code, 200)
@@ -119,7 +119,7 @@ class TestReadBooks(BaseBookTest):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
         with self.assertRaises(HTTPException) as context:
             self.client.post(
-                f"/bookmarks/0/read",
+                "/bookmarks/0/read",
                 headers={"Authorization": f"Bearer {token_pair.access_token}"},
             )
         self.assertEqual(context.exception.status_code, 404)
@@ -150,7 +150,7 @@ class TestReadBooks(BaseBookTest):
         )
 
         response = self.client.get(
-            f"/bookmarks/read",
+            "/bookmarks/read",
             headers={"Authorization": f"Bearer {token_pair.access_token}"},
         )
         self.assertEqual(response.status_code, 200)

@@ -10,7 +10,9 @@ import {
     Card,
     Carousel,
     Chip,
+    Column,
     ConfirmationService,
+    DataTable,
     DeferredContent,
     Dialog,
     FileUpload,
@@ -68,8 +70,10 @@ app.component('Card', Card);
 app.component('Carousel', Carousel);
 app.component('Chip', Chip);
 app.component('Chips', InputChips);
+app.component('Column', Column);
 app.component('DeferredContent', DeferredContent);
 app.component('Select', Select);
+app.component('DataTable', DataTable);
 app.component('Dialog', Dialog);
 app.component('FloatLabel', FloatLabel);
 app.component('FileUpload', FileUpload);

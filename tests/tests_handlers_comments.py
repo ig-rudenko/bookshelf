@@ -40,7 +40,7 @@ class TestComments(BaseBookTest):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
         with self.assertRaises(HTTPException) as context:
             self.client.post(
-                f"/comments/book/0",
+                "/comments/book/0",
                 headers={"Authorization": f"Bearer {token_pair.access_token}"},
                 json={"text": "test comment"},
             )

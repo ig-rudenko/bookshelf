@@ -1,4 +1,4 @@
-from typing import TypeVar, TypedDict, BinaryIO
+from typing import TypeVar, TypedDict
 
 # noinspection PyPackageRequirements
 import fitz
@@ -78,7 +78,7 @@ class QueryParams(TypedDict):
 
 async def get_filtered_books(
     session: AsyncSession,
-    user: User | None,
+    user_id: int | None,
     query_params: QueryParams,
 ) -> BooksSchemaPaginated:
     """
@@ -89,14 +89,14 @@ async def get_filtered_books(
     Если пользователь указан, то возвращаются еще и книги, которые принадлежат пользователю.
 
     :param session: :class:`AsyncSession` объект сессии.
-    :param user: Пользователь.
+    :param user_id: Идентификатор пользователя.
     :param query_params: Параметры запроса.
     :return: :class:`BooksSchemaPaginated`
     """
 
     query = select(Book).order_by(Book.year.desc(), Book.id.desc()).group_by(Book.id)
     query = _filter_books_query_by_params(query, query_params)
-    query = filter_books_by_user(query, user)
+    query = filter_books_by_user(query, user_id)
 
     return await get_paginated_books(session, query, query_params)
 
@@ -183,9 +183,9 @@ async def delete_book(session: AsyncSession, book_id: int) -> None:
 
 
 @cached(60 * 60 * 24, "recent_books", variable_positions=[2, 3])
-async def get_recent_books(session: AsyncSession, limit: int, user: User | None) -> list[BookSchema]:
+async def get_recent_books(session: AsyncSession, limit: int, user_id: int | None) -> list[BookSchema]:
     query = select(Book).order_by(Book.id.desc()).limit(limit)
-    query = filter_books_by_user(query, user)
+    query = filter_books_by_user(query, user_id)
 
     result = await session.execute(query)
     result.unique()
@@ -209,7 +209,7 @@ async def get_book(session: AsyncSession, book_id: int) -> Book:
         )
 
 
-async def get_book_detail(session: AsyncSession, book_id: int, user: User | None) -> BookSchemaDetail:
+async def get_book_detail(session: AsyncSession, book_id: int, user_id: int | None) -> BookSchemaDetail:
     """
     Возвращает детальную информацию о книге с отметками просмотра и статуса избранного.
     """
@@ -221,18 +221,18 @@ async def get_book_detail(session: AsyncSession, book_id: int, user: User | None
                 favorite_books_association,
                 (
                     (Book.id == favorite_books_association.columns.book_id)
-                    & (favorite_books_association.columns.user_id == (user.id if user else None))
+                    & (favorite_books_association.columns.user_id == user_id)
                 ),
             )
             .outerjoin(
                 books_read_association,
                 (
                     (Book.id == books_read_association.columns.book_id)
-                    & (books_read_association.columns.user_id == (user.id if user else None))
+                    & (books_read_association.columns.user_id == user_id)
                 ),
             )
         )
-        query = filter_books_by_user(query, user)
+        query = filter_books_by_user(query, user_id)
 
         result = await session.execute(query)
         result.unique()

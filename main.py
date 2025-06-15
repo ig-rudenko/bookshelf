@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from loguru import logger
 from uvicorn import server
 
+from app.handlers.admin import router as admin_router
 from app.handlers.auth import router as auth_router
 from app.handlers.bookmarks import router as bookmark_router
 from app.handlers.books import router as book_router
@@ -37,6 +38,7 @@ app.include_router(bookmark_router, prefix="/api/v1")
 app.include_router(comment_router, prefix="/api/v1")
 app.include_router(user_data_router, prefix="/api/v1")
 app.include_router(bookshelf_router, prefix="/api/v1")
+app.include_router(admin_router, prefix="/api/v1")
 
 
 @app.get("/ping", tags=["health"])

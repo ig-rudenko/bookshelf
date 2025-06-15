@@ -45,7 +45,7 @@
     <template v-if="result?.books.length == 0">
       <div class="align-content-center flex flex-wrap w-full justify-center">
         <div class="flex justify-center w-full library-image">
-          <div><h2 class="bg-gray-300 border-round-2xl p-3 m-3">Вы не начинали читать еще ни одной книги!</h2></div>
+          <div><h2 class="border-round-2xl p-3 m-3">Нет недавно просмотренных книг</h2></div>
         </div>
       </div>
     </template>
@@ -82,6 +82,9 @@ import {getReadPagesCountColor} from "@/formatter.ts";
 export default defineComponent({
   name: "ReadBooks",
   components: {BookViewStats, SearchBookForm, BookCard},
+  props: {
+    userID: {type: Number, required: false, default: false}
+  },
   data() {
     return {
       result: null as BookWithReadPagesPaginatedResult | null,
@@ -107,8 +110,14 @@ export default defineComponent({
     },
 
     getBooksList(page: number) {
+      let url
+      if (this.userID) {
+        url = "/admin/users/" + this.userID + "/last-viewed"
+      } else {
+        url = "/bookmarks/last-viewed"
+      }
       let urlParams = `?page=${page}`;
-      api.get("/books/last-viewed" + urlParams)
+      api.get(url + urlParams)
           .then((value: AxiosResponse<BookWithReadPagesPaginatedResult>) => this.result = value.data)
     },
 

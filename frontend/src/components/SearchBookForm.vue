@@ -19,11 +19,13 @@
 
         <div class="flex flex-col gap-2 py-2">
           <label for="filter.authors">Авторы</label>
-          <InputText class="w-full" id="filter.authors" @keydown.enter="doFilter" v-model="filterData.authors"/>
+          <AutoComplete input-class="w-full" id="filter.authors" @keydown.enter="doFilter"
+                        v-model="filterData.authors"
+                        :suggestions="authorsList" @complete="searchAuthors"/>
         </div>
         <div class="flex flex-col gap-2 pb-2">
           <label for="filter.publisher">Издательство</label>
-          <AutoComplete input-class="w-full" id="filter.authors" @keydown.enter="doFilter"
+          <AutoComplete input-class="w-full" id="filter.publisher" @keydown.enter="doFilter"
                         v-model="filterData.publisher"
                         :suggestions="publishersList" @complete="searchPublishers"/>
         </div>
@@ -107,6 +109,7 @@ export default defineComponent({
       currentTag: "",
       compactView: this.initialCompactView,
       publishersList: [] as string[],
+      authorsList: [] as string[],
     }
   },
   methods: {
@@ -141,6 +144,15 @@ export default defineComponent({
           .then(
               (value: AxiosResponse<string[]>) => {
                 this.publishersList = value.data;
+              }
+          )
+    },
+
+    searchAuthors(event: AutoCompleteCompleteEvent) {
+      api.get("/books/authors?name=" + event.query)
+          .then(
+              (value: AxiosResponse<string[]>) => {
+                this.authorsList = value.data;
               }
           )
     },

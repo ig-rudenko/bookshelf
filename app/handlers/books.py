@@ -33,7 +33,7 @@ from app.services.celery import create_book_preview_task
 from app.services.paginator import paginator_query
 from app.services.pdf_history import get_last_viewed_books
 from app.services.permissions import check_book_owner_permission
-from app.services.publishers import get_publishers
+from app.services.publishers import get_publishers, get_authors
 
 router = APIRouter(prefix="/books", tags=["books"])
 
@@ -44,7 +44,7 @@ async def get_recent_books_view(
     current_user: Optional[User] = Depends(get_user_or_none),
 ):
     """Последние 25 добавленных книг."""
-    return await get_recent_books(session, limit=25, user=current_user)
+    return await get_recent_books(session, limit=25, user_id=current_user.id if current_user else None)
 
 
 @router.get("/publishers", response_model=list[str])
@@ -54,7 +54,17 @@ async def get_publishers_view(
     current_user: Optional[User] = Depends(get_user_or_none),
 ):
     """Поиск издательств по названию."""
-    return await get_publishers(session, search=name, user=current_user)
+    return await get_publishers(session, search=name, user_id=current_user.id if current_user else None)
+
+
+@router.get("/authors", response_model=list[str])
+async def get_authors_view(
+    name: str | None = Query(None, description="Авторы книги"),
+    session: AsyncSession = Depends(get_session, use_cache=True),
+    current_user: Optional[User] = Depends(get_user_or_none),
+):
+    """Поиск авторов по названию."""
+    return await get_authors(session, search=name, user_id=current_user.id if current_user else None)
 
 
 @router.get("/last-viewed", response_model=BooksWithReadPagesPaginatedSchema)
@@ -64,7 +74,7 @@ async def get_last_viewed_books_view(
     user: User = Depends(get_current_user),
 ):
     """Возвращает просмотренные книги пользователя с кол-вом просмотренных страниц."""
-    return await get_last_viewed_books(session, user, paginator)
+    return await get_last_viewed_books(session, user.id, paginator)
 
 
 def books_query_params(
@@ -113,7 +123,7 @@ async def get_books_view(
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Просмотр всех книг с фильтрацией по запросу."""
-    return await get_filtered_books(session, current_user, query_params)
+    return await get_filtered_books(session, current_user.id if current_user else None, query_params)
 
 
 @router.post("", response_model=BookSchemaWithDesc, status_code=status.HTTP_201_CREATED)
@@ -140,7 +150,7 @@ async def get_book_view(
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     """Просмотр книги"""
-    book_schema = await get_book_detail(session, book_id, current_user)
+    book_schema = await get_book_detail(session, book_id, current_user.id if current_user else None)
     return book_schema
 
 

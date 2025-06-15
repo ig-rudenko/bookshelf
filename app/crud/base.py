@@ -1,12 +1,12 @@
-from functools import reduce
-
 from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def query_count(query, session: AsyncSession) -> int:
-    """Определяет количество записей запроса"""
-    count_query = query.limit(None).offset(None).with_only_columns(func.count())
+    """
+    Определяет количество записей запроса
+    Для подсчета кол-ва записей без фильтра не работает.
+    """
+    count_query = query.with_only_columns(func.count()).limit(None).offset(None).group_by(None).order_by(None)
     count_result = await session.execute(count_query)
-    counts_list = list(count_result.scalars())
-    return reduce(lambda x, y: x + y, counts_list) if counts_list else 0
+    return count_result.scalar_one()

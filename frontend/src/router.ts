@@ -21,6 +21,7 @@ import ForgotPassword from "@/pages/ForgotPassword.vue";
 import ResetPassword from "@/pages/ResetPassword.vue";
 import Bookshelves from "@/pages/Bookshelves.vue";
 import CreateUpdateBookshelf from "@/pages/CreateUpdateBookshelf.vue";
+import AllUsers from "@/pages/admin/AllUsers.vue";
 
 
 const beforeEnter = (to: RouteLocationNormalized, _: RouteLocationNormalized, next: NavigationGuardNext) => {
@@ -28,26 +29,33 @@ const beforeEnter = (to: RouteLocationNormalized, _: RouteLocationNormalized, ne
     if (!isNaN(id) && Number.isInteger(id)) {
         next();
     } else {
-        next({ path: '/' }); // Редирект на главную страницу, если id не числовое
+        next({path: '/'}); // Редирект на главную страницу, если id не числовое
     }
 }
 
 const routes: RouteRecordRaw[] = [
-    { path: "/", component: Home },
-    { path: "/login", component: Login },
-    { path: "/signup", component: Register },
-    { path: "/forgot-password", component: ForgotPassword },
-    { path: "/reset-password/:token", component: ResetPassword },
-    { path: "/favorites", component: Favorites },
-    { path: "/read", component: ReadBooks },
-    { path: "/last-viewed", component: LastViewed },
-    { path: "/create-book", component: CreateBook },
-    { path: "/bookshelves", component: Bookshelves },
-    { path: "/bookshelves/create", component: CreateUpdateBookshelf },
-    { path: "/bookshelves/:id/edit", component: CreateUpdateBookshelf },
-    { path: "/book/:id", component: BookPage, beforeEnter: beforeEnter },
-    { path: "/book/:id/edit", component: UpdateBook, beforeEnter: beforeEnter },
-    { path: "/book/:id/show", component: ShowBook, beforeEnter: beforeEnter },
+    {path: "/", component: Home},
+    {path: "/login", component: Login},
+    {path: "/signup", component: Register},
+    {path: "/forgot-password", component: ForgotPassword},
+    {path: "/reset-password/:token", component: ResetPassword},
+    {path: "/favorites", component: Favorites},
+    {path: "/read", component: ReadBooks},
+    {path: "/last-viewed", component: LastViewed},
+    {path: "/create-book", component: CreateBook},
+    {path: "/bookshelves", component: Bookshelves},
+    {
+        path: "/admin",
+        component: AllUsers,
+        children: [
+            {path: "/admin/users", component: AllUsers},
+        ]
+    },
+    {path: "/bookshelves/create", component: CreateUpdateBookshelf},
+    {path: "/bookshelves/:id/edit", component: CreateUpdateBookshelf},
+    {path: "/book/:id", component: BookPage, beforeEnter: beforeEnter},
+    {path: "/book/:id/edit", component: UpdateBook, beforeEnter: beforeEnter},
+    {path: "/book/:id/show", component: ShowBook, beforeEnter: beforeEnter},
 ]
 
 const router: Router = createRouter({

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <MegaMenu :model="menuItems" class="dark:bg-gray-900 z-10" scrollHeight="100vh" ariaLabel="aasdas">
+    <MegaMenu :model="menuItems" class="dark:bg-gray-900 z-10" scrollHeight="100vh">
       <template #start>
         <a href="/">
           <Avatar class="mx-2" image="/img/bookshelf_icon.png" size="large" shape="square"/>
@@ -15,7 +15,7 @@
           <i v-if="item.items"
              :class="['pi pi-angle-down', { 'pi-angle-down ml-2': item.root, 'pi-angle-right ml-auto': !item.root }]"></i>
         </a>
-        <a v-else-if="!item.image" :href="'/?'+item.param+'='+item.label"
+        <a v-else-if="item.param && !item.image" :href="'/?'+item.param+'='+item.label"
            class="flex items-center cursor-pointer p-2 text-900 no-underline">
           <i v-if="item.icon" :class="item.icon"></i>
           <span class="flex flex-col px-4">
@@ -23,18 +23,25 @@
             <span v-if="item.subtext" class="white-space-nowrap">{{ item.subtext }}</span>
           </span>
         </a>
-        <a v-else class="p-1 flex flex-wrap flex-row items-center px-4 cursor-pointer text-900 no-underline"
+        <a v-else-if="item.param && item.image"
+           class="p-1 flex flex-wrap flex-row items-center px-4 cursor-pointer text-900 no-underline"
            :href="'/?'+item.param+'='+item.label">
           <div class="p-1 px-3 rounded-md" :class="item.classes">
             <img :src="item.image" class="h-[20px] md:h-[30px]" :alt="String(item.label)"/>
           </div>
           <span v-if="item.subtext" class="ml-2 text-lg">{{ item.subtext }}</span>
         </a>
+        <a v-else-if="item.href" :href="item.href" class="flex items-center cursor-pointer p-2 text-900 no-underline">
+          <span class="flex flex-col px-4">
+            <span class="text-900">{{ item.label }}</span>
+            <span v-if="item.subtext" class="white-space-nowrap">{{ item.subtext }}</span>
+          </span>
+        </a>
       </template>
 
       <template #end>
         <div v-if="loggedIn && user" @click="toggleUserMenu" class="p-2 cursor-pointer flex items-center">
-          <Avatar :image="userAvatarImage"/>
+          <Avatar :image="getUserAvatar(user.username)"/>
           <span class="ml-2">{{ user.username }}</span>
           <Menu ref="userMenu" id="overlay_user_menu" :model="userItems" :popup="true"/>
         </div>
@@ -63,6 +70,7 @@ import {mapActions, mapState} from "vuex";
 import api from "@/services/api.ts";
 import {AxiosResponse} from "axios";
 import {getCurrentTheme, setAutoTheme, setDarkTheme, setLightTheme, ThemesValues} from "@/themes.ts";
+import {getUserAvatar} from "@/user.ts";
 
 
 export default defineComponent({
@@ -229,6 +237,33 @@ export default defineComponent({
             }
         )
       }
+
+      if (this.user?.isSuperuser) {
+        data.push(
+            {
+              label: "Админка",
+              icon: "pi pi-sliders-h",
+              root: true,
+              items: [
+                [
+                  {
+                    label: "",
+                    icon: "pi pi-users",
+                    classes: ['bg-white'],
+                    items: [
+                      {
+                        label: "Все пользователи",
+                        href: "/admin/users",
+                        classes: ['bg-white'],
+                      },
+                    ]
+                  }
+                ]
+              ]
+            }
+        );
+      }
+
       data.push(
           {
             label: "",
@@ -241,20 +276,9 @@ export default defineComponent({
       return data
     },
 
-    userAvatarImage() {
-      if (this.user?.username) {
-        return 'https://ui-avatars.com/api/?size=32&name=' + this.user.username + '&font-size=0.33&background=random&rounded=true'
-      }
-      return ""
-    },
-
     userItems() {
       if (this.loggedIn && this.user) {
         return [
-          // {
-          //   label: "Профиль",
-          //   icon: "pi pi-user",
-          // },
           {
             icon: "pi pi-sign-out",
             label: "Выйти",
@@ -267,6 +291,7 @@ export default defineComponent({
   },
 
   methods: {
+    getUserAvatar,
     ...mapActions("auth", ["logout"]),
 
     performLogout() {

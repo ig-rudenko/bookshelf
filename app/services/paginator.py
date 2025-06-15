@@ -1,9 +1,14 @@
-from typing import TypeVar
+from typing import TypeVar, TypedDict
 
 from fastapi import Query
 from sqlalchemy import Select
 
 Q = TypeVar("Q", bound=Select)
+
+
+class PaginatorQuery(TypedDict):
+    page: int
+    per_page: int
 
 
 def paginate(query: Q, page: int, per_page: int) -> Q:
@@ -14,7 +19,7 @@ def paginate(query: Q, page: int, per_page: int) -> Q:
 def paginator_query(
     page: int = Query(1, gt=0, description="Номер страницы"),
     per_page: int = Query(25, gte=1, alias="per-page", description="Количество элементов на странице"),
-):
+) -> PaginatorQuery:
     """Возвращает словарь с параметрами запроса для paginate"""
     return {
         "page": page,

@@ -82,7 +82,7 @@ async def replace_meta_data(book_id: int) -> str:
 
     index_data = re.sub(
         r'<meta property="og:type" content=".+?">',
-        f'<meta property="og:type" content="object">',
+        '<meta property="og:type" content="object">',
         index_data,
     )
     index_data = re.sub(
