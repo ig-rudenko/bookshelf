@@ -12,6 +12,7 @@ export interface UserDetail {
     dateJoin: string;
     favoritesCount: number;
     readCount: number;
+    recentlyReadCount: number;
 }
 
 export interface UserDetailPaginatedResult {
@@ -24,13 +25,22 @@ export interface UserDetailPaginatedResult {
 
 class UsersService {
 
-    async getAllUsersList(page: number = 0, perPage?: number) {
+    async getAllUsersList(page: number = 0, perPage?: number, sortBy?: string, sortDirection?: number): Promise<UserDetailPaginatedResult | null> {
+        let params: any = {
+            "page": page,
+            "per-page": perPage,
+        };
+        if (sortBy && sortDirection) {
+            params = {
+                ...params,
+                "sort-by": sortBy,
+                "sort-direction": sortDirection > 0 ? "asc" : "desc",
+            }
+        }
+
         try {
             const resp = await api.get<UserDetailPaginatedResult>("/admin/users", {
-                params: {
-                    "page": page,
-                    "per-page": perPage
-                }
+                params: params
             });
             return resp.data;
         } catch (error) {

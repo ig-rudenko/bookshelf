@@ -1,7 +1,8 @@
 <template>
-  <DataTable v-if="result" :value="result.results" scrollable class="text-sm sm:text-base">
-    <Column field="id" header="ID"></Column>
-    <Column field="username" header="Имя" :frozen="true">
+  <DataTable v-if="result" :value="result.results" @sort="sortUsers" scrollable class="text-sm sm:text-base"
+             removableSort>
+    <Column :sortable="true" field="id" header="ID"></Column>
+    <Column :sortable="true" field="username" header="Имя" :frozen="true">
       <template #body="slotProps">
         <div class="flex items-center gap-2">
           <Avatar :image="getUserAvatar(slotProps.data.username)"/>
@@ -9,23 +10,23 @@
         </div>
       </template>
     </Column>
-    <Column field="email" header="Email"></Column>
-    <Column field="isSuperuser" header="Суперпользователь">
+    <Column :sortable="true" field="email" header="Email"></Column>
+    <Column :sortable="true" field="isSuperuser" header="Суперпользователь">
       <template #body="slotProps">
         <span v-if="slotProps.data.isSuperuser">✅</span>
       </template>
     </Column>
-    <Column field="isStaff" header="Сотрудник">
+    <Column :sortable="true" field="isStaff" header="Сотрудник">
       <template #body="slotProps">
         <span v-if="slotProps.data.isStaff">✅</span>
       </template>
     </Column>
-    <Column field="dateJoin" header="Дата регистрации">
+    <Column :sortable="true" field="dateJoin" header="Дата регистрации">
       <template #body="slotProps">
         {{ (new Date(slotProps.data.dateJoin)).toLocaleString() }}
       </template>
     </Column>
-    <Column field="favoritesCount" header="Избранное ❤️">
+    <Column :sortable="true" field="favoritesCount" header="Избранное ❤️">
       <template #body="slotProps">
         <div class="flex flex-wrap justify-center items-center gap-1">
           <span>
@@ -39,7 +40,7 @@
         </div>
       </template>
     </Column>
-    <Column field="readCount" header="Прочитано 📗">
+    <Column :sortable="true" field="readCount" header="Прочитано 📗">
       <template #body="slotProps">
         <div class="flex flex-wrap justify-center items-center gap-1">
           <span>
@@ -53,8 +54,9 @@
         </div>
       </template>
     </Column>
-    <Column field="readCount" header="Недавние 📖">
+    <Column :sortable="true" field="recentlyReadCount" header="Недавние 📖">
       <template #body="slotProps">
+        {{ slotProps.data.recentlyReadCount }}
         <Badge @click="selectedUser = slotProps.data; visibleDialogLastViewed = true" class="ml-2 cursor-pointer"
                severity="primary">
           Показать
@@ -130,6 +132,10 @@ export default defineComponent({
     getUserAvatar,
     getUsers(page: number) {
       usersService.getAllUsersList(page).then(data => this.result = data)
+    },
+    sortUsers(event: any) {
+      if (!this.result) return;
+      usersService.getAllUsersList(1, this.result.perPage, event.sortField, event.sortOrder).then(data => this.result = data)
     }
   }
 })

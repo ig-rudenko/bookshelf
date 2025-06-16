@@ -31,6 +31,7 @@ class UserCreateSchema(CamelAliasModel):
 class UserDetailSchema(UserSchema):
     favorites_count: int = 0
     read_count: int = 0
+    recently_read_count: int = 0
 
 
 class UserSchemaPaginated(CamelSerializerModel):
