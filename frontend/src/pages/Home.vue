@@ -8,14 +8,15 @@ import {defineComponent} from 'vue';
 
 import RecentBooks from "@/components/RecentBooks.vue";
 import FullSearchBooks from "@/components/FullSearchBooks.vue";
+import {Book} from "@/books.ts";
 
 
 export default defineComponent({
   name: "Home",
   components: {FullSearchBooks, RecentBooks},
   methods: {
-    showBook(bookID: number) {
-      document.location.href = `/book/${bookID}`;
+    showBook(book: Book) {
+      document.location.href = `/book/${book.id}`;
     }
   }
 })
