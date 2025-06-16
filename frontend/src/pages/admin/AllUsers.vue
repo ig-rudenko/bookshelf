@@ -1,7 +1,16 @@
 <template>
   <DataTable v-if="result" :value="result.results" @sort="sortUsers" scrollable class="text-sm sm:text-base"
              removableSort>
-    <Column :sortable="true" field="id" header="ID"></Column>
+    <Column field="id" header="№">
+      <template #body="slotProps">
+        <span class="text-sm">{{ slotProps.index + 1 }}</span>
+      </template>
+    </Column>
+    <Column :sortable="true" field="id" header="ID">
+      <template #body="slotProps">
+        <span class="text-sm">ID: {{ slotProps.data.id }}</span>
+      </template>
+    </Column>
     <Column :sortable="true" field="username" header="Имя" :frozen="true">
       <template #body="slotProps">
         <div class="flex items-center gap-2">
@@ -11,7 +20,7 @@
       </template>
     </Column>
     <Column :sortable="true" field="email" header="Email"></Column>
-    <Column :sortable="true" field="isSuperuser" header="Суперпользователь">
+    <Column :sortable="true" field="isSuperuser" header="Superuser">
       <template #body="slotProps">
         <span v-if="slotProps.data.isSuperuser">✅</span>
       </template>
@@ -66,7 +75,6 @@
   </DataTable>
 
   <Paginator v-if="result"
-             :always-show="false"
              @page="(event: any) => getUsers(event.page+1)"
              @update:rows="(value: number) => result!.perPage = value"
              v-model="result.currentPage"
@@ -115,6 +123,7 @@ export default defineComponent({
       visibleDialogRead: false,
       visibleDialogLastViewed: false,
       selectedUser: null as UserDetail | null,
+      defaultPerPage: 50,
     }
   },
   mounted() {
@@ -131,10 +140,10 @@ export default defineComponent({
   methods: {
     getUserAvatar,
     getUsers(page: number) {
-      usersService.getAllUsersList(page).then(data => this.result = data)
+      usersService.getAllUsersList(page, this.result?.perPage || this.defaultPerPage).then(data => this.result = data)
     },
     sortUsers(event: any) {
-      if (!this.result) return;
+      if (!this.result || this.result.maxPages === 1) return;
       usersService.getAllUsersList(1, this.result.perPage, event.sortField, event.sortOrder).then(data => this.result = data)
     }
   }

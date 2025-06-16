@@ -14,7 +14,7 @@ from app.schemas.books import BookSchema, CreateBookSchema, BookSchemaWithDesc
 from app.services.aaa import create_jwt_token_pair
 from app.services.books import create_book
 from app.settings import settings
-from tests.init import TEST_DB_URL
+from tests.init import TEST_DB_URL, TEST_MEDIA_URL
 
 
 # noinspection PyArgumentList
@@ -30,7 +30,9 @@ class BaseBookTest(IsolatedAsyncioTestCase):
         self.user_1 = await self.create_user("user_1")
         self.user_2 = await self.create_user("user_2")
         self.book_1 = await self.create_book(self.user_1, "book_1", private=False)
+        self.book_1.preview_image = TEST_MEDIA_URL
         self.book_private = await self.create_book(self.user_2, "book_2", private=True)
+        self.book_private.preview_image = TEST_MEDIA_URL
 
     async def asyncTearDown(self):
         async with db_manager._engine.begin() as conn:
@@ -224,6 +226,7 @@ class ListBooksTest(BaseBookTest):
             "perPage": 25,
             "totalCount": 2,
         }
+        self.maxDiff = None
         self.assertEqual(valid_data, response.json())
 
 
@@ -237,7 +240,7 @@ class BookTest(BaseBookTest):
     async def test_book_anonymous_forbidden_view(self):
         with self.assertRaises(HTTPException) as context:
             self.client.get(f"/books/{self.book_private.id}")
-        self.assertEqual(context.exception.status_code, 403)
+        self.assertEqual(context.exception.status_code, 404)
 
     async def test_book_non_owner_view(self):
         token_pair = create_jwt_token_pair(user_id=self.user_1.id)
@@ -246,7 +249,7 @@ class BookTest(BaseBookTest):
                 f"/books/{self.book_private.id}",
                 headers={"Authorization": f"Bearer {token_pair.access_token}"},
             )
-        self.assertEqual(context.exception.status_code, 403)
+        self.assertEqual(context.exception.status_code, 404)
 
     async def test_book_owner_view(self):
         token_pair = create_jwt_token_pair(user_id=self.user_2.id)
@@ -396,9 +399,8 @@ class UploadBookFileTest(BaseBookTest):
 
         async with db_manager.session() as session:
             self.book_1 = await Book.get(session, id=self.book_1.id)  # refresh book from db
-        self.assertEqual(
-            self.book_1.preview_image, f"{settings.media_url}/previews/{self.book_1.id}/preview.png"
-        )
+
+        self.assertEqual(self.book_1.preview_image, f"previews/{self.book_1.id}/preview.png")
         self.assertEqual(self.book_1.file, f"books/{self.book_1.id}/sample-pdf-file.pdf")
         self.assertEqual(self.book_1.size, self.file_path.stat().st_size)
 
