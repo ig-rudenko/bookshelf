@@ -25,7 +25,7 @@
         </template>
       </div>
 
-      <div v-if="book.bookshelves" class="m-2">
+      <div v-if="book.bookshelves?.length" class="m-2">
         <div class="text-right">
           <i class="pi pi-book"/> Книжные полки:
         </div>
