@@ -29,9 +29,9 @@ from app.schemas.books import (
     BooksSchemaPaginated,
     BookSchemaDetail,
     CreateBookSchema,
-    BookshelfLinkSchema,
     PublisherSchema,
     TagSchema,
+    BookshelfLinkSchema,
 )
 from app.services.cache import get_cache
 from app.services.cache.deco import cached
@@ -242,9 +242,11 @@ async def get_book_detail(session: AsyncSession, book_id: int, user_id: int | No
                 func.json_agg(func.json_build_object("id", Tag.id, "name", Tag.name)).label("tags"),
                 func.bool(favorite_books_association.c.id).label("is_favorite"),
                 func.bool(books_read_association.c.id).label("is_read"),
-                func.json_agg(func.json_build_object("id", Bookshelf.id, "name", Bookshelf.name)).label(
-                    "bookshelf_info"
-                ),
+                func.json_agg(
+                    func.json_build_object(
+                        "id", Bookshelf.id, "name", Bookshelf.name, "private", Bookshelf.private
+                    )
+                ).label("bookshelf_info"),
             )
             .where(Book.id == book_id)
             .outerjoin(Book.publisher)
@@ -255,7 +257,13 @@ async def get_book_detail(session: AsyncSession, book_id: int, user_id: int | No
             )
             .outerjoin(
                 Bookshelf,
-                Bookshelf.id == BookshelfBookAssociation.bookshelf_id,
+                (
+                    (Bookshelf.id == BookshelfBookAssociation.bookshelf_id)
+                    & (
+                        (Bookshelf.private.is_(False))
+                        | ((Bookshelf.private.is_(True)) & (Bookshelf.user_id == user_id))
+                    )
+                ),
             )
             .outerjoin(
                 favorite_books_association,
@@ -282,6 +290,14 @@ async def get_book_detail(session: AsyncSession, book_id: int, user_id: int | No
 
         result = await session.execute(query)
         data = result.one()
+
+        # Создаём уникальные пары (id, name)
+        bookshelves = {
+            (bookshelf_info["id"], bookshelf_info["name"], bookshelf_info["private"])
+            for bookshelf_info in data.bookshelf_info
+            if bookshelf_info["id"]
+        }
+        tags = {(tag["id"], tag["name"]) for tag in data.tags if tag["id"]}
         schema = BookSchemaDetail(
             id=data.id,
             title=data.title,
@@ -300,20 +316,14 @@ async def get_book_detail(session: AsyncSession, book_id: int, user_id: int | No
                 id=data.publisher_id,
                 name=data.publisher_name,
             ),
-            tags=[
-                TagSchema(
-                    id=tag_info["id"],
-                    name=tag_info["name"],
-                )
-                for tag_info in data.tags
-            ],
+            tags=[TagSchema(id=tag_id, name=tag_name) for tag_id, tag_name in tags],
             bookshelves=[
                 BookshelfLinkSchema(
-                    id=bookshelf_info["id"],
-                    name=bookshelf_info["name"],
+                    id=bookshelf_id,
+                    name=bookshelf_name,
+                    private=private,
                 )
-                for bookshelf_info in data.bookshelf_info
-                if bookshelf_info["id"]
+                for bookshelf_id, bookshelf_name, private in bookshelves
             ],
         )
         return schema

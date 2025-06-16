@@ -1,21 +1,22 @@
 <template>
   <div class="my-2">
-    <div class="flex items-center">
-      <div :id="'bookshelf-name-'+bookshelf.id" class="flex items-center text-xl pl-5">
-        {{ bookshelf.name }}
-      </div>
+    <div class="flex items-center gap-1">
+      <div :id="'bookshelf-name-'+bookshelf.id" class="flex px-2 items-center text-xl">{{ bookshelf.name }}</div>
+
+      <Button v-tooltip.top="'Приватная'" v-if="bookshelf.private" severity="secondary" icon="pi pi-lock" size="small"
+              outlined rounded/>
 
       <div class="flex items-center relative">
-        <Button icon="pi pi-share-alt" size="small" @click="copyClipboard" outlined text/>
+        <Button icon="pi pi-share-alt" size="small" @click="copyClipboard" outlined rounded/>
         <Badge v-if="copyClipboardText" class="text-xs absolute" style="top: -25px">{{ copyClipboardText }}</Badge>
       </div>
 
-      <div v-if="user?.id == bookshelf.userId">
+      <template v-if="user?.id == bookshelf.userId">
         <Button @click="goToEditBookshelfPage" icon="pi pi-pencil" size="small" rounded
-                outlined severity="warning"/>
+                outlined severity="warn"/>
         <Button @click="showDeleteDialog=true" icon="pi pi-trash" size="small" rounded
                 outlined severity="danger"/>
-      </div>
+      </template>
     </div>
 
     <div class="pl-5">{{ bookshelf.description }}</div>

@@ -1,8 +1,10 @@
 import api from "@/services/api.ts";
+import {FilterBookshelf} from "@/filters.ts";
 
 export interface EditBookshelf {
     name: string
     description: string
+    private: boolean
     books: { id: number; preview: string }[]
 }
 
@@ -29,10 +31,10 @@ class BookshelvesService {
         return value.data;
     }
 
-    async getBookshelvesList(page: number, searchText: string, perPage?: number): Promise<PaginatedBookshelvesResult | null> {
+    async getBookshelvesList(page: number, filter: FilterBookshelf, perPage?: number): Promise<PaginatedBookshelvesResult | null> {
         let urlParams = `?page=${page}`;
         if (perPage) urlParams += `&per-page=${perPage}`;
-        if (searchText) urlParams += `&search=${searchText}`;
+        urlParams += `&${filter.urlParams}`;
 
         history.pushState({path: urlParams}, '', urlParams);
 
@@ -57,7 +59,8 @@ class BookshelvesService {
         return {
             name: data.name,
             description: data.description,
-            books: data.books.map(b => b.id)
+            books: data.books.map(b => b.id),
+            private: data.private
         }
     }
 

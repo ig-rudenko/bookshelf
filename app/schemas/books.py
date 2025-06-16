@@ -60,6 +60,7 @@ class BookSchemaWithDesc(BookSchema):
 class BookshelfLinkSchema(CamelSerializerModel):
     id: int
     name: str
+    private: bool
 
 
 class BookSchemaDetail(BookSchema):

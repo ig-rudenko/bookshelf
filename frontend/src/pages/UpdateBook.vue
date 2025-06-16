@@ -1,5 +1,5 @@
 <template>
-  <div class="p-3" v-if="user?.isStaff">
+  <div class="p-3" v-if="user">
     <BookForm :editBookId="Number($route.params.id)"/>
   </div>
 </template>
@@ -14,7 +14,7 @@ export default defineComponent({
   name: "UpdateBook",
   components: {LoginForm, BookForm},
   mounted() {
-    if (!this.user?.isStaff) this.$router.push("/login");
+    if (!this.user) this.$router.push("/login");
     document.title = "Редактирование книги";
   },
   computed: {

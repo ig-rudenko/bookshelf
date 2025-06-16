@@ -9,6 +9,7 @@ class CreateUpdateBookshelfSchema(CamelAliasModel):
     name: str = Field(..., min_length=3, max_length=128)
     description: str = Field(..., max_length=1000)
     books: list[int] = Field(..., min_length=1)
+    private: bool = Field(True)
 
 
 class BookshelfOneBookSchema(CamelSerializerModel):
@@ -23,6 +24,7 @@ class BookshelfSchema(CamelSerializerModel):
     created_at: datetime
     user_id: int
     books: list[BookshelfOneBookSchema]
+    private: bool
 
 
 class BookshelfSchemaSchemaPaginated(CamelSerializerModel):

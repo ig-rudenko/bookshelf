@@ -63,7 +63,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div v-if="currentPage" class="p-2 pb-4">
+  <div v-if="currentPage" class="px-2">
     <MeterGroup :value="[{label: verboseValue, value: percents, color: getReadPagesCountColor(percents), icon: '' }]"/>
   </div>
 </template>

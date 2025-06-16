@@ -11,14 +11,28 @@
 
     <div class="flex flex-col justify-center max-w-5xl w-full">
       <div>
-        <div class="flex flex-col gap-2 pb-2">
-          <label for="book.title">Название книжной полки</label>
-          <InputText id="book.title" class="w-full" v-model="form.name"/>
+        <div for="bookshelf.private" class="flex justify-end items-center gap-2 pb-2 cursor-pointer select-none">
+          <div v-if="user.isSuperuser">
+            <Button @click="form.private=!form.private" v-if="form.private" label="Приватная книжная полка"
+                    icon="pi pi-lock" severity="secondary"/>
+            <Button @click="form.private=!form.private" v-else label="Публичная книжная полка" icon="pi pi-lock-open"
+                    severity="primary"/>
+          </div>
+          <div v-else v-tooltip.left="'Недоступно для редактирования'">
+            <Button
+                label="Приватная книжная полка"
+                icon="pi pi-lock" severity="secondary"/>
+          </div>
         </div>
 
         <div class="flex flex-col gap-2 pb-2">
-          <label for="book.description">Описание</label>
-          <Textarea id="book.description" v-model="form.description" auto-resize rows="3"/>
+          <label for="bookshelf.title">Название книжной полки</label>
+          <InputText id="bookshelf.title" class="w-full" v-model="form.name"/>
+        </div>
+
+        <div class="flex flex-col gap-2 pb-2">
+          <label for="bookshelf.description">Описание</label>
+          <Textarea id="bookshelf.description" v-model="form.description" auto-resize rows="3"/>
         </div>
       </div>
 
@@ -65,6 +79,7 @@ export default defineComponent({
       form: {
         name: "",
         description: "",
+        private: true,
         books: []
       } as EditBookshelf,
       formError: "",

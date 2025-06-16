@@ -129,6 +129,7 @@ class Bookshelf(OrmBase, Manager):
     description: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    private: Mapped[bool] = mapped_column(Boolean, server_default=false())
 
     # relations
     user: Mapped[User] = relationship("User", back_populates="bookshelves", lazy="select")

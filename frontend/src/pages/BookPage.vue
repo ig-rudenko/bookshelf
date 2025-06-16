@@ -1,5 +1,5 @@
 <template>
-  <div v-if="book" class="flex flex-wrap justify-center y-4">
+  <div v-if="book" class="flex flex-wrap justify-center mb-4">
     <div class="flex flex-col">
       <div class="xl:hidden p-3 py-5 text-2xl font-bold text-center">{{ book.title }}</div>
       <a :href="'/book/'+book.id+'/show'" target="_blank" class="flex flex-col py-5 sticky top-[1rem]">
@@ -25,7 +25,24 @@
         </template>
       </div>
 
+      <div class="m-2">
+        <div class="text-right">
+          <i class="pi pi-book"/> Книжные полки:
+        </div>
+        <div class="m-2 flex flex-row flex-wrap justify-end items-center gap-2 text-xs">
+          <a :href="'/bookshelves?search='+encodeURIComponent(bookshelf.name)" v-for="bookshelf in book.bookshelves"
+             :key="bookshelf.id">
+            <Button v-tooltip.bottom="'Перейдите на страницу полки'" size="small"
+                    severity="contrast" class="hover:shadow-md"
+                    :icon="bookshelf.private?'pi pi-lock':''"
+                    outlined :label="bookshelf.name"/>
+          </a>
+        </div>
+      </div>
+
       <BookViewStats v-if="loggedIn" :book="book"/>
+
+      <Divider/>
 
       <div class="m-2">
         <span>Издательство <i class="pi pi-building mr-2"/></span>
@@ -55,9 +72,13 @@
           </Badge>
         </a>
       </div>
-      <div class="p-3 w-full text-justify" v-html="textToHtml(wrapLinks(book.description))"></div>
+
+      <Divider/>
+      <div class="px-3 w-full text-justify" v-html="textToHtml(wrapLinks(book.description))"></div>
     </div>
   </div>
+
+  <Divider/>
 
   <div v-if="book?.id && canCreateComment" class="flex justify-center">
     <CreateComment @created="getComments(1)" :book-id="book.id"/>

@@ -15,6 +15,7 @@ import {
     DataTable,
     DeferredContent,
     Dialog,
+    Divider,
     FileUpload,
     FloatLabel,
     IconField,
@@ -35,6 +36,7 @@ import {
     Select,
     Skeleton,
     Textarea,
+    ToggleSwitch,
     Tooltip
 } from "primevue";
 import 'primeicons/primeicons.css'
@@ -71,6 +73,7 @@ app.component('Carousel', Carousel);
 app.component('Chip', Chip);
 app.component('Chips', InputChips);
 app.component('Column', Column);
+app.component('Divider', Divider);
 app.component('DeferredContent', DeferredContent);
 app.component('Select', Select);
 app.component('DataTable', DataTable);
@@ -92,6 +95,7 @@ app.component('Paginator', Paginator);
 app.component('Password', Password);
 app.component('Skeleton', Skeleton);
 app.component('Textarea', Textarea);
+app.component('ToggleSwitch', ToggleSwitch);
 app.component('ScrollPanel', ScrollPanel);
 
 app.mount('#app');

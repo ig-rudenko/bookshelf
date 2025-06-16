@@ -4,14 +4,15 @@ class FilterBook {
         public title: string = "",
         public authors: string = "",
         public publisher: string = "",
-        public year: number|null = null,
-        public language: string|null = null,
-        public pagesGt: number|null = null,
-        public pagesLt: number|null = null,
+        public year: number | null = null,
+        public language: string | null = null,
+        public pagesGt: number | null = null,
+        public pagesLt: number | null = null,
         public description: string = "",
-        public onlyPrivate: boolean|null = null,
+        public onlyPrivate: boolean | null = null,
         public tags: string[] = [],
-    ) {}
+    ) {
+    }
 
     clear() {
         this.search = "";
@@ -70,4 +71,42 @@ function createFilterBook(params: any): FilterBook {
     )
 }
 
-export { FilterBook, createFilterBook };
+
+class FilterBookshelf {
+    constructor(
+        public search: string = "",
+        public private_: boolean | null = null,
+    ) {
+    }
+
+    clear() {
+        this.search = "";
+        this.private_ = null;
+    }
+
+    get urlParams(): string {
+        let urlParams = new URLSearchParams();
+        if (this.search) urlParams.set("search", this.search);
+        if (this.private_ != null) {
+            if (this.private_) {
+                urlParams.set("private", "true");
+            } else {
+                urlParams.set("private", "false");
+            }
+        }
+        return urlParams.toString();
+    }
+
+}
+
+function createFilterBookshelf(params: any): FilterBookshelf {
+    if (params.private === "true") {
+        return new FilterBookshelf(params.search, true);
+    } else if (params.private === "false") {
+        return new FilterBookshelf(params.search, false);
+    } else {
+        return new FilterBookshelf(params.search);
+    }
+}
+
+export {FilterBook, createFilterBook, FilterBookshelf, createFilterBookshelf}

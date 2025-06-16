@@ -1,15 +1,15 @@
-
 export class CreateBook {
     constructor(
         public title: string = "",
         public authors: string = "",
         public publisher: string = "",
         public description: string = "",
-        public year: number|null = null,
+        public year: number | null = null,
         public private_: boolean = false,
         public tags: string[] = [],
-        public language: string|null = null,
-    ) {}
+        public language: string | null = null,
+    ) {
+    }
 
     get private(): boolean {
         return this.private_;
@@ -34,7 +34,8 @@ export class BookValidator {
         public tagsCount: boolean = true,
         public tagLength: boolean = true,
         public language: boolean = true,
-    ) {}
+    ) {
+    }
 
     validateTitle(title: string) {
         this.title = title.length > 0 && title.length < 100;
@@ -52,7 +53,7 @@ export class BookValidator {
         this.description = description.length > 0 && description.length < 4096;
     }
 
-    validateYear(year: number|null) {
+    validateYear(year: number | null) {
         this.year = year !== null && year >= 1000 && year <= new Date().getFullYear() + 1;
     }
 
@@ -67,7 +68,7 @@ export class BookValidator {
         this.tagLength = true;
     }
 
-    validateLanguage(language: string|null) {
+    validateLanguage(language: string | null) {
         this.language = language !== null && language.length > 0 && language.length < 128;
     }
 
@@ -88,7 +89,6 @@ export class BookValidator {
 }
 
 
-
 export interface Book {
     id: number
     userId: number
@@ -100,8 +100,9 @@ export interface Book {
     year: number
     private: boolean
     language: string
-    tags: {id: number, name: string}[]
-    publisher: {id: number, name: string}
+    tags: { id: number, name: string }[]
+    publisher: { id: number, name: string }
+    bookshelves?: { id: number, name: string, private: boolean }[]
 }
 
 export interface BookWithDesc extends Book {
@@ -116,7 +117,7 @@ export interface BookDetail extends Book {
 
 export interface BookWithReadPages extends Book {
     readPages: number
-    lastTimeRead: string|null
+    lastTimeRead: string | null
 }
 
 
@@ -128,6 +129,6 @@ export interface PaginatedBookResult {
     perPage: number
 }
 
-export interface BookWithReadPagesPaginatedResult extends PaginatedBookResult{
+export interface BookWithReadPagesPaginatedResult extends PaginatedBookResult {
     books: BookWithReadPages[],
 }
