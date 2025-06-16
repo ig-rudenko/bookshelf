@@ -3,7 +3,7 @@ import api from "@/services/api.ts";
 export interface EditBookshelf {
     name: string
     description: string
-    books: number[]
+    books: { id: number; preview: string }[]
 }
 
 export interface Bookshelf extends EditBookshelf {
@@ -44,13 +44,21 @@ class BookshelvesService {
     }
 
     async createBookshelf(data: EditBookshelf): Promise<Bookshelf> {
-        let value = await api.post("/bookshelf", data);
+        let value = await api.post("/bookshelf", this.createBookshelfData(data));
         return value.data;
     }
 
     async updateBookshelf(id: number | string, data: EditBookshelf): Promise<Bookshelf> {
-        let value = await api.put("/bookshelf/" + id, data);
+        let value = await api.put("/bookshelf/" + id, this.createBookshelfData(data));
         return value.data;
+    }
+    
+    private createBookshelfData(data: EditBookshelf) {
+        return {
+            name: data.name,
+            description: data.description,
+            books: data.books.map(b => b.id)
+        }
     }
 
     deleteBookshelf(id: number | string) {

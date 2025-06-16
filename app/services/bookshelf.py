@@ -10,11 +10,14 @@ from app.schemas.bookshelf import (
     CreateUpdateBookshelfSchema,
     BookshelfSchema,
     BookshelfSchemaSchemaPaginated,
+    BookshelfOneBookSchema,
 )
 from .books import get_book
 from .paginator import paginate
+from .thumbnail import get_thumbnail
 from ..crud.base import query_count
-from ..models import Bookshelf, BookshelfBookAssociation
+from ..media_storage.media import get_media_url
+from ..models import Bookshelf, BookshelfBookAssociation, Book
 
 _QT = TypeVar("_QT", bound=Select)
 
@@ -26,12 +29,34 @@ class QueryParams(TypedDict):
 
 
 def _filter_bookselves_query_by_params(query: _QT, query_params: QueryParams) -> _QT:
+    """
+    Фильтрует запрос по параметрам запроса query_params.
+    """
     if query_params["search"]:
         query = query.where(
             Bookshelf.name.ilike(f'%{query_params["search"]}%')
             | Bookshelf.description.ilike(f'%{query_params["search"]}%')
         )
     return query
+
+
+def _get_bookshelf_schema(data) -> BookshelfSchema:
+    """
+    Возвращает книгу в формате :class:`BookshelfSchema` по данным из БД.
+    """
+    return BookshelfSchema(
+        id=data.id,
+        name=data.name,
+        user_id=data.user_id,
+        description=data.description,
+        created_at=data.created_at,
+        books=[
+            BookshelfOneBookSchema(
+                id=book["book_id"], preview=get_media_url(get_thumbnail(book["preview_image"], "medium"))
+            )
+            for book in data.books_info
+        ],
+    )
 
 
 async def _get_paginated_bookshelves(
@@ -45,19 +70,13 @@ async def _get_paginated_bookshelves(
     :return:
     """
     query = paginate(query, page=paginator["page"], per_page=paginator["per_page"])
+    print(query)
     res = await session.execute(query)
     count = await query_count(query, session)
-    bookshelves = [
-        BookshelfSchema(
-            id=row.id,
-            name=row.name,
-            user_id=row.user_id,
-            description=row.description,
-            created_at=row.created_at,
-            books=[book_id for book_id in row.book_ids if book_id],
-        )
-        for row in res.fetchall()
-    ]
+
+    result = list(res)
+    print(result)
+    bookshelves = [_get_bookshelf_schema(row) for row in result]
 
     return BookshelfSchemaSchemaPaginated(
         bookshelves=bookshelves,
@@ -69,6 +88,9 @@ async def _get_paginated_bookshelves(
 
 
 def _get_bookshelf_query() -> Select:
+    """
+    Возвращает запрос к БД для получения списка книжных полок.
+    """
     return (
         select(
             Bookshelf.id,
@@ -76,31 +98,39 @@ def _get_bookshelf_query() -> Select:
             Bookshelf.user_id,
             Bookshelf.description,
             Bookshelf.created_at,
-            func.array_agg(BookshelfBookAssociation.book_id).label("book_ids"),
+            func.array_agg(
+                func.json_build_object("book_id", Book.id, "preview_image", Book.preview_image)
+            ).label("books_info"),
         )
         .join(  # Левое соединение, если книжная полка без книг
             BookshelfBookAssociation, Bookshelf.id == BookshelfBookAssociation.bookshelf_id, isouter=True
         )
+        .join(Book, Book.id == BookshelfBookAssociation.book_id, isouter=True)
         .group_by(Bookshelf.id)
     )
 
 
 async def get_bookshelf(session: AsyncSession, bookshelf_id: int) -> BookshelfSchema:
+    """
+    Возвращает книжную полку по ID.
+    :param session: :class:`AsyncSession` объект сессии.
+    :param bookshelf_id: ID книжной полки.
+    :return: :class:`BookshelfSchema`
+    """
     query = _get_bookshelf_query().where(Bookshelf.id == bookshelf_id)
     result = (await session.execute(query)).one_or_none()
     if result is None:
         raise HTTPException(status_code=404, detail=f"Книжная полка с ID '{bookshelf_id}' не найдена")
-    return BookshelfSchema(
-        id=result.id,
-        name=result.name,
-        description=result.description,
-        user_id=result.user_id,
-        created_at=result.created_at,
-        books=result.book_ids,
-    )
+    return _get_bookshelf_schema(result)
 
 
 async def get_filtered_bookshelves(session: AsyncSession, query_params: QueryParams):
+    """
+    Возвращает список книжных полок по параметрам запроса query_params.
+    :param session: :class:`AsyncSession` объект сессии.
+    :param query_params: Параметры запроса.
+    :return: :class:`BookshelfSchemaSchemaPaginated`
+    """
     query = _get_bookshelf_query()
     query = _filter_bookselves_query_by_params(query, query_params)
     return await _get_paginated_bookshelves(session, query, query_params)
@@ -109,6 +139,14 @@ async def get_filtered_bookshelves(session: AsyncSession, query_params: QueryPar
 async def create_bookshelf(
     session: AsyncSession, user_id: int, bookshelf_schema: CreateUpdateBookshelfSchema
 ) -> BookshelfSchema:
+    """
+    Создает книжную полку.
+    :param session: :class:`AsyncSession` объект сессии.
+    :param user_id: ID пользователя.
+    :param bookshelf_schema: :class:`CreateUpdateBookshelfSchema` с данными для создания книжной полки.
+    :return: :class:`BookshelfSchema`.
+    :raises: HTTPException если недостаточно прав для выполнения операции.
+    """
 
     books = [await get_book(session, book_id) for book_id in bookshelf_schema.books]
 
@@ -137,13 +175,28 @@ async def create_bookshelf(
         description=bookshelf.description,
         user_id=bookshelf.user_id,
         created_at=bookshelf.created_at,
-        books=bookshelf_schema.books,
+        books=[
+            BookshelfOneBookSchema(
+                id=book.id,
+                preview=get_media_url(get_thumbnail(book.preview_image, "medium")),
+            )
+            for book in books
+        ],
     )
 
 
 async def update_bookshelf(
     session: AsyncSession, bookshelf_id: int, user_id: int, bookshelf_schema: CreateUpdateBookshelfSchema
 ) -> CreateUpdateBookshelfSchema:
+    """
+    Обновляет книжную полку.
+    :param session: :class:`AsyncSession` объект сессии.
+    :param bookshelf_id: ID книжной полки.
+    :param user_id: ID пользователя.
+    :param bookshelf_schema: :class:`CreateUpdateBookshelfSchema` с данными для обновления книжной полки.
+    :return: :class:`CreateUpdateBookshelfSchema`
+    :raises: HTTPException если книжная полка не найдена, если недостаточно прав для выполнения операции.
+    """
     # Получение книжной полки по ID
     result = await session.execute(
         select(Bookshelf).where(Bookshelf.id == bookshelf_id).options(selectinload(Bookshelf.books))
@@ -181,7 +234,14 @@ async def update_bookshelf(
     return bookshelf_schema
 
 
-async def delete_bookshelf(session: AsyncSession, bookshelf_id: int):
+async def delete_bookshelf(session: AsyncSession, bookshelf_id: int) -> None:
+    """
+    Удаляет книжную полку.
+    :param session: :class:`AsyncSession` объект сессии.
+    :param bookshelf_id: ID книжной полки.
+    :return: None
+    :raises: HTTPException если книжная полка не найдена.
+    """
     # Поиск книжной полки по ID
     query = select(Bookshelf).where(Bookshelf.id == bookshelf_id)
     bookshelf = (await session.execute(query)).scalar_one_or_none()

@@ -21,7 +21,7 @@
     <div class="pl-5">{{ bookshelf.description }}</div>
 
     <div :id="'bookshelf-'+bookshelf.id">
-      <BookshelfImages @maximize="processMaximizeChange" @click:book="showBookPage" :booksID="bookshelf.books"/>
+      <BookshelfImages @maximize="processMaximizeChange" @click:book="showBookPage" :books="bookshelf.books"/>
     </div>
 
   </div>

@@ -10,7 +10,7 @@
        :class="{'!gap-x-1 md:!gap-x-3 items-baseline gap-y-4': compactView}">
     <template v-if="results && !loadingBooks">
       <BookCard
-          @click:book="book_id => $emit('click:book', book_id)"
+          @click:book="book => $emit('click:book', book)"
           @select:tag="selectTag"
           @select:publisher="selectPublisher"
           v-for="(book, index) in results.books" :key="index"

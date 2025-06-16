@@ -6,7 +6,7 @@
   >
     <div v-if="showImage" class="border-r-1 h-full flex items-center border-gray-400 dark:border-gray-600"
          :class="{ 'border-none': compactView}">
-      <img @click="$emit('click:book', book.id)" :src="book.previewImage"
+      <img @click="$emit('click:book', book)" :src="book.previewImage"
            class="max-h-[250px] max-w-[150px] sm:max-h-[300px] sm:max-w-[200px] md:max-h-[400px] md:max-w-[300px] w-[15.9rem] rounded-l-xl cursor-pointer"
            :class="{ 'rounded-xl border-1 hover:shadow-xl border-gray-400 dark:border-gray-600': compactView, ...imageClasses}"
            alt="book"/>

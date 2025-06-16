@@ -26,11 +26,12 @@
   </div>
 
   <div class="relative mx-auto" v-if="form.books.length">
-    <BookshelfImages :booksID="form.books" @click:book="bookID => removeElement(form.books, bookID)"/>
+    <BookshelfImages :books="form.books" @click:book="book => removeBookByID(book.id)"/>
   </div>
 
   <div>
-    <FullSearchBooks @click:book="bookID => addElement(form.books, bookID)" :initial-per-page="10"
+    <FullSearchBooks @click:book="book => addElement(form.books, {id: book.id, preview: book.previewImage})"
+                     :initial-per-page="10"
                      :auth-scroll-to-search-block="false"
                      :initial-compact-view="true"/>
   </div>
@@ -102,7 +103,9 @@ export default defineComponent({
               if (data.userId !== this.user.id) {
                 this.formError = "У вас нет прав радактировать данную книжную полку"
               } else {
+                console.log(data.books.map(b => b.id))
                 this.form = data;
+                console.log(this.form)
               }
             }
         ).catch(
@@ -159,6 +162,10 @@ export default defineComponent({
         }
       }
       return data
+    },
+
+    removeBookByID(book_id: number) {
+      this.form.books.splice(this.form.books.findIndex(b => b.id === book_id), 1)
     },
 
     addElement<T>(array: T[], element: T) {

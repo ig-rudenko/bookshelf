@@ -15,13 +15,13 @@
     </div>
   </div>
 
-  <div v-if="booksID.length" class="p-5 my-4 bookshelf relative" :style="bookshelfStyle">
+  <div v-if="books.length" class="p-5 my-4 bookshelf relative" :style="bookshelfStyle">
 
     <!--Обложки книг-->
-    <div v-for="id in booksID" :key="id" class="inline-block relative book-block" :style="bookBlockStyle">
-      <div class="absolute image-block flex flex-row" @mouseover="getBook(id)">
+    <div v-for="book in books" :key="book.id" class="inline-block relative book-block" :style="bookBlockStyle">
+      <div class="absolute image-block flex flex-row" @mouseover="getBook(book.id)">
         <!--Картинка книги-->
-        <img @click="$emit('click:book', id)" :src="`/media/previews/${id}/preview_thumb_medium.png`"
+        <img @click="$emit('click:book', book)" :src="book.preview"
              class="book-image" :style="bookImageStyle" alt="book-preview"/>
 
         <!--Описание книги-->
@@ -46,7 +46,7 @@ export default defineComponent({
   name: "BookshelfImages",
   components: {BookCard},
   props: {
-    booksID: {required: true, type: Object as PropType<number[]>},
+    books: {required: true, type: Object as PropType<{ id: number, preview: string }[]>},
   },
   emits: ["click:book", "maximize"],
   data() {
