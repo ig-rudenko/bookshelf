@@ -16,8 +16,8 @@ router = APIRouter(prefix="/users")
 
 def users_query_params(
     paginator: dict = Depends(paginator_query),
-    sort_by: str = Query("id", description="Сортировка", alias="sort"),
-    sort_order: str = Query("asc", description="Направление сортировки", alias="order"),
+    sort_by: str = Query("id", description="Сортировка", alias="sort-by"),
+    sort_order: str = Query("asc", description="Направление сортировки", alias="sort-order"),
 ):
     available_sort_fields = {
         "id": "id",
