@@ -109,7 +109,7 @@ async def set_file(session: AsyncSession, file: UploadFile, book: Book):
     :param book: Объект книги.
     """
     storage = get_storage()
-    book.file = await storage.upload_book(file, book.id)
+    book.file = (await storage.upload_book(file, book.id))[:512]
     book.size = file.size or 0
     await book.save(session)
 
