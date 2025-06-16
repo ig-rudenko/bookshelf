@@ -52,7 +52,7 @@ class BookshelvesService {
         let value = await api.put("/bookshelf/" + id, this.createBookshelfData(data));
         return value.data;
     }
-    
+
     private createBookshelfData(data: EditBookshelf) {
         return {
             name: data.name,
