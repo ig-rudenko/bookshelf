@@ -17,7 +17,7 @@ from .paginator import paginate
 from .thumbnail import get_thumbnail
 from ..crud.base import query_count
 from ..media_storage.media import get_media_url
-from ..models import Bookshelf, BookshelfBookAssociation, Book
+from ..models import Bookshelf, Book
 
 _QT = TypeVar("_QT", bound=Select)
 
@@ -52,7 +52,8 @@ def _get_bookshelf_schema(data) -> BookshelfSchema:
         created_at=data.created_at,
         books=[
             BookshelfOneBookSchema(
-                id=book["book_id"], preview=get_media_url(get_thumbnail(book["preview_image"], "medium"))
+                id=book.get("book_id") or 0,
+                preview=get_media_url(get_thumbnail(book["preview_image"], "medium")),
             )
             for book in data.books_info
         ],
@@ -102,10 +103,7 @@ def _get_bookshelf_query() -> Select:
                 func.json_build_object("book_id", Book.id, "preview_image", Book.preview_image)
             ).label("books_info"),
         )
-        .join(  # Левое соединение, если книжная полка без книг
-            BookshelfBookAssociation, Bookshelf.id == BookshelfBookAssociation.bookshelf_id, isouter=True
-        )
-        .join(Book, Book.id == BookshelfBookAssociation.book_id, isouter=True)
+        .outerjoin(Bookshelf.books)
         .group_by(Bookshelf.id)
     )
 
@@ -154,12 +152,9 @@ async def create_bookshelf(
         name=bookshelf_schema.name,
         description=bookshelf_schema.description,
         user_id=user_id,
-        books=[],
+        books=books,
     )
     session.add(bookshelf)
-
-    # Привязываем книги к книжной полке
-    bookshelf.books.extend(books)
 
     # Применяем изменения
     try:
@@ -218,9 +213,9 @@ async def update_bookshelf(
 
     # Обновление связи между книжной полкой и книгами
     for book in set(books) | set(bookshelf.books):
-        if book in books:
+        if book in books and book not in bookshelf.books:
             bookshelf.books.append(book)
-        else:
+        if book not in books:
             bookshelf.books.remove(book)
 
     # Применение изменений

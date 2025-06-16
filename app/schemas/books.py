@@ -57,6 +57,11 @@ class BookSchemaWithDesc(BookSchema):
     description: str
 
 
+class BookshelfLinkSchema(CamelSerializerModel):
+    id: int
+    name: str
+
+
 class BookSchemaDetail(BookSchema):
     """
     Схема для представления информации о книге с описанием,
@@ -66,6 +71,7 @@ class BookSchemaDetail(BookSchema):
     description: str
     favorite: bool = Field(False)
     read: bool = Field(False)
+    bookshelves: list[BookshelfLinkSchema] = Field(default_factory=list)
 
 
 class BooksSchemaPaginated(CamelSerializerModel):

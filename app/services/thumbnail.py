@@ -10,7 +10,7 @@ thumbnail_sizes = {"small": (160, 240), "medium": (260, 380)}
 
 def get_thumbnail(image: str, size_name: Literal["small", "medium"]) -> str:
     """Возвращает thumbnail для переданного изображения и размера thumbnail."""
-    return image.replace(".png", f"_thumb_{size_name}.png")
+    return str(image).replace(".png", f"_thumb_{size_name}.png")
 
 
 async def create_thumbnails(storage: AbstractStorage, original_image: str) -> None:

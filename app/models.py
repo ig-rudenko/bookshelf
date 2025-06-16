@@ -100,7 +100,7 @@ class Book(OrmBase, Manager):
 
     # Define relationship to Tag using the association table
     tags = relationship("Tag", secondary=book_tag_association, back_populates="books", lazy="joined")
-    bookshelves: Mapped["Bookshelf"] = relationship(
+    bookshelves: Mapped[list["Bookshelf"]] = relationship(
         "Bookshelf", secondary="bookshelf_book_association", back_populates="books", lazy="select"
     )
     # Define relationship to Publisher, User

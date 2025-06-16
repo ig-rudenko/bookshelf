@@ -19,10 +19,20 @@ from app.models import (
     UserData,
     favorite_books_association,
     books_read_association,
+    Bookshelf,
+    BookshelfBookAssociation,
 )
 from app.orm.query_formats import filter_books_by_user
 from app.orm.session_manager import scoped_session
-from app.schemas.books import BookSchema, BooksSchemaPaginated, BookSchemaDetail, CreateBookSchema
+from app.schemas.books import (
+    BookSchema,
+    BooksSchemaPaginated,
+    BookSchemaDetail,
+    CreateBookSchema,
+    BookshelfLinkSchema,
+    PublisherSchema,
+    TagSchema,
+)
 from app.services.cache import get_cache
 from app.services.cache.deco import cached
 from app.services.paginator import paginate
@@ -215,8 +225,38 @@ async def get_book_detail(session: AsyncSession, book_id: int, user_id: int | No
     """
     try:
         query = (
-            select(Book, favorite_books_association.columns.id, books_read_association.columns.id)
+            select(
+                Book.id,
+                Book.title,
+                Book.user_id,
+                Book.preview_image,
+                Book.authors,
+                Book.description,
+                Book.pages,
+                Book.size,
+                Book.year,
+                Book.private,
+                Book.language,
+                Publisher.id.label("publisher_id"),
+                Publisher.name.label("publisher_name"),
+                func.json_agg(func.json_build_object("id", Tag.id, "name", Tag.name)).label("tags"),
+                func.bool(favorite_books_association.c.id).label("is_favorite"),
+                func.bool(books_read_association.c.id).label("is_read"),
+                func.json_agg(func.json_build_object("id", Bookshelf.id, "name", Bookshelf.name)).label(
+                    "bookshelf_info"
+                ),
+            )
             .where(Book.id == book_id)
+            .outerjoin(Book.publisher)
+            .outerjoin(Book.tags)
+            .outerjoin(
+                BookshelfBookAssociation,
+                BookshelfBookAssociation.book_id == Book.id,
+            )
+            .outerjoin(
+                Bookshelf,
+                Bookshelf.id == BookshelfBookAssociation.bookshelf_id,
+            )
             .outerjoin(
                 favorite_books_association,
                 (
@@ -227,23 +267,55 @@ async def get_book_detail(session: AsyncSession, book_id: int, user_id: int | No
             .outerjoin(
                 books_read_association,
                 (
-                    (Book.id == books_read_association.columns.book_id)
-                    & (books_read_association.columns.user_id == user_id)
+                    (Book.id == books_read_association.c.book_id)
+                    & (books_read_association.c.user_id == user_id)
                 ),
+            )
+            .group_by(
+                Book.id,
+                Publisher.id,
+                favorite_books_association.c.id,
+                books_read_association.c.id,
             )
         )
         query = filter_books_by_user(query, user_id)
 
         result = await session.execute(query)
-        result.unique()
-
         data = result.one()
-        schema = BookSchemaDetail.model_validate(data[0])
-        schema.favorite = data[1] is not None
-        schema.read = data[2] is not None
-
-        schema.preview_image = get_media_url(schema.preview_image)
-
+        schema = BookSchemaDetail(
+            id=data.id,
+            title=data.title,
+            user_id=data.user_id,
+            preview_image=get_media_url(data.preview_image),
+            authors=data.authors,
+            description=data.description,
+            pages=data.pages,
+            size=data.size,
+            year=data.year,
+            private=data.private,
+            language=data.language,
+            favorite=bool(data.is_favorite),
+            read=bool(data.is_read),
+            publisher=PublisherSchema(
+                id=data.publisher_id,
+                name=data.publisher_name,
+            ),
+            tags=[
+                TagSchema(
+                    id=tag_info["id"],
+                    name=tag_info["name"],
+                )
+                for tag_info in data.tags
+            ],
+            bookshelves=[
+                BookshelfLinkSchema(
+                    id=bookshelf_info["id"],
+                    name=bookshelf_info["name"],
+                )
+                for bookshelf_info in data.bookshelf_info
+                if bookshelf_info["id"]
+            ],
+        )
         return schema
 
     except NoResultFound:
