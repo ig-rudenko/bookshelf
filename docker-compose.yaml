@@ -1,7 +1,7 @@
 services:
 
   nginx:
-    image: bookshelf-nginx:0.4
+    image: bookshelf-nginx:0.7.3
     build: frontend
     restart: always
     logging: &logging
@@ -26,7 +26,7 @@ services:
 
   api-1: &backend
     build: .
-    image: bookshelf:0.7.1
+    image: bookshelf:0.7.3
     command: /bin/sh run.sh
     restart: always
     logging: *logging
@@ -48,7 +48,7 @@ services:
 
   index-meta-proxy:
     build: index-meta-proxy
-    image: bookshelf-index-meta-proxy:0.4
+    image: bookshelf-index-meta-proxy:0.7.3
     restart: always
     logging: *logging
     environment:
@@ -74,7 +74,7 @@ services:
       - backend
 
   redis:
-    image: redis:7.2.4-alpine
+    image: redis:8.0-alpine
     restart: always
     logging: *logging
     networks:
@@ -98,7 +98,7 @@ services:
       - backend
 
   pgadmin-balancer:
-    image: nginx:1.25.4-alpine
+    image: nginx:1.28.0-alpine
     restart: always
     logging: *logging
     ports:
