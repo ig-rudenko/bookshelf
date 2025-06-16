@@ -34,7 +34,7 @@ class UsersService {
             params = {
                 ...params,
                 "sort-by": sortBy,
-                "sort-direction": sortDirection > 0 ? "asc" : "desc",
+                "sort-order": sortDirection > 0 ? "asc" : "desc",
             }
         }
 
