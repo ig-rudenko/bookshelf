@@ -70,10 +70,8 @@ import TimeAgo from 'javascript-time-ago'
 import ru from 'javascript-time-ago/locale/ru'
 
 import BookCard from "@/components/BookCard.vue";
-import SearchBookForm from "@/components/SearchBookForm.vue";
 
-import BookViewStats from "@/components/BookViewStats.vue";
-import {BookWithReadPages, BookWithReadPagesPaginatedResult} from "@/books";
+import {Book, BookWithReadPages, BookWithReadPagesPaginatedResult} from "@/books";
 import {FilterBook} from "@/filters";
 import api from "@/services/api";
 import {getReadPagesCountColor} from "@/formatter.ts";
@@ -81,7 +79,7 @@ import {getReadPagesCountColor} from "@/formatter.ts";
 
 export default defineComponent({
   name: "ReadBooks",
-  components: {BookViewStats, SearchBookForm, BookCard},
+  components: {BookCard},
   props: {
     userID: {type: Number, required: false, default: false}
   },
@@ -105,8 +103,8 @@ export default defineComponent({
   },
   methods: {
     getReadPagesCountColor,
-    showBook(bookID: number) {
-      document.location.href = `/book/${bookID}`;
+    showBook(book: Book) {
+      document.location.href = `/book/${book.id}`;
     },
 
     getBooksList(page: number) {
@@ -114,7 +112,7 @@ export default defineComponent({
       if (this.userID) {
         url = "/admin/users/" + this.userID + "/last-viewed"
       } else {
-        url = "/bookmarks/last-viewed"
+        url = "/books/last-viewed"
       }
       let urlParams = `?page=${page}`;
       api.get(url + urlParams)

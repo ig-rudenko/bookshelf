@@ -39,13 +39,13 @@
 <script lang="ts">
 import {defineComponent, PropType} from 'vue';
 import bookshelvesService, {Bookshelf} from "@/services/bookshelves.ts";
-import BookCard from "@/components/BookCard.vue";
 import BookshelfImages from "@/components/BookshelfImages.vue";
 import {mapState} from "vuex";
+import {Book} from "@/books.ts";
 
 export default defineComponent({
   name: "BookshelfRow",
-  components: {BookshelfImages, BookCard},
+  components: {BookshelfImages},
   props: {
     bookshelf: {required: true, type: Object as PropType<Bookshelf>},
   },
@@ -62,8 +62,8 @@ export default defineComponent({
     }),
   },
   methods: {
-    showBookPage(bookID: number): void {
-      location.href = "/book/" + bookID
+    showBookPage(book: Book): void {
+      location.href = '/book/' + book.id
     },
     goToEditBookshelfPage() {
       location.href = '/bookshelves/' + this.bookshelf.id + '/edit'

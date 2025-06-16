@@ -49,7 +49,7 @@ import {mapState} from "vuex";
 import BookCard from "@/components/BookCard.vue";
 
 import SearchBookForm from "@/components/SearchBookForm.vue";
-import {PaginatedBookResult} from "@/books";
+import {Book, PaginatedBookResult} from "@/books";
 import {FilterBook} from "@/filters";
 import api from "@/services/api";
 
@@ -78,8 +78,8 @@ export default defineComponent({
     }),
   },
   methods: {
-    showBook(bookID: number) {
-      document.location.href = `/book/${bookID}`;
+    showBook(book: Book) {
+      document.location.href = `/book/${book.id}`;
     },
     getBooksList(page: number) {
       let url

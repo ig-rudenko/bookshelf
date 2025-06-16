@@ -34,16 +34,15 @@ const beforeEnter = (to: RouteLocationNormalized, _: RouteLocationNormalized, ne
 }
 
 const routes: RouteRecordRaw[] = [
-    {path: "/", component: Home},
-    {path: "/login", component: Login},
-    {path: "/signup", component: Register},
-    {path: "/forgot-password", component: ForgotPassword},
-    {path: "/reset-password/:token", component: ResetPassword},
-    {path: "/favorites", component: Favorites},
-    {path: "/read", component: ReadBooks},
-    {path: "/last-viewed", component: LastViewed},
-    {path: "/create-book", component: CreateBook},
-    {path: "/bookshelves", component: Bookshelves},
+    {path: "/", component: Home, name: "home"},
+    {path: "/login", component: Login, name: "login"},
+    {path: "/signup", component: Register, name: "register"},
+    {path: "/forgot-password", component: ForgotPassword, name: "forgotPassword"},
+    {path: "/reset-password/:token", component: ResetPassword, name: "resetPassword"},
+    {path: "/favorites", component: Favorites, name: "favorites"},
+    {path: "/read", component: ReadBooks, name: "readBooks"},
+    {path: "/last-viewed", component: LastViewed, name: "lastViewed"},
+    {path: "/create-book", component: CreateBook, name: "createBook"},
     {
         path: "/admin",
         component: AllUsers,
@@ -51,11 +50,12 @@ const routes: RouteRecordRaw[] = [
             {path: "/admin/users", component: AllUsers},
         ]
     },
-    {path: "/bookshelves/create", component: CreateUpdateBookshelf},
-    {path: "/bookshelves/:id/edit", component: CreateUpdateBookshelf},
-    {path: "/book/:id", component: BookPage, beforeEnter: beforeEnter},
-    {path: "/book/:id/edit", component: UpdateBook, beforeEnter: beforeEnter},
-    {path: "/book/:id/show", component: ShowBook, beforeEnter: beforeEnter},
+    {path: "/bookshelves", component: Bookshelves, name: "bookshelves"},
+    {path: "/bookshelves/create", component: CreateUpdateBookshelf, name: "createBookshelf"},
+    {path: "/bookshelves/:id/edit", component: CreateUpdateBookshelf, name: "editBookshelf"},
+    {path: "/book/:id", component: BookPage, beforeEnter: beforeEnter, name: "book"},
+    {path: "/book/:id/edit", component: UpdateBook, beforeEnter: beforeEnter, name: "editBook"},
+    {path: "/book/:id/show", component: ShowBook, beforeEnter: beforeEnter, name: "showBook"},
 ]
 
 const router: Router = createRouter({

@@ -2,8 +2,7 @@
 
   <div
       class="flex md:flex-wrap border-gray-400 dark:border-gray-600 rounded-xl shadow-md hover:shadow-xl items-center relative"
-      :class="{'w-full md:w-[45rem] border-1': !compactView}"
-  >
+      :class="{'w-full md:w-[45rem] border-1': !compactView}">
     <div v-if="showImage" class="border-r-1 h-full flex items-center border-gray-400 dark:border-gray-600"
          :class="{ 'border-none': compactView}">
       <img @click="$emit('click:book', book)" :src="book.previewImage"

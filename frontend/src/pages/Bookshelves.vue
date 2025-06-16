@@ -41,12 +41,11 @@ import {defineComponent} from 'vue';
 import SearchBookForm from "@/components/SearchBookForm.vue";
 import bookshelvesService, {PaginatedBookshelvesResult} from "@/services/bookshelves.ts";
 import BookshelfRow from "@/components/BookshelfRow.vue";
-import BookCard from "@/components/BookCard.vue";
 import {mapState} from "vuex";
 
 export default defineComponent({
   name: "Bookshelves",
-  components: {BookCard, BookshelfRow, SearchBookForm},
+  components: {BookshelfRow, SearchBookForm},
   data() {
     return {
       search: this.$route.query.search?.toString() || "",

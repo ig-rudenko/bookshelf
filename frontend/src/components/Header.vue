@@ -188,13 +188,13 @@ export default defineComponent({
               {
                 label: "Популярные направления",
                 items: [
-                  {label: "DevOps", param: "tags"},
-                  {label: "Архитектура", param: "tags"},
-                  {label: "Микросервисы", param: "tags"},
-                  {label: "Контейнеризация", param: "tags"},
-                  {label: "Databases", param: "tags"},
-                  {label: "Machine Learning", param: "tags"},
-                  {label: "Cloud Native", param: "tags"},
+                  {label: "⚙️ DevOps", param: "tags"},
+                  {label: "⚒️ Архитектура", param: "tags"},
+                  {label: "💠 Микросервисы", param: "tags"},
+                  {label: "📦 Контейнеризация", param: "tags"},
+                  {label: "📚 Databases", param: "tags"},
+                  {label: "🤖 Machine Learning", param: "tags"},
+                  {label: "☁️ Cloud Native", param: "tags"},
                 ]
               }
             ],
