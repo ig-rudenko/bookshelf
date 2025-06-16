@@ -49,7 +49,7 @@
         <span @click="downloadBook" class="cursor-pointer hover:text-purple-400"><i class="pi pi-download mx-2"/>Загрузить</span>
       </div>
       <div class="m-2 chips">
-        <a :href="'/?tags='+tag.name" v-for="(tag, index) in book.tags">
+        <a :href="'/?tags='+encodeURIComponent(tag.name)" v-for="(tag, index) in book.tags">
           <Badge v-tooltip.bottom="'Найти похожие'" size="large" class="m-1" icon="pi pi-tag" :key="index">
             {{ tag.name }}
           </Badge>

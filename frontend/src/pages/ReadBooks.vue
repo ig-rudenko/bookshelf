@@ -104,10 +104,10 @@ export default defineComponent({
     },
 
     filterBooksByPublisher(publisher: string) {
-      document.location.href = "/?publisher=" + publisher;
+      document.location.href = "/?publisher=" + encodeURIComponent(publisher);
     },
     filterBooksByTag(tag: string) {
-      document.location.href = "/?tags=" + tag;
+      document.location.href = "/?tags=" + encodeURIComponent(tag);
     },
 
   }

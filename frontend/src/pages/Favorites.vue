@@ -95,10 +95,10 @@ export default defineComponent({
           .then((value: AxiosResponse<PaginatedBookResult>) => this.result = value.data)
     },
     filterBooksByPublisher(publisher: string) {
-      document.location.href = "/?publisher=" + publisher;
+      document.location.href = "/?publisher=" + encodeURIComponent(publisher);
     },
     filterBooksByTag(tag: string) {
-      document.location.href = "/?tags=" + tag;
+      document.location.href = "/?tags=" + encodeURIComponent(tag);
     },
 
   }
