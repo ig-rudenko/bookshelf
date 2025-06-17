@@ -15,18 +15,21 @@
           <i v-if="item.items"
              :class="['pi pi-angle-down', { 'pi-angle-down ml-2': item.root, 'pi-angle-right ml-auto': !item.root }]"></i>
         </a>
-        <a v-else-if="item.param && !item.image" :href="'/?'+item.param+'='+item.label"
-           class="flex items-center cursor-pointer p-2 text-900 no-underline">
+        <!--Без изображения-->
+        <a v-else-if="item.param && !item.image && item.value"
+           class="flex items-center cursor-pointer p-2 text-900 no-underline"
+           :href="'/?'+item.param+'='+encodeURIComponent(item.value)">
           <i v-if="item.icon" :class="item.icon"></i>
           <span class="flex flex-col px-4">
             <span class="text-900">{{ item.label }}</span>
             <span v-if="item.subtext" class="white-space-nowrap">{{ item.subtext }}</span>
           </span>
         </a>
+        <!--С изображением-->
         <a v-else-if="item.param && item.image"
            class="p-1 flex flex-wrap flex-row items-center px-4 cursor-pointer text-900 no-underline"
-           :href="'/?'+item.param+'='+item.label">
-          <div class="p-1 px-3 rounded-md" :class="item.classes">
+           :href="'/?'+item.param+'='+(item.value || item.label)">
+          <div v-if="item.image" class="p-1 px-3 rounded-md" :class="item.classes">
             <img :src="item.image" class="h-[20px] md:h-[30px]" :alt="String(item.label)"/>
           </div>
           <span v-if="item.subtext" class="ml-2 text-lg">{{ item.subtext }}</span>
@@ -188,13 +191,13 @@ export default defineComponent({
               {
                 label: "Популярные направления",
                 items: [
-                  {label: "⚙️ DevOps", param: "tags"},
-                  {label: "⚒️ Архитектура", param: "tags"},
-                  {label: "💠 Микросервисы", param: "tags"},
-                  {label: "📦 Контейнеризация", param: "tags"},
-                  {label: "📚 Databases", param: "tags"},
-                  {label: "🤖 Machine Learning", param: "tags"},
-                  {label: "☁️ Cloud Native", param: "tags"},
+                  {label: "⚙️ DevOps", param: "tags", value: "DevOps"},
+                  {label: "⚒️ Архитектура", param: "tags", value: "Архитектура"},
+                  {label: "💠 Микросервисы", param: "tags", value: "Микросервисы"},
+                  {label: "📦 Контейнеризация", param: "tags", value: "Контейнеризация"},
+                  {label: "📚 Databases", param: "tags", value: "Databases"},
+                  {label: "🤖 Machine Learning", param: "tags", value: "Machine Learning"},
+                  {label: "☁️ Cloud Native", param: "tags", value: "Cloud Native"},
                 ]
               }
             ],
