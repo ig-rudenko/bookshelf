@@ -1,6 +1,9 @@
 <template>
   <div class="flex items-center mx-auto gap-3 w-full p-2 md:p-6">
-    <div class="sm:text-xl border-b-2 p-2"><i class="pi pi-book text-2xl mr-2"/>Книжные полки</div>
+    <a href="/bookshelves" class="sm:text-xl border-b-2 p-2 cursor-pointer">
+      <i class="pi pi-book text-2xl mr-2"/>
+      <span>Книжные полки</span>
+    </a>
     <a href="/bookshelves/create" v-if="loggedIn">
       <Button icon="pi pi-plus" link outlined size="small" severity="success"/>
     </a>

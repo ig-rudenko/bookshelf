@@ -1,7 +1,7 @@
 <template>
   <div class="my-2">
     <div class="flex items-center gap-1">
-      <div :id="'bookshelf-name-'+bookshelf.id" class="flex px-2 items-center text-xl">{{ bookshelf.name }}</div>
+      <div :id="'bookshelf-name-'+bookshelf.id" class="flex px-2 items-center text">{{ bookshelf.name }}</div>
 
       <Button v-tooltip.top="'Приватная'" v-if="bookshelf.private" severity="secondary" icon="pi pi-lock" size="small"
               outlined rounded/>
@@ -19,7 +19,7 @@
       </template>
     </div>
 
-    <div class="pl-5">{{ bookshelf.description }}</div>
+    <div class="pl-2 w-[90vw] text-sm">{{ bookshelf.description }}</div>
 
     <div :id="'bookshelf-'+bookshelf.id">
       <BookshelfImages @maximize="processMaximizeChange" @click:book="showBookPage" :books="bookshelf.books"/>

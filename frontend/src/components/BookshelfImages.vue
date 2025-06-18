@@ -21,13 +21,16 @@
     <div v-for="book in books" :key="book.id" class="inline-block relative book-block" :style="bookBlockStyle">
       <div class="absolute image-block flex flex-row" @mouseover="getBook(book.id)">
         <!--Картинка книги-->
-        <img @click="$emit('click:book', book)" :src="book.preview"
-             class="book-image" :style="bookImageStyle" alt="book-preview"/>
+        <div>
+          <img @click="$emit('click:book', book)"
+               :src="book.preview"
+               class="book-image" :style="bookImageStyle" alt="book-preview"/>
+        </div>
 
         <!--Описание книги-->
-        <div v-if="currentBook" class="book-detail" :class="isMobile?'absolute':''">
+        <div v-if="currentBook" class="book-detail scale-[0.92]" :class="isMobile?'absolute':''">
           <BookCard :book="currentBook" :show-image="false"
-                    class="bg-white dark:bg-surface-800 !shadow-none !max-w-[30rem] text-wrap"/>
+                    class="bg-white dark:bg-surface-800 !shadow-none !max-w-[25rem] text-wrap"/>
         </div>
       </div>
     </div>
@@ -72,7 +75,7 @@ export default defineComponent({
       if (this.maximize) {
         return {
           padding: "1rem",
-          width: "15rem !important",
+          width: "10rem !important",
           margin: "1rem !important",
         }
       }
@@ -133,29 +136,27 @@ export default defineComponent({
   white-space: nowrap;
   overflow-y: auto;
   border: none;
-  border-bottom: 10px solid var(--p-surface-700);
-  box-shadow: 1px 1px 5px var(--p-surface-700);
+  border-bottom: 5px solid var(--p-surface-700);
+  box-shadow: 1px 1px 4px var(--p-surface-700);
   border-radius: 10px;
 }
 
 .book-block {
-  min-height: 300px;
-  width: 10rem !important;
+  min-height: 230px;
+  width: 9rem !important;
 }
 
 
 .book-image {
   border-radius: .75rem !important;
-  max-height: 300px;
-  min-height: 300px;
-  max-width: 350px;
+  max-height: 230px;
+  min-height: 230px;
+  max-width: 250px;
   margin-top: 5px;
-  margin-right: 6px;
-  box-shadow: -10px -2px 2px #959595;
+  box-shadow: -6px -2px 2px #959595;
   border-left: 1px solid #959595;
   border-bottom: 1px solid #959595;
   cursor: pointer;
-  transform: rotate3d(1, 1, 1, -5deg);
 }
 
 /* При наведении на обложку поднимаем её на передний план */
@@ -166,7 +167,7 @@ export default defineComponent({
 /* Увеличение книги при наведении на обложку */
 .image-block:hover .book-image {
   transform: scale(1.15) !important;
-  box-shadow: 0 0 10px #121212;
+  box-shadow: 0 0 5px #121212;
 }
 
 
