@@ -226,10 +226,6 @@ export default defineComponent({
             }
         )
 
-        if (this.user?.isStaff) {
-          data.push({label: "Добавить книгу", icon: "pi pi-plus", href: "/create-book", root: true})
-        }
-
       } else {
         data.push(
             {
@@ -241,7 +237,7 @@ export default defineComponent({
         )
       }
 
-      if (this.user?.isSuperuser) {
+      if (this.user?.isSuperuser || this.user?.isStaff) {
         data.push(
             {
               label: "Админка",
@@ -255,12 +251,17 @@ export default defineComponent({
                     classes: ['bg-white'],
                     items: [
                       {
-                        label: "Все пользователи",
+                        label: "👥 Все пользователи",
                         href: "/admin/users",
                         classes: ['bg-white'],
                       },
+                      {
+                        label: "📗 Добавить книгу",
+                        href: "/create-book",
+                        classes: ['bg-white'],
+                      }
                     ]
-                  }
+                  },
                 ]
               ]
             }

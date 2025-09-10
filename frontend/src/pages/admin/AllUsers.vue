@@ -1,21 +1,18 @@
 <template>
-  <DataTable v-if="result" :value="result.results" @sort="sortUsers" scrollable class="text-sm sm:text-base"
+  <DataTable v-if="result" :value="result.results" @sort="sortUsers" scrollable class="text-xs sm:text-base"
+             :loading="!result" :default-sort-order="-1" sort-field="dateJoin" :sort-order="-1"
+             :size="'small'" selectionMode="single"
              removableSort>
-    <Column field="id" header="№">
-      <template #body="slotProps">
-        <span class="text-sm">{{ slotProps.index + 1 }}</span>
-      </template>
-    </Column>
     <Column :sortable="true" field="id" header="ID">
       <template #body="slotProps">
         <span class="text-sm">ID: {{ slotProps.data.id }}</span>
       </template>
     </Column>
-    <Column :sortable="true" field="username" header="Имя" :frozen="true">
+    <Column :sortable="true" field="username" header="Имя">
       <template #body="slotProps">
         <div class="flex items-center gap-2">
           <Avatar :image="getUserAvatar(slotProps.data.username)"/>
-          {{ slotProps.data.username }}
+          <div>{{ slotProps.data.username }}</div>
         </div>
       </template>
     </Column>
@@ -129,7 +126,7 @@ export default defineComponent({
   mounted() {
     document.title = this.title;
     if (!this.loggedIn || !this.user?.isSuperuser) this.$router.push("/login");
-    this.getUsers(1);
+    this.getUsers(1, "dateJoin", -1);
   },
   computed: {
     ...mapState({
@@ -139,11 +136,11 @@ export default defineComponent({
   },
   methods: {
     getUserAvatar,
-    getUsers(page: number) {
-      usersService.getAllUsersList(page, this.result?.perPage || this.defaultPerPage).then(data => this.result = data)
+    getUsers(page: number, sortField?: string, sortOrder?: number) {
+      usersService.getAllUsersList(page, this.result?.perPage || this.defaultPerPage, sortField, sortOrder).then(data => this.result = data)
     },
     sortUsers(event: any) {
-      if (!this.result || this.result.maxPages === 1) return;
+      if (!this.result) return;
       usersService.getAllUsersList(1, this.result.perPage, event.sortField, event.sortOrder).then(data => this.result = data)
     }
   }
