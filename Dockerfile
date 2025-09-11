@@ -1,4 +1,4 @@
-FROM python:3.13.2-slim AS builder
+FROM python:3.14.0rc1-slim AS builder
 
 ARG python_version=3.13
 
@@ -27,7 +27,7 @@ RUN --mount=type=cache,destination=/root/.cache/uv uv sync \
   --frozen
 
 
-FROM python:3.13.2-slim
+FROM python:3.14.0rc1-slim
 
 ARG user_id=1000
 ARG group_id=1000
