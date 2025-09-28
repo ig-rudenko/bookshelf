@@ -25,6 +25,8 @@ dependencies = [
     "aiohttp>=3.12.12,<4",
     "loguru>=0.7.3,<0.8",
     "aioboto3>=14.3.0,<15",
+    "pyjwt>=2.10.1",
+    "advanced-alchemy>=1.6.3",
 ]
 
 [dependency-groups]
