@@ -3,7 +3,7 @@ from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import func
 
-from src.domain.books.entities import Tag, Book, BookFilter, Publisher
+from src.domain.books.entities import Tag, Book, BookFilter, Publisher, BookmarksQueryFilter
 from src.domain.books.repository import BookRepository
 from src.infrastructure.db.exception_handler import wrap_sqlalchemy_exception
 from src.infrastructure.db.models import (
@@ -95,7 +95,7 @@ class SqlAlchemyBookRepository(BookRepository):
             book_model = self._to_model(book)
             self.session.add(book_model)
             book_model.tags = tags_models
-            await self.session.commit()
+            await self.session.flush()
             await self.session.refresh(book_model)
             return self._to_domain(book_model)
 
@@ -110,25 +110,25 @@ class SqlAlchemyBookRepository(BookRepository):
             book_model.tags = tags_models
             book_model.publisher_id = publisher_model.id
             self.session.add(book_model)
-            await self.session.commit()
+            await self.session.flush()
         return self._to_domain(book_model)
 
     async def delete(self, book_id: int) -> None:
         with wrap_sqlalchemy_exception(self._repo.dialect):
             await self._repo.delete(book_id)
 
-    async def get_favorite_books(self, user_id: int, page: int, page_size: int) -> tuple[list[Book], int]:
+    async def get_favorite_books(self, filter_: BookmarksQueryFilter) -> tuple[list[Book], int]:
         with wrap_sqlalchemy_exception(self._repo.dialect):
             query = (
                 select(BookModel)
                 .join(FavoriteBookModel)
                 .where(
                     FavoriteBookModel.book_id == BookModel.id,
-                    FavoriteBookModel.user_id == user_id,
+                    FavoriteBookModel.user_id == filter_.user_id,
                 )
                 .group_by(BookModel.id)
-                .limit(page_size)
-                .offset((page - 1) * page_size)
+                .limit(filter_.page_size)
+                .offset((filter_.page - 1) * filter_.page_size)
             )
             result, total = await self._repo.list_and_count(statement=query, uniquify=True)
             return result, total
@@ -149,7 +149,7 @@ class SqlAlchemyBookRepository(BookRepository):
                         FavoriteBookModel.user_id == user_id,
                     )
                 )
-            await self.session.commit()
+            await self.session.flush()
 
     async def get_favorite_books_count(self, user_id: int) -> int:
         with wrap_sqlalchemy_exception(self._repo.dialect):
@@ -175,18 +175,18 @@ class SqlAlchemyBookRepository(BookRepository):
             result = await self.session.execute(query)
             return bool(result.scalar_one_or_none())
 
-    async def get_read_books(self, user_id: int, page: int, page_size: int) -> tuple[list[Book], int]:
+    async def get_read_books(self, filter_: BookmarksQueryFilter) -> tuple[list[Book], int]:
         with wrap_sqlalchemy_exception(self._repo.dialect):
             query = (
                 select(BookModel)
                 .join(ReadBookModel)
                 .where(
                     ReadBookModel.book_id == BookModel.id,
-                    ReadBookModel.user_id == user_id,
+                    ReadBookModel.user_id == filter_.user_id,
                 )
                 .group_by(BookModel.id)
-                .limit(page_size)
-                .offset((page - 1) * page_size)
+                .limit(filter_.page_size)
+                .offset((filter_.page - 1) * filter_.page_size)
             )
             result, total = await self._repo.list_and_count(statement=query, uniquify=True)
             return result, total
@@ -207,7 +207,7 @@ class SqlAlchemyBookRepository(BookRepository):
                         ReadBookModel.user_id == user_id,
                     )
                 )
-            await self.session.commit()
+            await self.session.flush()
 
     async def get_read_books_count(self, user_id: int) -> int:
         with wrap_sqlalchemy_exception(self._repo.dialect):
@@ -259,6 +259,7 @@ class SqlAlchemyBookRepository(BookRepository):
     @staticmethod
     def _to_model(book: Book) -> BookModel:
         return BookModel(
+            id=book.id if book.id else None,
             user_id=book.user_id,
             publisher_id=book.publisher.id,
             title=book.title,
@@ -282,7 +283,7 @@ class SqlAlchemyBookRepository(BookRepository):
         if publisher is None:
             publisher = PublisherModel(name=publisher_name)
             self.session.add(publisher)
-            await self.session.refresh(publisher)
+            await self.session.flush()
         return publisher
 
     async def _get_or_create_tags(self, tags: list[str]) -> list[TagModel]:
@@ -296,5 +297,6 @@ class SqlAlchemyBookRepository(BookRepository):
                 tag = TagModel(name=tag_name)
             model_tags.append(tag)
         self.session.add_all(model_tags)
+        await self.session.flush()
 
         return model_tags

@@ -1,9 +1,14 @@
-from src.application.books.commands import CreateBookCommand, UpdateBookCommand
-from src.application.books.dto import BookDTO, DetailBookDTO, TagDTO, BookshelfLinkDTO
+from src.application.books.commands import (
+    CreateBookCommand,
+    UpdateBookCommand,
+    UpdateFavoriteCommand,
+    UpdateReadCommand,
+)
+from src.application.books.dto import BookDTO, DetailBookDTO, TagDTO, BookshelfLinkDTO, PublisherDTO
 from src.application.books.services import RecentBookService
 from src.application.services.storage import AbstractStorage, FileProtocol
 from src.application.services.task_manager import TaskManager
-from src.domain.books.entities import Book, BookFilter
+from src.domain.books.entities import Book, BookFilter, BookmarksQueryFilter
 from src.domain.bookshelves.entities import BookshelfFilter
 from src.domain.common.unit_of_work import UnitOfWork
 
@@ -70,7 +75,7 @@ class BookCommandHandler:
     async def handle_delete(self, book_id: int) -> None:
         async with self.uow:
             await self.uow.books.delete(book_id)
-            await self.uow.book_read_history.delete(book_id)
+            await self.uow.book_read_history.delete_for_book(book_id)
         await self.storage.delete_book(book_id)
         await self.recent_book_service.delete_recent_books_cache()
 
@@ -87,8 +92,8 @@ class BookQueryHandler:
     async def handle_get_book_detail(self, book_id: int, user_id: int) -> DetailBookDTO:
         async with self.uow:
             book = await self.uow.books.get_by_id(book_id)
-            is_read = await self.uow.books.is_read_by_user(user_id)
-            is_favorite = await self.uow.books.is_favorite_by_user(user_id)
+            is_read = await self.uow.books.is_read_by_user(book_id, user_id)
+            is_favorite = await self.uow.books.is_favorite_by_user(book_id, user_id)
             book_tags = await self.uow.books.get_book_tags(book_id)
             bookshelves, _ = await self.uow.bookshelves.get_filtered(
                 BookshelfFilter(book_id=book_id, page=1, page_size=10)
@@ -109,8 +114,10 @@ class BookQueryHandler:
             language=book.language,
             favorite=is_favorite,
             read=is_read,
-            publisher=book.publisher.name,
-            publisher_id=book.publisher.id,
+            publisher=PublisherDTO(
+                id=book.publisher.id,
+                name=book.publisher.name,
+            ),
             tags=[TagDTO(id=tag.id, name=tag.name) for tag in book_tags],
             bookshelves=[
                 BookshelfLinkDTO(
@@ -139,3 +146,51 @@ class BookQueryHandler:
             await self.recent_book_service.set_recent_books(cached_books, query)
 
         return cached_books
+
+
+class BookmarksCommandHandler:
+
+    def __init__(self, uow: UnitOfWork) -> None:
+        self.uow = uow
+
+    async def handle_update_book_favorite(self, cmd: UpdateFavoriteCommand) -> None:
+        async with self.uow:
+            await self.uow.books.update_favorite_status(
+                user_id=cmd.user_id,
+                book_id=cmd.book_id,
+                favorite=True,
+            )
+
+    async def handle_update_book_read(self, cmd: UpdateReadCommand) -> None:
+        async with self.uow:
+            await self.uow.books.update_read_status(
+                user_id=cmd.user_id,
+                book_id=cmd.book_id,
+                read=True,
+            )
+
+
+class BookmarksQueryHandler:
+
+    def __init__(self, uow: UnitOfWork) -> None:
+        self.uow = uow
+
+    async def handle_get_favorite_books(self, query: BookmarksQueryFilter) -> tuple[list[BookDTO], int]:
+        async with self.uow:
+            books, count = await self.uow.books.get_favorite_books(query)
+        return [BookDTO.from_domain(book) for book in books], count
+
+    async def handle_get_favorite_books_count(self, user_id: int) -> int:
+        async with self.uow:
+            count = await self.uow.books.get_favorite_books_count(user_id)
+            return count
+
+    async def handle_get_read_books(self, query: BookmarksQueryFilter) -> tuple[list[BookDTO], int]:
+        async with self.uow:
+            books, count = await self.uow.books.get_read_books(query)
+        return [BookDTO.from_domain(book) for book in books], count
+
+    async def handle_get_read_books_count(self, user_id: int) -> int:
+        async with self.uow:
+            count = await self.uow.books.get_read_books_count(user_id)
+            return count

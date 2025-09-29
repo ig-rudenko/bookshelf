@@ -12,6 +12,10 @@ class MediaStorageEnum(str, enum.Enum):
 class _BaseSettings(BaseSettings):
     log_level: str = "INFO"
 
+    jwt_secret: str
+    jwt_access_token_expire_minutes: int = 30
+    jwt_refresh_token_expire_days: int = 30
+
     # Путь к медиа хранилищу
     media_storage_type: MediaStorageEnum = "local"
     media_storage: str = "./media"
@@ -42,7 +46,9 @@ class _BaseSettings(BaseSettings):
     # Email
     EMAIL_FROM: str = ""
     EMAIL_PASSWORD: str = ""
+    SMTP_SERVER: str = "smtp.yandex.ru"
+    SMTP_PORT: int = 465
     FORGET_PASSWORD_LINK_EXPIRE_MINUTES: int = 10
 
 
-settings: _BaseSettings = _BaseSettings()
+settings: _BaseSettings = _BaseSettings()  # type: ignore

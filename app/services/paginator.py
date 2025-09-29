@@ -18,7 +18,7 @@ def paginate(query: Q, page: int, per_page: int) -> Q:
 
 def paginator_query(
     page: int = Query(1, gt=0, description="Номер страницы"),
-    per_page: int = Query(25, gte=1, alias="per-page", description="Количество элементов на странице"),
+    per_page: int = Query(25, gte=1, le=100, alias="per-page", description="Количество элементов на странице"),
 ) -> PaginatorQuery:
     """Возвращает словарь с параметрами запроса для paginate"""
     return {

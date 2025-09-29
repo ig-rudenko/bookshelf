@@ -1,4 +1,3 @@
-from typing import BinaryIO
 
 # noinspection PyPackageRequirements
 import fitz

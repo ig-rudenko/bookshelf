@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from ..auth.repository import RefreshTokenRepository
 from ..books.repository import BookRepository
 from ..bookshelves.repository import BookshelfRepository
 from ..comments.repository import CommentRepository
@@ -29,3 +30,7 @@ class UnitOfWork(ABC):
     @property
     @abstractmethod
     def users(self) -> UserRepository: ...
+
+    @property
+    @abstractmethod
+    def refresh_token(self) -> RefreshTokenRepository: ...

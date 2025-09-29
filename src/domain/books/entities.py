@@ -134,3 +134,10 @@ class BookFilter:
         with contextlib.suppress(ValueError):
             self.sorted_by.remove(field_)
             self.sorted_by.remove(f"-{field_}")
+
+
+@dataclass(slots=True, kw_only=True)
+class BookmarksQueryFilter:
+    user_id: int
+    page: int
+    page_size: int

@@ -1,14 +1,13 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from uuid import UUID
 
+from .entities import JWToken, TokenPayload
+from .repository import RefreshTokenRepository
 from ..common.exceptions import (
     InvalidTokenError,
     ObjectNotFoundError,
     RefreshTokenRevokedError,
 )
-from .entities import JWToken, TokenPayload
-from .repository import RefreshTokenRepository
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -20,13 +19,13 @@ class TokenPair:
 class TokenService(ABC):
 
     @abstractmethod
-    async def create_token_pair(self, user_id: UUID) -> TokenPair: ...
+    async def create_token_pair(self, user_id: int) -> TokenPair: ...
 
     @abstractmethod
     async def refresh_token(self, refresh_token: str) -> TokenPair: ...
 
     @abstractmethod
-    async def get_user_id(self, token: str) -> UUID: ...
+    async def get_user_id(self, token: str) -> int: ...
 
     @staticmethod
     @abstractmethod
@@ -45,7 +44,7 @@ class AuthService:
         self.token_service = token_service
         self.refresh_repo = refresh_repo
 
-    async def login(self, user_id: UUID) -> TokenPair:
+    async def login(self, user_id: int) -> TokenPair:
         pair = await self.token_service.create_token_pair(user_id)
         await self.refresh_repo.add(pair.refresh)
         return pair
@@ -76,5 +75,5 @@ class AuthService:
             raise RefreshTokenRevokedError("Refresh token not found or already revoked") from exc
         return pair
 
-    async def logout(self, user_id: UUID) -> None:
+    async def logout(self, user_id: int) -> None:
         await self.refresh_repo.revoke_all_for_user(user_id)

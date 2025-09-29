@@ -29,3 +29,17 @@ class UpdateBookCommand:
     private: bool
     language: str
     tags: list[str]
+
+
+@dataclass(slots=True, frozen=True, kw_only=True)
+class UpdateFavoriteCommand:
+    user_id: int
+    book_id: int
+    favorite: bool
+
+
+@dataclass(slots=True, frozen=True, kw_only=True)
+class UpdateReadCommand:
+    user_id: int
+    book_id: int
+    read: bool

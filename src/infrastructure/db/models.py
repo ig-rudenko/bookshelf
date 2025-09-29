@@ -42,6 +42,16 @@ class UserModel(OrmBase):
         return f"<UserModel {self.username}>"
 
 
+class RefreshTokenModel(OrmBase):
+    __tablename__ = "refresh_tokens"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
+    token_hash: Mapped[str] = mapped_column(String(150), unique=True)
+    issued_at: Mapped[int]
+    expire_at: Mapped[datetime]
+    revoked: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
 class PublisherModel(OrmBase):
     __tablename__ = "publishers"
 

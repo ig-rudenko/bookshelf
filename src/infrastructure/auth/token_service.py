@@ -1,13 +1,13 @@
 import hashlib
 from datetime import UTC, datetime, timedelta
 from typing import Literal
-from uuid import UUID
 
 import jwt
 
 from src.domain.auth.entities import JWToken, TokenPayload
 from src.domain.auth.services import TokenPair, TokenService
 from src.domain.common.exceptions import InvalidTokenError
+from src.infrastructure.settings import settings
 
 
 class JWTService(TokenService):
@@ -16,15 +16,16 @@ class JWTService(TokenService):
         self.access_expiration_minutes = access_expiration_minutes
         self.refresh_expiration_days = refresh_expiration_days
 
-    async def get_user_id(self, token: str) -> UUID:
+    async def get_user_id(self, token: str) -> int:
         payload = self.get_payload(token)
         return payload.sub
 
-    async def create_token_pair(self, user_id: UUID) -> TokenPair:
+    async def create_token_pair(self, user_id: int) -> TokenPair:
         access, access_payload = self._create_token(user_id, "access")
         refresh, refresh_payload = self._create_token(user_id, "refresh")
         return TokenPair(
             access=JWToken(
+                id=0,
                 token=access,
                 token_hash=self.get_token_hash(access),
                 user_id=user_id,
@@ -34,6 +35,7 @@ class JWTService(TokenService):
                 payload=access_payload,
             ),
             refresh=JWToken(
+                id=0,
                 token=refresh,
                 token_hash=self.get_token_hash(refresh),
                 user_id=user_id,
@@ -59,7 +61,7 @@ class JWTService(TokenService):
             raise InvalidTokenError("Invalid token")
         return payload
 
-    def _create_token(self, user_id: UUID, type_: Literal["access", "refresh"]) -> tuple[str, TokenPayload]:
+    def _create_token(self, user_id: int, type_: Literal["access", "refresh"]) -> tuple[str, TokenPayload]:
         exp = datetime.now(UTC)
         if type_ == "access":
             exp += timedelta(minutes=self.access_expiration_minutes)
@@ -79,3 +81,24 @@ class JWTService(TokenService):
     @staticmethod
     def get_token_hash(token: str) -> str:
         return hashlib.sha256(token.encode()).hexdigest()
+
+
+def create_reset_password_token(email: str) -> str:
+    data = {
+        "sub": email,
+        "exp": datetime.now(UTC) + timedelta(minutes=settings.FORGET_PASSWORD_LINK_EXPIRE_MINUTES),
+    }
+    return jwt.encode(data, settings.jwt_secret, algorithm="HS512")
+
+
+def decode_reset_password_token(token: str) -> str | None:
+    """Возвращает email или None"""
+    try:
+        payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS512"])
+        email: str = payload.get("sub", "")
+        exp: int = payload.get("exp", 0)
+        if datetime.now(UTC) > datetime.fromtimestamp(exp) or not email:
+            return None
+        return email
+    except jwt.exceptions.PyJWTError:
+        return None

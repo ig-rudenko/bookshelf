@@ -23,5 +23,6 @@ class Comment:
 class CommentFilter:
     search: str | None = None
     book_id: int | None = None
+    user_id: int | None = None
     page: int
     page_size: int

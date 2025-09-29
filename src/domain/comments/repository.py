@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from .entities import Comment
+from .entities import Comment, CommentFilter
 
 
 class CommentRepository(ABC):
@@ -9,7 +9,7 @@ class CommentRepository(ABC):
     def get(self, comment_id: int) -> Comment: ...
 
     @abstractmethod
-    def get_filtered(self, *, user_id: int) -> list[Comment]: ...
+    def get_filtered(self, filter_: CommentFilter) -> tuple[list[Comment], int]: ...
 
     @abstractmethod
     def add(self, comment: Comment) -> Comment: ...

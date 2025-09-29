@@ -5,10 +5,16 @@ from src.domain.books.entities import Book
 
 
 @dataclass(slots=True, kw_only=True)
+class PublisherDTO:
+    id: int
+    name: str
+
+
+@dataclass(slots=True, kw_only=True)
 class BookDTO:
     id: int
     user_id: int
-    publisher: str
+    publisher: PublisherDTO
     title: str
     preview_image: str
     authors: str
@@ -25,7 +31,10 @@ class BookDTO:
             id=book.id,
             user_id=book.user_id,
             title=book.title,
-            publisher=book.publisher.name,
+            publisher=PublisherDTO(
+                id=book.publisher.id,
+                name=book.publisher.name,
+            ),
             preview_image=book.preview_image,
             authors=book.authors,
             pages=book.pages,
@@ -52,7 +61,6 @@ class TagDTO:
 
 @dataclass(slots=True, kw_only=True)
 class DetailBookDTO(BookDTO):
-    publisher_id: int
     description: str
     favorite: bool
     read: bool

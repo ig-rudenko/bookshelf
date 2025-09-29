@@ -69,8 +69,10 @@ def wrap_sqlalchemy_exception(  # noqa: C901, PLR0915
         raise RepositoryError("Integrity error") from exc
 
     except SQLAlchemyInvalidRequestError as exc:
+        print(exc)
         raise RepositoryError("An invalid request was made.") from exc
     except StatementError as exc:
+        print(exc)
         raise RepositoryError("There was an issue processing the statement") from exc
     except SQLAlchemyError as exc:
         raise RepositoryError("An error occurred during processing") from exc

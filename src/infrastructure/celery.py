@@ -4,12 +4,14 @@ from typing import Callable
 
 from celery import Celery, Task
 
-from src.application.books.services import create_book_preview_and_update_pages_count
+from src.application.books.services import create_book_preview_and_update_pages_count, RecentBookService
 from src.application.services.task_manager import TaskManager
 from src.application.services.thumbnail import create_thumbnails
-from src.infrastructure.db.repositories.books_repo import SqlAlchemyAgentRepository
+from src.infrastructure.cache import RedisCache
+from src.infrastructure.db.repositories.books_repo import SqlAlchemyBookRepository
 from src.infrastructure.db.session_manager import db_manager, scoped_session
 from src.infrastructure.dependencies import get_storage
+from src.infrastructure.email import SMTPEmailService
 from src.infrastructure.settings import settings
 
 db_manager.init(settings.database_url)
@@ -25,10 +27,10 @@ else:
 
 def perform_async_task(coro):
     if celery.conf.task_always_eager:
-        l = asyncio.new_event_loop()
-        asyncio.set_event_loop(l)
-        result = l.run_until_complete(coro)
-        l.close()
+        loop_ = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop_)
+        result = loop_.run_until_complete(coro)
+        loop_.close()
         return result
     else:
         task = loop.create_task(coro)
@@ -42,29 +44,39 @@ def create_book_preview_task(book_id: int):
     """
 
     async def async_task():
+        cache = RedisCache(
+            host=settings.REDIS_HOST,
+            port=settings.REDIS_PORT,
+            db=settings.REDIS_DB,
+            password=settings.REDIS_PASSWORD,
+            max_connections=1,
+        )
+        recent_book_service = RecentBookService(cache)
         storage = get_storage()
 
         # noinspection PyArgumentList
         async with scoped_session() as session:
-            repo = SqlAlchemyAgentRepository(session)
+            repo = SqlAlchemyBookRepository(session)
             preview_name = await create_book_preview_and_update_pages_count(storage, repo, book_id)
 
         # Создаем эскизы обложки.
         await create_thumbnails(storage, preview_name)
 
         # Удаляем кэш недавно добавленных книг
-        await delete_recent_books_cache()
+        await recent_book_service.delete_recent_books_cache()
 
     thread = threading.Thread(target=perform_async_task, args=(async_task(),))
     thread.start()
     thread.join()
 
 
-# TODO: Доработать
-# @celery.task(name="send_reset_password_email_task", ignore_result=True)
-# def send_reset_password_email_task(email: str):
-#     """Задача отправки ссылки для сброса пароля"""
-#     send_reset_password_email(email)
+@celery.task(name="send_reset_password_email_task", ignore_result=True)
+def send_reset_password_email_task(email: str):
+    """Задача отправки ссылки для сброса пароля"""
+    email_service = SMTPEmailService(
+        settings.EMAIL_FROM, settings.EMAIL_PASSWORD, settings.SMTP_SERVER, settings.SMTP_PORT
+    )
+    email_service.send_reset_password_email(email)
 
 
 class CeleryTaskManager(TaskManager):
@@ -85,5 +97,10 @@ class CeleryTaskManager(TaskManager):
 celery.task()
 celery_task_manager = CeleryTaskManager(celery)
 celery_task_manager.register_task(
-    "create_book_preview_task", lambda book_id: create_book_preview_task.delay(book_id)
+    "create_book_preview_task",
+    lambda book_id: create_book_preview_task.delay(book_id),
+)
+celery_task_manager.register_task(
+    "send_reset_password_email_task",
+    lambda email: send_reset_password_email_task.delay(email),
 )

@@ -40,7 +40,7 @@ class SqlAlchemyUserRepository(UserRepository):
             model = await self._repo.get_one(UserModel.email == email)
         return self._to_domain(model)
 
-    async def get_paginated(self, page: int, page_size: int) -> tuple[list[User], int]:
+    async def get_filtered(self, page: int, page_size: int) -> tuple[list[User], int]:
         offset = (page - 1) * page_size
         with wrap_sqlalchemy_exception(self._repo.dialect):
             results, total = await self._repo.list_and_count(LimitOffset(offset=offset, limit=page_size))
@@ -60,11 +60,14 @@ class SqlAlchemyUserRepository(UserRepository):
                 attribute_names=[
                     "username",
                     "email",
-                    "password_hash",
+                    "password",
                     "first_name",
                     "last_name",
                     "is_superuser",
                     "is_active",
+                    "is_staff",
+                    "last_login",
+                    "reset_passwd_email_datetime",
                 ],
             )
         return self._to_domain(model)
@@ -79,26 +82,30 @@ class SqlAlchemyUserRepository(UserRepository):
             id=model.id,
             username=model.username,
             email=model.email,
-            password_hash=model.password,
+            password=model.password,
             first_name=model.first_name,
             last_name=model.last_name,
             is_superuser=model.is_superuser,
             is_active=model.is_active,
-            created_at=model.created_at,
-            updated_at=model.updated_at,
+            date_join=model.date_join,
+            is_staff=model.is_staff,
+            last_login=model.last_login,
+            reset_passwd_email_datetime=model.reset_passwd_email_datetime,
         )
 
     @staticmethod
     def _to_model(user: User) -> UserModel:
         return UserModel(
-            id=user.id,
+            id=user.id if user.id else None,
             username=user.username,
-            password=user.password_hash,
+            password=user.password,
             email=user.email,
             first_name=user.first_name,
             last_name=user.last_name,
             is_superuser=user.is_superuser,
             is_active=user.is_active,
-            created_at=user.created_at,
-            updated_at=user.updated_at,
+            date_join=user.date_join,
+            is_staff=user.is_staff,
+            last_login=user.last_login,
+            reset_passwd_email_datetime=user.reset_passwd_email_datetime,
         )

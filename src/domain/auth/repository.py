@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from uuid import UUID
 
 from src.domain.auth.entities import JWToken
 
@@ -21,4 +20,4 @@ class RefreshTokenRepository(ABC):
     async def revoke(self, token_hash: str) -> None: ...
 
     @abstractmethod
-    async def revoke_all_for_user(self, user_id: UUID) -> None: ...
+    async def revoke_all_for_user(self, user_id: int) -> None: ...
