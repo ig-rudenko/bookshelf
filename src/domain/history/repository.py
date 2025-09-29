@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from .entities import BookReadHistory
+from .entities import BookReadHistory, BookReadHistoryFilter
 
 
 class BookReadHistoryRepository(ABC):
@@ -11,6 +11,9 @@ class BookReadHistoryRepository(ABC):
 
     @abstractmethod
     async def add(self, book_history: BookReadHistory) -> BookReadHistory: ...
+
+    @abstractmethod
+    async def get_filtered(self, filter_: BookReadHistoryFilter) -> tuple[list[BookReadHistory], int]: ...
 
     @abstractmethod
     async def update(self, book_history: BookReadHistory) -> BookReadHistory: ...

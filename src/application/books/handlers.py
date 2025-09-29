@@ -4,13 +4,22 @@ from src.application.books.commands import (
     UpdateFavoriteCommand,
     UpdateReadCommand,
 )
-from src.application.books.dto import BookDTO, DetailBookDTO, TagDTO, BookshelfLinkDTO, PublisherDTO
+from src.application.books.dto import (
+    BookDTO,
+    DetailBookDTO,
+    TagDTO,
+    BookshelfLinkDTO,
+    PublisherDTO,
+    BookWithReadPagesDTO,
+)
 from src.application.books.services import RecentBookService
 from src.application.services.storage import AbstractStorage, FileProtocol
 from src.application.services.task_manager import TaskManager
 from src.domain.books.entities import Book, BookFilter, BookmarksQueryFilter
 from src.domain.bookshelves.entities import BookshelfFilter
+from src.domain.common.exceptions import ObjectNotFoundError
 from src.domain.common.unit_of_work import UnitOfWork
+from src.domain.history.entities import BookReadHistoryFilter
 
 
 class BookCommandHandler:
@@ -133,7 +142,7 @@ class BookQueryHandler:
         books, count = await self.uow.books.get_filtered(query)
         return [BookDTO.from_domain(book) for book in books], count
 
-    async def handle_get_recent_books(self, user_id: int) -> list[BookDTO]:
+    async def handle_get_recent_books(self, user_id: int | None = None) -> list[BookDTO]:
         """
         Возвращает последние книги в порядке добавления.
         """
@@ -146,6 +155,37 @@ class BookQueryHandler:
             await self.recent_book_service.set_recent_books(cached_books, query)
 
         return cached_books
+
+    async def handle_get_publishers(self, search: str | None, user_id: int | None) -> list[str]:
+        async with self.uow:
+            publishers = await self.uow.books.get_publishers(search, user_id)
+            return publishers
+
+    async def handle_get_authors(self, search: str | None, user_id: int | None) -> list[str]:
+        async with self.uow:
+            authors = await self.uow.books.get_authors(search, user_id)
+            return authors
+
+    async def handler_get_last_viewed_books(
+        self, user_id: int | None, page: int, page_size: int
+    ) -> tuple[list[BookWithReadPagesDTO], int]:
+        async with self.uow:
+            last_viewed_books, count = await self.uow.book_read_history.get_filtered(
+                BookReadHistoryFilter(user_id=user_id, page=page, page_size=page_size)
+            )
+            viewed_books_map = {book.book_id: book for book in last_viewed_books}
+            books_data, count = await self.uow.books.get_filtered(
+                BookFilter(ids_in=list(viewed_books_map.keys()), page=page, page_size=page_size)
+            )
+            results = []
+            for book in books_data:
+                if book.id not in viewed_books_map:
+                    raise ObjectNotFoundError(f"Book with id {book.id} not found in viewed books map")
+                dto = BookWithReadPagesDTO.from_domain(book)
+                dto.read_pages = viewed_books_map.get(book.id, None).history.files[-1].page
+                dto.last_time_read = viewed_books_map[book.id].updated_at
+                results.append(dto)
+            return results, count
 
 
 class BookmarksCommandHandler:

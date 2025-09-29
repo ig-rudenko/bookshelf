@@ -129,6 +129,7 @@ class BookFilter:
     page: int = 1
     page_size: int = 25
     sorted_by: list[str] = field(default_factory=lambda: ["-year", "-id"])
+    ids_in: list[int] | None = None
 
     def remove_sorted_by_field(self, field_: str):
         with contextlib.suppress(ValueError):

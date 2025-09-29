@@ -36,3 +36,10 @@ class BookReadHistory:
             updated_at=updated_at,
             history=BookReadFilesHistory.model_validate_json(history),
         )
+
+
+@dataclass(slots=True, kw_only=True)
+class BookReadHistoryFilter:
+    user_id: int
+    page: int
+    page_size: int

@@ -1,5 +1,5 @@
 from advanced_alchemy.repository import SQLAlchemyAsyncRepository
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, distinct, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import func
 
@@ -45,13 +45,7 @@ class SqlAlchemyBookRepository(BookRepository):
             elif hasattr(BookModel, field):
                 query = query.order_by(getattr(BookModel, field).asc())
 
-        if filter_.viewer_id is not None:
-            query = query.where(
-                BookModel.private.is_(False)
-                | (BookModel.private.is_(True) & (BookModel.user_id == filter_.viewer_id))
-            )
-        else:
-            query = query.where(BookModel.private.is_(False))
+        query = self._filter_books_by_viewer(query, filter_.viewer_id)
 
         if filter_.search:
             query = query.where(
@@ -82,6 +76,8 @@ class SqlAlchemyBookRepository(BookRepository):
             query = query.join(BookModel.tags)
             for tag in filter_.tags:
                 query = query.where(func.lower(TagModel.name) == tag.lower())
+        if filter_.ids_in:
+            query = query.where(BookModel.id.in_(filter_.ids_in))
 
         with wrap_sqlalchemy_exception(self._repo.dialect):
             results, total = await self._repo.list_and_count(statement=query, uniquify=True)
@@ -229,10 +225,39 @@ class SqlAlchemyBookRepository(BookRepository):
             result = await self.session.execute(query)
             return bool(result.scalar_one_or_none())
 
+    async def get_publishers(self, search: str | None, viewer_id: int | None) -> list[str]:
+        query: Select[tuple[str]] = (
+            select(distinct(PublisherModel.name)).select_from(BookModel).join(PublisherModel)
+        )
+        if search is not None:
+            query = query.where(PublisherModel.name.ilike(f"%{search}%"))
+        query = self._filter_books_by_viewer(query, viewer_id)
+
+        results = await self.session.execute(query)
+        return list(results.scalars().all())
+
+    async def get_authors(self, search: str | None, user_id: int | None) -> list[str]:
+        query: Select[tuple[str]] = select(distinct(BookModel.authors)).limit(10)
+        query = self._filter_books_by_viewer(query, user_id)
+        if search is not None:
+            query = query.where(BookModel.authors.ilike(f"%{search}%"))
+        results = await self.session.execute(query)
+        return list(results.scalars().all())
+
     async def get_book_tags(self, book_id: int) -> list[Tag]:
         query = select(TagModel).join(BookModel.tags).where(BookModel.id == book_id)
         result = await self.session.execute(query)
         return [Tag(id=tag.id, name=tag.name) for tag in result.scalars()]
+
+    @staticmethod
+    def _filter_books_by_viewer(query, viewer_id: int | None):
+        if viewer_id is not None:
+            return query.where(
+                BookModel.private.is_(False)
+                | (BookModel.private.is_(True) & (BookModel.user_id == viewer_id))
+            )
+        else:
+            return query.where(BookModel.private.is_(False))
 
     @staticmethod
     def _to_domain(model: BookModel) -> Book:

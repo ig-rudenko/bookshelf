@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Self
 
 from src.domain.books.entities import Book
@@ -66,3 +67,9 @@ class DetailBookDTO(BookDTO):
     read: bool
     bookshelves: list[BookshelfLinkDTO]
     tags: list[TagDTO]
+
+
+@dataclass(slots=True, kw_only=True)
+class BookWithReadPagesDTO(BookDTO):
+    read_pages: int | None = None
+    last_time_read: datetime | None = None
