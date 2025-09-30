@@ -1,23 +1,25 @@
 from src.application.books.commands import (
     CreateBookCommand,
+    DeleteBookCommand,
     UpdateBookCommand,
     UpdateFavoriteCommand,
     UpdateReadCommand,
+    UploadBookFileCommand,
 )
 from src.application.books.dto import (
     BookDTO,
-    DetailBookDTO,
-    TagDTO,
     BookshelfLinkDTO,
-    PublisherDTO,
     BookWithReadPagesDTO,
+    DetailBookDTO,
+    PublisherDTO,
+    TagDTO,
 )
 from src.application.books.services import RecentBookService
-from src.application.services.storage import AbstractStorage, FileProtocol
+from src.application.services.storage import AbstractStorage
 from src.application.services.task_manager import TaskManager
 from src.domain.books.entities import Book, BookFilter, BookmarksQueryFilter
 from src.domain.bookshelves.entities import BookshelfFilter
-from src.domain.common.exceptions import ObjectNotFoundError
+from src.domain.common.exceptions import ObjectNotFoundError, PermissionDeniedError
 from src.domain.common.unit_of_work import UnitOfWork
 from src.domain.history.entities import BookReadHistoryFilter
 
@@ -36,10 +38,12 @@ class BookCommandHandler:
         self.recent_book_service = recent_book_service
 
     async def handle_create(self, cmd: CreateBookCommand) -> BookDTO:
+        if not cmd.user.is_staff:
+            raise PermissionDeniedError("Недостаточно прав для создания книги")
         async with self.uow:
             book = await self.uow.books.add(
                 Book.create(
-                    user_id=cmd.user_id,
+                    user_id=cmd.user.id,
                     publisher=cmd.publisher,
                     title=cmd.title,
                     preview_image="",
@@ -57,15 +61,20 @@ class BookCommandHandler:
         await self.recent_book_service.delete_recent_books_cache()
         return BookDTO.from_domain(book)
 
-    async def handler_upload_file(self, book_id: int, file: FileProtocol) -> None:
+    async def handler_upload_file(self, cmd: UploadBookFileCommand) -> BookDTO:
+        if not cmd.user.is_staff:
+            raise PermissionDeniedError("Недостаточно прав для изменения книги")
         async with self.uow:
-            book = await self.uow.books.get_by_id(book_id)
-            book.size = file.size
+            book = await self.uow.books.get_by_id(cmd.book_id)
+            book.size = cmd.file.size
             await self.uow.books.update(book)
-            await self.storage.upload_book(file, book_id)
+            await self.storage.upload_book(cmd.file, cmd.book_id)
         await self.task_manager.run_task("create_book_preview_task", book.id)  # Отправляем задачу
+        return BookDTO.from_domain(book)
 
     async def handle_update(self, cmd: UpdateBookCommand) -> BookDTO:
+        if not cmd.user.is_staff:
+            raise PermissionDeniedError("Недостаточно прав для изменения книги")
         async with self.uow:
             book = await self.uow.books.get_by_id(cmd.book_id)
             book.publisher.name = cmd.publisher
@@ -81,11 +90,13 @@ class BookCommandHandler:
         await self.recent_book_service.delete_recent_books_cache()
         return BookDTO.from_domain(book)
 
-    async def handle_delete(self, book_id: int) -> None:
+    async def handle_delete(self, cmd: DeleteBookCommand) -> None:
+        if not cmd.user.is_staff:
+            raise PermissionDeniedError("Недостаточно прав для изменения книги")
         async with self.uow:
-            await self.uow.books.delete(book_id)
-            await self.uow.book_read_history.delete_for_book(book_id)
-        await self.storage.delete_book(book_id)
+            await self.uow.books.delete(cmd.book_id)
+            await self.uow.book_read_history.delete_for_book(cmd.book_id)
+        await self.storage.delete_book(cmd.book_id)
         await self.recent_book_service.delete_recent_books_cache()
 
 
@@ -97,6 +108,11 @@ class BookQueryHandler:
         self.uow = uow
         self.storage = storage
         self.recent_book_service = recent_book_service
+
+    async def handle_get_book(self, book_id: int) -> BookDTO:
+        with self.uow:
+            book = await self.uow.books.get_by_id(book_id)
+            return BookDTO.from_domain(book)
 
     async def handle_get_book_detail(self, book_id: int, user_id: int) -> DetailBookDTO:
         async with self.uow:

@@ -1,5 +1,4 @@
 import re
-from typing import Optional
 
 from fastapi import Depends, Header, HTTPException
 from fastapi.security import OAuth2PasswordBearer
@@ -51,7 +50,7 @@ async def get_admin_user(
 
 
 async def get_user_or_none(
-    authorization: Optional[str] = Header(None),
+    authorization: str | None = Header(None),
     session: AsyncSession = Depends(get_session, use_cache=True),
     token_service: JWTService = Depends(get_jwt_token_service),
 ) -> UserDTO | None:
@@ -85,6 +84,7 @@ async def get_user_by_reset_password_token(token: str, uow: UnitOfWork) -> UserD
                 last_name=user.last_name,
                 is_active=user.is_active,
                 is_superuser=user.is_superuser,
+                is_staff=user.is_staff,
                 date_join=user.date_join,
             )
     except ObjectNotFoundError:

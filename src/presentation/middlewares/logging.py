@@ -1,8 +1,8 @@
 import time
-from typing import Callable
+from collections.abc import Callable
 from uuid import uuid4
 
-from fastapi import Response, Request, FastAPI
+from fastapi import FastAPI, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 

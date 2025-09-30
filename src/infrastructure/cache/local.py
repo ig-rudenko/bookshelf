@@ -1,6 +1,6 @@
 import pickle
 from datetime import datetime, timedelta
-from typing import TypedDict, Any, Optional
+from typing import Any, TypedDict
 
 from loguru import logger
 
@@ -18,7 +18,7 @@ class InMemoryCache(AbstractCache):
     def __init__(self) -> None:
         self._cache: dict[str, _ValueType] = {}
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         logger.debug(f"Get from cache {key}", key=key)
 
         if value := self._cache.get(key, None):

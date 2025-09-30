@@ -1,4 +1,5 @@
-from typing import TypeVar, Any, Awaitable, Self
+from collections.abc import Awaitable
+from typing import Any, Self, TypeVar
 
 from advanced_alchemy.base import CommonTableAttributes
 from sqlalchemy import MetaData

@@ -1,10 +1,11 @@
 from src.application.services.storage import AbstractStorage
-from .cache import RedisCache, InMemoryCache
-from .celery import celery_task_manager
-from .media_storage import S3Storage, LocalStorage
-from .settings import settings, MediaStorageEnum
+
 from ..application.services.cache import AbstractCache
 from ..application.services.task_manager import TaskManager
+from .cache import InMemoryCache, RedisCache
+from .celery import celery_task_manager
+from .media_storage import LocalStorage, S3Storage
+from .settings import MediaStorageEnum, settings
 
 __cache__: AbstractCache | None = None
 __storage__: AbstractStorage | None = None

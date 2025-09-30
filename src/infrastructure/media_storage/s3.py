@@ -1,7 +1,8 @@
 import os
 import tempfile
+from collections.abc import AsyncIterable, Generator
 from contextlib import contextmanager
-from typing import AsyncIterable, BinaryIO, Generator
+from typing import BinaryIO
 
 import aioboto3
 import boto3

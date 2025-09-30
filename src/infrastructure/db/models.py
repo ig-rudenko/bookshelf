@@ -1,8 +1,6 @@
 from datetime import datetime
-from typing import Optional
 
-from sqlalchemy import Integer, String, ForeignKey, Text, CheckConstraint, Boolean, DateTime
-from sqlalchemy import Table, Column
+from sqlalchemy import Boolean, CheckConstraint, Column, DateTime, ForeignKey, Integer, String, Table, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.expression import false, true
 from sqlalchemy.sql.functions import func
@@ -15,16 +13,16 @@ class UserModel(OrmBase):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(150), unique=True)
-    first_name: Mapped[Optional[str]] = mapped_column(String(150))
-    last_name: Mapped[Optional[str]] = mapped_column(String(150))
-    email: Mapped[Optional[str]] = mapped_column(String(254), unique=True)
+    first_name: Mapped[str | None] = mapped_column(String(150))
+    last_name: Mapped[str | None] = mapped_column(String(150))
+    email: Mapped[str | None] = mapped_column(String(254), unique=True)
     password: Mapped[str] = mapped_column(String(128))
-    last_login: Mapped[Optional[datetime]] = mapped_column()
+    last_login: Mapped[datetime | None] = mapped_column()
     is_superuser: Mapped[bool] = mapped_column(server_default=false())
     is_staff: Mapped[bool] = mapped_column(server_default=false())
     is_active: Mapped[bool] = mapped_column(server_default=true())
     date_join: Mapped[datetime] = mapped_column(server_default=func.now())
-    reset_passwd_email_datetime: Mapped[Optional[datetime]] = mapped_column(nullable=True)
+    reset_passwd_email_datetime: Mapped[datetime | None] = mapped_column(nullable=True)
 
     favorites = relationship(
         "BookModel", secondary="favorite_books", back_populates="favorite_for_users", lazy="select"

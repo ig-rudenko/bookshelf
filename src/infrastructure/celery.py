@@ -1,10 +1,10 @@
 import asyncio
 import threading
-from typing import Callable
+from collections.abc import Callable
 
 from celery import Celery, Task
 
-from src.application.books.services import create_book_preview_and_update_pages_count, RecentBookService
+from src.application.books.services import RecentBookService, create_book_preview_and_update_pages_count
 from src.application.services.task_manager import TaskManager
 from src.application.services.thumbnail import create_thumbnails
 from src.infrastructure.cache import RedisCache

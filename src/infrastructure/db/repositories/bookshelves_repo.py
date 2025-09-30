@@ -1,5 +1,5 @@
 from advanced_alchemy.repository import SQLAlchemyAsyncRepository
-from sqlalchemy import or_, select, func, over, Select
+from sqlalchemy import Select, func, or_, over, select
 from sqlalchemy.exc import IntegrityError as SQLAlchemyIntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -7,7 +7,7 @@ from src.domain.bookshelves.entities import Bookshelf, BookshelfFilter, BookValu
 from src.domain.bookshelves.repository import BookshelfRepository
 from src.domain.common.exceptions import ObjectNotFoundError
 from src.infrastructure.db.exception_handler import wrap_sqlalchemy_exception
-from src.infrastructure.db.models import BookshelfModel, BookshelfBookAssociationModel, BookModel
+from src.infrastructure.db.models import BookModel, BookshelfBookAssociationModel, BookshelfModel
 
 
 class _SQLBookshelfRepository(SQLAlchemyAsyncRepository[BookshelfModel]):

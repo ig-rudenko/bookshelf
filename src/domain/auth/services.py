@@ -1,13 +1,13 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from .entities import JWToken, TokenPayload
-from .repository import RefreshTokenRepository
 from ..common.exceptions import (
     InvalidTokenError,
     ObjectNotFoundError,
     RefreshTokenRevokedError,
 )
+from .entities import JWToken, TokenPayload
+from .repository import RefreshTokenRepository
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)

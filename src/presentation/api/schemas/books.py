@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import Field
 
-from .base import CamelSerializerModel, CamelAliasModel
+from .base import CamelAliasModel, CamelSerializerModel
 
 
 class PublisherSchema(CamelSerializerModel):

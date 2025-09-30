@@ -52,3 +52,31 @@ default-groups = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 120
+lint.flake8-bugbear.extend-immutable-calls = ["Depends", "fastapi.Depends", "fastapi.params.Depends"]
+lint.extend-select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+]
+lint.ignore = [
+    # Line too long
+    "E501",
+    # Functions with a high complexity
+    "C901",
+    # Use ternary operator instead of `if`-`else`-block
+    "SIM108",
+    # Module level import not at top of file
+    "E402"
+]

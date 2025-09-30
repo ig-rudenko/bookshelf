@@ -1,11 +1,11 @@
-from advanced_alchemy.filters import LimitOffset
 from advanced_alchemy.repository import SQLAlchemyAsyncRepository
+from sqlalchemy import func, over, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.comments.entities import Comment, CommentFilter
 from src.domain.comments.repository import CommentRepository
 from src.infrastructure.db.exception_handler import wrap_sqlalchemy_exception
-from src.infrastructure.db.models import CommentModel
+from src.infrastructure.db.models import CommentModel, UserModel
 
 
 class SQLCommentRepository(SQLAlchemyAsyncRepository[CommentModel]):
@@ -30,20 +30,49 @@ class SqlAlchemyCommentRepository(CommentRepository):
 
     async def get_filtered(self, filter_: CommentFilter) -> tuple[list[Comment], int]:
         offset = (filter_.page - 1) * filter_.page_size
-        filters = [
-            LimitOffset(limit=filter_.page_size, offset=offset),
-        ]
+        query = (
+            select(
+                CommentModel.id,
+                CommentModel.user_id,
+                CommentModel.book_id,
+                CommentModel.text,
+                CommentModel.created_at,
+                UserModel.username,
+                over(func.count()).label("count"),
+            )
+            .join(UserModel)
+            .group_by(CommentModel.id, UserModel.username)
+            .order_by(CommentModel.created_at.desc())
+            .limit(filter_.page_size)
+            .offset(offset)
+        )
+
         if filter_.book_id:
-            filters.append(CommentModel.book_id == filter_.book_id)
+            query = query.where(CommentModel.book_id == filter_.book_id)
         if filter_.user_id:
-            filters.append(CommentModel.user_id == filter_.user_id)
+            query = query.where(CommentModel.user_id == filter_.user_id)
         if filter_.search:
-            filters.append(CommentModel.text.like(f"%{filter_.search}%"))
+            query = query.where(CommentModel.text.like(f"%{filter_.search}%"))
 
+        comments = []
+        total = 0
         with wrap_sqlalchemy_exception(self._repo.dialect):
-            result, total = await self._repo.list_and_count(*filters)
+            result = await self.session.execute(query)
+            for i, row in enumerate(result):
+                comments.append(
+                    Comment(
+                        id=row.id,
+                        book_id=row.book_id,
+                        user_id=row.user_id,
+                        username=row.username,
+                        text=row.text,
+                        created_at=row.created_at,
+                    )
+                )
+                if i == 0:
+                    total = row.count
 
-        return [self._to_domain(model) for model in result], total
+        return comments, total
 
     async def add(self, comment: Comment) -> Comment:
         model = self._to_model(comment)
@@ -67,6 +96,7 @@ class SqlAlchemyCommentRepository(CommentRepository):
             id=model.id,
             book_id=model.book_id,
             user_id=model.user_id,
+            username=model.user.username,
             text=model.text,
             created_at=model.created_at,
         )

@@ -1,8 +1,9 @@
 import re
 import shutil
+from collections.abc import AsyncIterable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import AsyncIterable, BinaryIO, Iterator
+from typing import BinaryIO
 
 import aiofiles
 from slugify import slugify

@@ -1,38 +1,39 @@
-from fastapi import APIRouter, Request, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from src.application.users.commands import (
-    RegisterUserCommand,
-    LoginUserCommand,
     ForgotPasswordCommand,
+    LoginUserCommand,
+    RegisterUserCommand,
     ResetPasswordCommand,
 )
 from src.application.users.dto import UserDTO
 from src.application.users.handlers import (
-    RegisterUserHandler,
-    JWTHandler,
     ForgotPasswordHandler,
+    JWTHandler,
+    RegisterUserHandler,
     ResetPasswordHandler,
 )
-from src.domain.common.exceptions import ObjectNotFoundError, AuthorizationError
+from src.domain.common.exceptions import AuthorizationError, ObjectNotFoundError
 from src.domain.common.unit_of_work import UnitOfWork
 from src.infrastructure.auth.captcha import verify_captcha
+
 from ..auth import get_current_user, get_user_by_reset_password_token
 from ..dependencies import (
-    get_register_handler,
-    get_token_auth_handler,
     get_forgot_password_handler,
-    get_unit_of_work,
+    get_register_handler,
     get_reset_password_handler,
+    get_token_auth_handler,
+    get_unit_of_work,
 )
 from ..helpers import get_client_ip
 from ..schemas.auth import (
-    TokenPairSchema,
-    RefreshTokenSchema,
     ForgotPasswordResponseSchema,
     ForgotPasswordSchema,
+    RefreshTokenSchema,
     ResetPasswordSchema,
+    TokenPairSchema,
 )
-from ..schemas.users import UserSchema, UserCreateSchema, UserCredentialsSchema
+from ..schemas.users import UserCreateSchema, UserCredentialsSchema, UserSchema
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -94,7 +95,7 @@ async def forgot_password_api_view(
         )
     await handler.handle(ForgotPasswordCommand(email=data.email))
     return ForgotPasswordResponseSchema(
-        detail=f"Письмо отправлено проверьте на указанном вами адресе (также в папке Спам)",
+        detail="Письмо отправлено проверьте на указанном вами адресе (также в папке Спам)",
         success=True,
     )
 

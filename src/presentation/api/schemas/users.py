@@ -1,8 +1,8 @@
 from datetime import datetime
 
-from pydantic import Field, EmailStr
+from pydantic import EmailStr, Field
 
-from .base import CamelSerializerModel, CamelAliasModel
+from .base import CamelAliasModel, CamelSerializerModel
 
 
 class UserSchema(CamelSerializerModel):

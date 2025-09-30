@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Any
+from typing import Any
 
 
 class AbstractCache(ABC):
     """Абстрактный класс для реализации кеша данных."""
 
     @abstractmethod
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """Получает значение из кеша по ключу."""
         pass
 

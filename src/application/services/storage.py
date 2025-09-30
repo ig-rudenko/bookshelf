@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterable, Generator
 from contextlib import contextmanager
-from typing import AsyncIterable, BinaryIO, Generator, Protocol
+from typing import BinaryIO, Protocol
 
 
 class FileProtocol(Protocol):

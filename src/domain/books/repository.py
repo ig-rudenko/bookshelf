@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from .entities import Book, Tag, BookFilter, BookmarksQueryFilter
+from .entities import Book, BookFilter, BookmarksQueryFilter, Tag
 
 
 class BookRepository(ABC):

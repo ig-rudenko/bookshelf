@@ -2,9 +2,9 @@ from datetime import datetime, timedelta
 
 from src.application.services.task_manager import TaskManager
 from src.application.users.commands import (
+    ForgotPasswordCommand,
     LoginUserCommand,
     RegisterUserCommand,
-    ForgotPasswordCommand,
     ResetPasswordCommand,
 )
 from src.application.users.dto import JWTokenDTO, UserDTO
@@ -29,6 +29,7 @@ def get_dto(user: User) -> UserDTO:
         last_name=user.last_name,
         is_active=user.is_active,
         is_superuser=user.is_superuser,
+        is_staff=user.is_staff,
         date_join=user.date_join,
     )
 

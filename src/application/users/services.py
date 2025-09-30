@@ -1,5 +1,6 @@
 from src.domain.auth.services import TokenService
 from src.domain.common.unit_of_work import UnitOfWork
+
 from .dto import UserDTO
 
 
@@ -15,5 +16,6 @@ async def get_user_by_token(token: str, *, token_service: TokenService, uow: Uni
         last_name=user.last_name,
         is_active=user.is_active,
         is_superuser=user.is_superuser,
+        is_staff=user.is_staff,
         date_join=user.date_join,
     )

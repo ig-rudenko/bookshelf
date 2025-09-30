@@ -12,6 +12,7 @@ class UserDTO:
 
     is_active: bool
     is_superuser: bool
+    is_staff: bool
 
     date_join: datetime
 

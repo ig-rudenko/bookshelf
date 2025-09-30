@@ -31,9 +31,19 @@ class Bookshelf:
 
     @classmethod
     def create(
-        cls, name: str, description: str, user_id: int, books: list[BookValue], private: bool = False
+        cls, name: str, description: str, user_id: int, books: list[int], private: bool = False
     ) -> Self:
-        return cls(id=0, name=name, description=description, user_id=user_id, books=books, private=private)
+        return cls(
+            id=0,
+            name=name,
+            description=description,
+            user_id=user_id,
+            books=[BookValue(id=book_id) for book_id in books],
+            private=private,
+        )
+
+    def set_books(self, books: list[int]) -> None:
+        self.books = [BookValue(id=book_id) for book_id in books]
 
 
 @dataclass(slots=True, kw_only=True)

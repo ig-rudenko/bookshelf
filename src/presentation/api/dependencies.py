@@ -3,25 +3,33 @@ from functools import cache
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.application.books.handlers import BookmarksQueryHandler, BookmarksCommandHandler, BookQueryHandler
+from src.application.books.handlers import (
+    BookCommandHandler,
+    BookmarksCommandHandler,
+    BookmarksQueryHandler,
+    BookQueryHandler,
+)
 from src.application.books.services import RecentBookService
+from src.application.bookshelves.handlers import BookshelfCommandHandler, BookshelfQueryHandler
+from src.application.comments.handler import CommentsCommandHandler, CommentsQueryHandler
+from src.application.history.handlers import HistoryCommandHandler, HistoryQueryHandler
 from src.application.services.cache import AbstractCache
 from src.application.services.storage import AbstractStorage
 from src.application.users.handlers import (
+    ForgotPasswordHandler,
     JWTHandler,
     RegisterUserHandler,
-    ForgotPasswordHandler,
     ResetPasswordHandler,
 )
 from src.domain.common.unit_of_work import UnitOfWork
 from src.infrastructure.auth.hashers import BcryptPasswordHasher, PasswordHasherProtocol
 from src.infrastructure.auth.token_service import JWTService
-from src.infrastructure.cache import RedisCache, InMemoryCache
+from src.infrastructure.cache import InMemoryCache, RedisCache
 from src.infrastructure.celery import celery_task_manager
 from src.infrastructure.db.session_manager import get_session
 from src.infrastructure.db.unit_of_work import SqlAlchemyUnitOfWork
-from src.infrastructure.media_storage import S3Storage, LocalStorage
-from src.infrastructure.settings import settings, MediaStorageEnum
+from src.infrastructure.media_storage import LocalStorage, S3Storage
+from src.infrastructure.settings import MediaStorageEnum, settings
 
 
 @cache
@@ -111,3 +119,52 @@ def get_book_query_handler(
         storage=storage,
         recent_book_service=recent_book_service,
     )
+
+
+def get_book_command_handler(
+    session: AsyncSession = Depends(get_session, use_cache=True),
+    storage: AbstractStorage = Depends(get_storage),
+    recent_book_service: RecentBookService = Depends(get_recent_book_service),
+):
+    return BookCommandHandler(
+        uow=SqlAlchemyUnitOfWork(session),
+        task_manager=celery_task_manager,
+        storage=storage,
+        recent_book_service=recent_book_service,
+    )
+
+
+def get_bookshelf_query_handler(
+    session: AsyncSession = Depends(get_session, use_cache=True),
+):
+    return BookshelfQueryHandler(uow=SqlAlchemyUnitOfWork(session))
+
+
+def get_bookshelf_command_handler(
+    session: AsyncSession = Depends(get_session, use_cache=True),
+):
+    return BookshelfCommandHandler(uow=SqlAlchemyUnitOfWork(session))
+
+
+def get_history_query_handler(
+    session: AsyncSession = Depends(get_session, use_cache=True),
+):
+    return HistoryQueryHandler(uow=SqlAlchemyUnitOfWork(session))
+
+
+def get_history_command_handler(
+    session: AsyncSession = Depends(get_session, use_cache=True),
+):
+    return HistoryCommandHandler(uow=SqlAlchemyUnitOfWork(session))
+
+
+def get_comment_query_handler(
+    session: AsyncSession = Depends(get_session, use_cache=True),
+):
+    return CommentsQueryHandler(uow=SqlAlchemyUnitOfWork(session))
+
+
+def get_comment_command_handler(
+    session: AsyncSession = Depends(get_session, use_cache=True),
+):
+    return CommentsCommandHandler(uow=SqlAlchemyUnitOfWork(session))

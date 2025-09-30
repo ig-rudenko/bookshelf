@@ -1,6 +1,6 @@
 import re
+from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Generator
 
 from advanced_alchemy import exceptions as advanced_alchemy_exceptions
 from sqlalchemy.exc import IntegrityError as SQLAlchemyIntegrityError

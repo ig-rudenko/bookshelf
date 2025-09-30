@@ -14,18 +14,17 @@ async def verify_captcha(captcha_token: str, remote_ip: str) -> bool:
     if not settings.RECAPTCHA_ENABLED:
         return True
 
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
-            "https://www.google.com/recaptcha/api/siteverify",
-            data={
-                "secret": settings.RECAPTCHA_SECRET_KEY,
-                "response": captcha_token,
-                "remoteip": remote_ip,
-            },
-        ) as response:
-            try:
-                data = await response.json()
-            except ValueError:
-                return False
-            else:
-                return data.get("success", False)
+    async with aiohttp.ClientSession() as session, session.post(
+        "https://www.google.com/recaptcha/api/siteverify",
+        data={
+            "secret": settings.RECAPTCHA_SECRET_KEY,
+            "response": captcha_token,
+            "remoteip": remote_ip,
+        },
+    ) as response:
+        try:
+            data = await response.json()
+        except ValueError:
+            return False
+        else:
+            return data.get("success", False)

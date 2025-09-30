@@ -1,4 +1,4 @@
-from fastapi import Request, HTTPException
+from fastapi import HTTPException, Request
 
 
 def get_client_ip(request: Request) -> str:

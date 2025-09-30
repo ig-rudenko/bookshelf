@@ -1,17 +1,17 @@
 from advanced_alchemy.repository import SQLAlchemyAsyncRepository
-from sqlalchemy import select, delete, distinct, Select
+from sqlalchemy import Select, delete, distinct, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import func
 
-from src.domain.books.entities import Tag, Book, BookFilter, Publisher, BookmarksQueryFilter
+from src.domain.books.entities import Book, BookFilter, BookmarksQueryFilter, Publisher, Tag
 from src.domain.books.repository import BookRepository
 from src.infrastructure.db.exception_handler import wrap_sqlalchemy_exception
 from src.infrastructure.db.models import (
     BookModel,
-    PublisherModel,
-    TagModel,
     FavoriteBookModel,
+    PublisherModel,
     ReadBookModel,
+    TagModel,
 )
 
 

@@ -1,14 +1,14 @@
 from asyncio import current_task
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator, Optional
 
 from sqlalchemy.ext.asyncio import (
     AsyncConnection,
     AsyncEngine,
     AsyncSession,
+    async_scoped_session,
     async_sessionmaker,
     create_async_engine,
-    async_scoped_session,
 )
 
 
@@ -22,8 +22,8 @@ class DatabaseSessionManager:
     """
 
     def __init__(self) -> None:
-        self._engine: Optional[AsyncEngine] = None
-        self._session_maker: Optional[async_sessionmaker[AsyncSession]] = None
+        self._engine: AsyncEngine | None = None
+        self._session_maker: async_sessionmaker[AsyncSession] | None = None
 
     def init(self, dsn: str, **conn_args) -> None:
         """Инициализирует соединение с базой данных."""
@@ -76,7 +76,7 @@ class DatabaseSessionManager:
         откатывает транзакцию.
         """
         if self._session_maker is None:
-            raise IOError("DatabaseSessionManager is not initialized")
+            raise OSError("DatabaseSessionManager is not initialized")
         async with self._session_maker() as session:
             try:
                 yield session
@@ -94,7 +94,7 @@ class DatabaseSessionManager:
         откатывает транзакцию.
         """
         if self._engine is None:
-            raise IOError("DatabaseSessionManager is not initialized")
+            raise OSError("DatabaseSessionManager is not initialized")
         async with self._engine.begin() as connection:
             try:
                 yield connection

@@ -1,13 +1,14 @@
+from collections.abc import Callable
 from functools import wraps
-from typing import Optional, Callable, Any
+from typing import Any
 
 from src.infrastructure.dependencies import get_cache
 
 
 def cached(
     timeout: int,
-    key: Optional[str] = None,
-    variable_positions: Optional[list[int]] = None,
+    key: str | None = None,
+    variable_positions: list[int] | None = None,
     delimiter: str = ":",
 ) -> Callable[..., Any]:
     """

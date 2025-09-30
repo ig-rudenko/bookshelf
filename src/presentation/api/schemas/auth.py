@@ -1,4 +1,4 @@
-from .base import CamelSerializerModel, CamelAliasModel
+from .base import CamelAliasModel, CamelSerializerModel
 
 
 class TokenPairSchema(CamelSerializerModel):

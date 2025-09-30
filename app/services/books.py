@@ -1,4 +1,4 @@
-from typing import TypeVar, TypedDict, BinaryIO
+from typing import TypeVar, TypedDict
 
 # noinspection PyPackageRequirements
 import fitz
