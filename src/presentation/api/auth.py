@@ -87,5 +87,5 @@ async def get_user_by_reset_password_token(token: str, uow: UnitOfWork) -> UserD
                 is_staff=user.is_staff,
                 date_join=user.date_join,
             )
-    except ObjectNotFoundError:
-        raise HTTPException(detail="Неверный токен для сброса пароля", status_code=403)
+    except ObjectNotFoundError as exc:
+        raise HTTPException(detail="Неверный токен для сброса пароля", status_code=403) from exc

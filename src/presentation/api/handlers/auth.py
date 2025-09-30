@@ -65,8 +65,8 @@ async def get_token_pair(
     try:
         token_pair = await jwt_handler.handle_obtain_token(cmd)
         return TokenPairSchema(access_token=token_pair.access, refresh_token=token_pair.refresh)
-    except (ObjectNotFoundError, AuthorizationError) as e:
-        raise HTTPException(status_code=401, detail=str(e))
+    except (ObjectNotFoundError, AuthorizationError) as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
 
 
 @router.post("/token/refresh", response_model=TokenPairSchema)

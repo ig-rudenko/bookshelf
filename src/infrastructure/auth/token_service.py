@@ -55,10 +55,10 @@ class JWTService(TokenService):
     def get_payload(self, token: str) -> TokenPayload:
         try:
             payload = TokenPayload(**jwt.decode(token, self._secret, algorithms=["HS256"]))
-        except jwt.ExpiredSignatureError:
-            raise InvalidTokenError("Token expired")
-        except jwt.InvalidTokenError:
-            raise InvalidTokenError("Invalid token")
+        except jwt.ExpiredSignatureError as exc:
+            raise InvalidTokenError("Token expired") from exc
+        except jwt.InvalidTokenError as exc:
+            raise InvalidTokenError("Invalid token") from exc
         return payload
 
     def _create_token(self, user_id: int, type_: Literal["access", "refresh"]) -> tuple[str, TokenPayload]:

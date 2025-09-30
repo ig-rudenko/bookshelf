@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
 from fastapi.responses import StreamingResponse
 from slugify import slugify
@@ -30,8 +32,8 @@ router = APIRouter(prefix="/books", tags=["books"])
 
 @router.get("/recent", response_model=list[BookSchema])
 async def get_recent_books_view(
-    current_user: UserDTO | None = Depends(get_user_or_none),
-    query_handler: BookQueryHandler = Depends(get_book_query_handler),
+    current_user: Annotated[UserDTO | None, Depends(get_user_or_none)],
+    query_handler: Annotated[BookQueryHandler, Depends(get_book_query_handler)],
 ):
     """Последние 25 добавленных книг."""
     books = await query_handler.handle_get_recent_books(current_user.id if current_user else None)
@@ -40,9 +42,9 @@ async def get_recent_books_view(
 
 @router.get("/publishers", response_model=list[str])
 async def get_publishers_view(
-    name: str | None = Query(None, description="Издательство"),
-    current_user: UserDTO | None = Depends(get_user_or_none),
-    query_handler: BookQueryHandler = Depends(get_book_query_handler),
+    name: Annotated[str | None, Query(None, description="Издательство")],
+    current_user: Annotated[UserDTO | None, Depends(get_user_or_none)],
+    query_handler: Annotated[BookQueryHandler, Depends(get_book_query_handler)],
 ):
     """Поиск издательств по названию."""
     return await query_handler.handle_get_publishers(
@@ -52,9 +54,9 @@ async def get_publishers_view(
 
 @router.get("/authors", response_model=list[str])
 async def get_authors_view(
-    name: str | None = Query(None, description="Авторы книги"),
-    current_user: UserDTO | None = Depends(get_user_or_none),
-    query_handler: BookQueryHandler = Depends(get_book_query_handler),
+    name: Annotated[str | None, Query(None, description="Авторы книги")],
+    current_user: Annotated[UserDTO | None, Depends(get_user_or_none)],
+    query_handler: Annotated[BookQueryHandler, Depends(get_book_query_handler)],
 ):
     """Поиск авторов по названию."""
     return await query_handler.handle_get_authors(
@@ -64,9 +66,9 @@ async def get_authors_view(
 
 @router.get("/last-viewed", response_model=BooksWithReadPagesPaginatedSchema)
 async def get_last_viewed_books_view(
-    paginator: PaginatorQuery = Depends(paginator_query),
-    user: UserDTO = Depends(get_current_user),
-    query_handler: BookQueryHandler = Depends(get_book_query_handler),
+    paginator: Annotated[PaginatorQuery, Depends(paginator_query)],
+    user: Annotated[UserDTO, Depends(get_current_user)],
+    query_handler: Annotated[BookQueryHandler, Depends(get_book_query_handler)],
 ):
     """Возвращает просмотренные книги пользователя с кол-вом просмотренных страниц."""
     result, count = await query_handler.handler_get_last_viewed_books(
@@ -84,19 +86,27 @@ async def get_last_viewed_books_view(
 
 
 def books_query_params(
-    search: str | None = Query(None, max_length=254, description="Поиск по названию и описанию"),
-    title: str | None = Query(None, max_length=254, description="Заголовок"),
-    authors: str | None = Query(None, max_length=254, description="Авторы книги"),
-    publisher: str | None = Query(None, max_length=128, description="Издательство"),
-    year: int | None = Query(None, gt=0, description="Год издания"),
-    language: str | None = Query(None, max_length=128, description="Язык книги"),
-    pages_gt: int | None = Query(None, gt=0, alias="pages-gt", description="Количество страниц больше чем"),
-    pages_lt: int | None = Query(None, gt=0, alias="pages-lt", description="Количество страниц меньше чем"),
-    description: str | None = Query(None, description="Описание книги"),
-    only_private: bool | None = Query(False, alias="only-private", description="Только приватные книги"),
-    tags: list[str] | None = Query([], description="Теги книги"),
-    page: int = Query(1, gt=0, description="Номер страницы"),
-    per_page: int = Query(25, gte=1, alias="per-page", description="Количество элементов на странице"),
+    search: Annotated[str | None, Query(None, max_length=254, description="Поиск по названию и описанию")],
+    title: Annotated[str | None, Query(None, max_length=254, description="Заголовок")],
+    authors: Annotated[str | None, Query(None, max_length=254, description="Авторы книги")],
+    publisher: Annotated[str | None, Query(None, max_length=128, description="Издательство")],
+    year: Annotated[int | None, Query(None, gt=0, description="Год издания")],
+    language: Annotated[str | None, Query(None, max_length=128, description="Язык книги")],
+    pages_gt: Annotated[
+        int | None, Query(None, gt=0, alias="pages-gt", description="Количество страниц больше чем")
+    ],
+    pages_lt: Annotated[
+        int | None, Query(None, gt=0, alias="pages-lt", description="Количество страниц меньше чем")
+    ],
+    description: Annotated[str | None, Query(None, description="Описание книги")],
+    only_private: Annotated[
+        bool | None, Query(False, alias="only-private", description="Только приватные книги")
+    ],
+    tags: Annotated[list[str] | None, Query(None, description="Теги книги")],
+    page: Annotated[int, Query(1, gt=0, description="Номер страницы")],
+    per_page: Annotated[
+        int, Query(25, gte=1, alias="per-page", description="Количество элементов на странице")
+    ],
 ) -> BookFilter:
     """Параметры поиска по книгам."""
 
@@ -124,9 +134,9 @@ def books_query_params(
 
 @router.get("", response_model=BooksSchemaPaginated)
 async def get_books_view(
-    query_params: BookFilter = Depends(books_query_params),
-    current_user: UserDTO | None = Depends(get_user_or_none),
-    book_query_handler: BookQueryHandler = Depends(get_book_query_handler),
+    query_params: Annotated[BookFilter, Depends(books_query_params)],
+    current_user: Annotated[UserDTO | None, Depends(get_user_or_none)],
+    book_query_handler: Annotated[BookQueryHandler, Depends(get_book_query_handler)],
 ):
     """Просмотр всех книг с фильтрацией по запросу."""
     query_params.viewer_id = current_user.id if current_user else None
@@ -143,8 +153,8 @@ async def get_books_view(
 @router.post("", response_model=BookSchemaWithDesc, status_code=status.HTTP_201_CREATED)
 async def create_book_view(
     book_data: CreateBookSchema,
-    current_user: UserDTO = Depends(get_current_user),
-    book_command_handler: BookCommandHandler = Depends(get_book_command_handler),
+    current_user: Annotated[UserDTO, Depends(get_current_user)],
+    book_command_handler: Annotated[BookCommandHandler, Depends(get_book_command_handler)],
 ):
     """Создание книги"""
     book = await book_command_handler.handle_create(
@@ -166,8 +176,8 @@ async def create_book_view(
 @router.get("/{book_id}", response_model=BookSchemaDetail)
 async def get_book_view(
     book_id: int,
-    current_user: UserDTO | None = Depends(get_user_or_none),
-    book_query_handler: BookQueryHandler = Depends(get_book_query_handler),
+    current_user: Annotated[UserDTO, Depends(get_current_user)],
+    book_query_handler: Annotated[BookQueryHandler, Depends(get_book_query_handler)],
 ):
     """Просмотр книги"""
     user_id = current_user.id if current_user else None
@@ -178,8 +188,8 @@ async def get_book_view(
 async def update_book_view(
     book_id: int,
     book_data: CreateBookSchema,
-    current_user: UserDTO = Depends(get_current_user),
-    book_command_handler: BookCommandHandler = Depends(get_book_command_handler),
+    current_user: Annotated[UserDTO, Depends(get_current_user)],
+    book_command_handler: Annotated[BookCommandHandler, Depends(get_book_command_handler)],
 ):
     """Обновление книги"""
     book = await book_command_handler.handle_update(
@@ -202,8 +212,8 @@ async def update_book_view(
 @router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_book_view(
     book_id: int,
-    current_user: UserDTO = Depends(get_current_user),
-    book_command_handler: BookCommandHandler = Depends(get_book_command_handler),
+    current_user: Annotated[UserDTO, Depends(get_current_user)],
+    book_command_handler: Annotated[BookCommandHandler, Depends(get_book_command_handler)],
 ):
     """Удаление книги"""
     await book_command_handler.handle_delete(
@@ -218,8 +228,8 @@ async def delete_book_view(
 async def upload_book_file(
     book_id: int,
     file: UploadFile,
-    current_user: UserDTO = Depends(get_current_user),
-    book_command_handler: BookCommandHandler = Depends(get_book_command_handler),
+    current_user: Annotated[UserDTO, Depends(get_current_user)],
+    book_command_handler: Annotated[BookCommandHandler, Depends(get_book_command_handler)],
 ):
     """Загрузка файла книги"""
     if file.filename is None or not file.filename.lower().endswith(".pdf"):
@@ -235,10 +245,10 @@ async def upload_book_file(
 @router.get("/{book_id}/download", response_class=StreamingResponse)
 async def download_book_file(
     book_id: int,
-    user: UserDTO | None = Depends(get_user_or_none),
-    as_file: bool = Query(False, alias="as-file"),
-    book_query_handler: BookQueryHandler = Depends(get_book_query_handler),
-    storage: AbstractStorage = Depends(get_storage),
+    user: Annotated[UserDTO | None, Depends(get_user_or_none)],
+    as_file: Annotated[bool, Query(False, alias="as-file")],
+    book_query_handler: Annotated[BookQueryHandler, Depends(get_book_query_handler)],
+    storage: Annotated[AbstractStorage, Depends(get_storage)],
 ):
     """Скачивание файла книги"""
     book = await book_query_handler.handle_get_book(book_id)
@@ -256,8 +266,8 @@ async def download_book_file(
 
     try:
         book_async_iterator = storage.get_book_iterator(book.id)
-    except storage.FileNotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Файл книги не найден")
+    except storage.FileNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Файл книги не найден") from exc
 
     return StreamingResponse(
         content=book_async_iterator,

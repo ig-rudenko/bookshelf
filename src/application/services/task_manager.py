@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from collections.abc import Callable
 
 
@@ -6,6 +6,7 @@ class TaskManager(ABC):
 
     class TaskNotFound(Exception): ...
 
+    @abstractmethod
     async def register_task(self, name: str, task: Callable):
         """
         Регистрирует задачу с указанным именем и функцией.
@@ -14,6 +15,7 @@ class TaskManager(ABC):
             task: Функция задачи.
         """
 
+    @abstractmethod
     async def run_task(self, name: str, *args, **kwargs) -> str:
         """
         Запускает задачу с заданным именем и возвращает идентификатор задачи.

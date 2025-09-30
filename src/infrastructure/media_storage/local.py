@@ -84,8 +84,8 @@ class LocalStorage(AbstractStorage):
             async with aiofiles.open(book_folder / file_name, "rb") as f:
                 while content := await f.read(1024 * 1024):
                     yield content
-        except OSError:
-            raise self.FileNotFoundError
+        except OSError as exc:
+            raise self.FileNotFoundError from exc
 
     @contextmanager
     def get_book_binary(self, book_id: int) -> Iterator[BinaryIO]:
@@ -106,9 +106,9 @@ class LocalStorage(AbstractStorage):
             raise self.FileNotFoundError
 
         try:
-            book_file = open(book_folder / file_name, "rb")
-        except OSError:
-            raise self.FileNotFoundError
+            book_file = open(book_folder / file_name, "rb")  # noqa: SIM115
+        except OSError as exc:
+            raise self.FileNotFoundError from exc
         try:
             yield book_file
         finally:
@@ -137,9 +137,9 @@ class LocalStorage(AbstractStorage):
         :raises self.FileNotFoundError:  :class:`AbstractStorage.FileNotFoundError` Если файл не найден.
         """
         try:
-            file = open(self._media_root / file_name, "rb")
-        except OSError:
-            raise self.FileNotFoundError
+            file = open(self._media_root / file_name, "rb")  # noqa: SIM115
+        except OSError as exc:
+            raise self.FileNotFoundError from exc
         try:
             yield file
         finally:

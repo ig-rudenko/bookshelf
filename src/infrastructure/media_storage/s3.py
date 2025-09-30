@@ -74,9 +74,9 @@ class S3Storage(AbstractStorage):
                 tmp_path = tmp.name
             with open(tmp_path, "rb") as f:
                 yield f
-        except ClientError as e:
-            if e.response["Error"]["Code"] == "NoSuchKey":
-                raise self.FileNotFoundError(f"File not found for book ID {book_id}")
+        except ClientError as exc:
+            if exc.response["Error"]["Code"] == "NoSuchKey":
+                raise self.FileNotFoundError(f"File not found for book ID {book_id}") from exc
             raise
         finally:
             if "tmp_path" in locals() and os.path.exists(tmp_path):
@@ -97,9 +97,9 @@ class S3Storage(AbstractStorage):
                 tmp_path = tmp.name
             with open(tmp_path, "rb") as f:
                 yield f
-        except ClientError as e:
-            if e.response["Error"]["Code"] == "NoSuchKey":
-                raise self.FileNotFoundError(f"File '{file_name}' not found")
+        except ClientError as exc:
+            if exc.response["Error"]["Code"] == "NoSuchKey":
+                raise self.FileNotFoundError(f"File '{file_name}' not found") from exc
             raise
         finally:
             if "tmp_path" in locals() and os.path.exists(tmp_path):

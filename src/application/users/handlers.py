@@ -105,8 +105,8 @@ class JWTHandler:
             user_id = await self.token_service.get_user_id(token)
             try:
                 user = await self.uow.users.get_by_id(user_id)
-            except ObjectNotFoundError:
-                raise InvalidTokenError("Invalid token. Please, log in again to get a new token")
+            except ObjectNotFoundError as exc:
+                raise InvalidTokenError("Invalid token. Please, log in again to get a new token") from exc
         return get_dto(user)
 
 
