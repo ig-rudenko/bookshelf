@@ -1,5 +1,7 @@
 .venv
 
+.env
+
 .idea
 
 config/env/api

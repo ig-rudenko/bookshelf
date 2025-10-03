@@ -7,7 +7,7 @@ from src.domain.books.entities import BookmarksQueryFilter
 
 from ..auth import get_current_user
 from ..dependencies import get_bookmark_command_handler, get_bookmark_query_handler
-from ..schemas.books import BookSchema, BooksSchemaPaginated
+from ..schemas.books import BooksSchemaPaginated
 from .queries import PaginatorQuery, paginator_query
 
 router = APIRouter(prefix="/bookmarks", tags=["bookmarks"])
@@ -23,16 +23,11 @@ async def get_favorite_books_view(
         BookmarksQueryFilter(user_id=user.id, page=paginator.page, page_size=paginator.per_page)
     )
 
-    return BooksSchemaPaginated(
-        books=[BookSchema.model_validate(book) for book in books],
+    return BooksSchemaPaginated.from_books_dto(
+        books=books,
         total_count=total,
         current_page=paginator.page,
         per_page=paginator.per_page,
-        max_pages=(
-            (total // paginator.per_page + 1)
-            if total % paginator.per_page > 0
-            else (total // paginator.per_page)
-        ),
     )
 
 
@@ -54,16 +49,11 @@ async def get_read_books_view(
         BookmarksQueryFilter(user_id=user.id, page=paginator.page, page_size=paginator.per_page)
     )
 
-    return BooksSchemaPaginated(
-        books=[BookSchema.model_validate(book) for book in books],
+    return BooksSchemaPaginated.from_books_dto(
+        books=books,
         total_count=total,
         current_page=paginator.page,
         per_page=paginator.per_page,
-        max_pages=(
-            (total // paginator.per_page + 1)
-            if total % paginator.per_page > 0
-            else (total // paginator.per_page)
-        ),
     )
 
 

@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Literal
 
 from ..common.exceptions import ValidationError
 
@@ -48,3 +49,18 @@ class User:
             is_active=is_active,
             last_login=None,
         )
+
+
+@dataclass(slots=True, kw_only=True)
+class UserDetail(User):
+    favorites_count: int = 0
+    read_count: int = 0
+    recently_read_count: int = 0
+
+
+@dataclass(slots=True, kw_only=True)
+class UserFilter:
+    sort_by: str = ""
+    sort_order: Literal["asc", "desc"] = "desc"
+    page: int
+    per_page: int

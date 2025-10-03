@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from .entities import User
+from .entities import User, UserDetail, UserFilter
 
 
 class UserRepository(ABC):
@@ -24,6 +24,9 @@ class UserRepository(ABC):
         Raises:
             UniqueError: Если пользователь с таким username или email уже существует.
         """
+
+    @abstractmethod
+    async def get_filtered_detail(self, filter_: UserFilter) -> tuple[list[UserDetail], int]: ...
 
     @abstractmethod
     async def update(self, user: User) -> User: ...

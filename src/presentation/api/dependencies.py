@@ -20,6 +20,7 @@ from src.application.users.handlers import (
     JWTHandler,
     RegisterUserHandler,
     ResetPasswordHandler,
+    UserQueryHandler,
 )
 from src.domain.common.unit_of_work import UnitOfWork
 from src.infrastructure.auth.hashers import BcryptPasswordHasher, PasswordHasherProtocol
@@ -168,3 +169,9 @@ def get_comment_command_handler(
     session: AsyncSession = Depends(get_session, use_cache=True),
 ):
     return CommentsCommandHandler(uow=SqlAlchemyUnitOfWork(session))
+
+
+def get_user_query_handler(
+    session: AsyncSession = Depends(get_session, use_cache=True),
+):
+    return UserQueryHandler(uow=SqlAlchemyUnitOfWork(session))

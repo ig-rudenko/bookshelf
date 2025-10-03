@@ -42,9 +42,9 @@ async def get_recent_books_view(
 
 @router.get("/publishers", response_model=list[str])
 async def get_publishers_view(
-    name: Annotated[str | None, Query(None, description="Издательство")],
     current_user: Annotated[UserDTO | None, Depends(get_user_or_none)],
     query_handler: Annotated[BookQueryHandler, Depends(get_book_query_handler)],
+    name: Annotated[str | None, Query(description="Издательство")] = None,
 ):
     """Поиск издательств по названию."""
     return await query_handler.handle_get_publishers(
@@ -54,9 +54,9 @@ async def get_publishers_view(
 
 @router.get("/authors", response_model=list[str])
 async def get_authors_view(
-    name: Annotated[str | None, Query(None, description="Авторы книги")],
     current_user: Annotated[UserDTO | None, Depends(get_user_or_none)],
     query_handler: Annotated[BookQueryHandler, Depends(get_book_query_handler)],
+    name: Annotated[str | None, Query(description="Авторы книги")] = None,
 ):
     """Поиск авторов по названию."""
     return await query_handler.handle_get_authors(
@@ -86,27 +86,24 @@ async def get_last_viewed_books_view(
 
 
 def books_query_params(
-    search: Annotated[str | None, Query(None, max_length=254, description="Поиск по названию и описанию")],
-    title: Annotated[str | None, Query(None, max_length=254, description="Заголовок")],
-    authors: Annotated[str | None, Query(None, max_length=254, description="Авторы книги")],
-    publisher: Annotated[str | None, Query(None, max_length=128, description="Издательство")],
-    year: Annotated[int | None, Query(None, gt=0, description="Год издания")],
-    language: Annotated[str | None, Query(None, max_length=128, description="Язык книги")],
+    paginator: Annotated[PaginatorQuery, Depends(paginator_query)],
+    search: Annotated[str | None, Query(max_length=254, description="Поиск по названию и описанию")] = None,
+    title: Annotated[str | None, Query(max_length=254, description="Заголовок")] = None,
+    authors: Annotated[str | None, Query(max_length=254, description="Авторы книги")] = None,
+    publisher: Annotated[str | None, Query(max_length=128, description="Издательство")] = None,
+    year: Annotated[int | None, Query(gt=0, description="Год издания")] = None,
+    language: Annotated[str | None, Query(max_length=128, description="Язык книги")] = None,
     pages_gt: Annotated[
-        int | None, Query(None, gt=0, alias="pages-gt", description="Количество страниц больше чем")
-    ],
+        int | None, Query(gt=0, alias="pages-gt", description="Количество страниц больше чем")
+    ] = None,
     pages_lt: Annotated[
-        int | None, Query(None, gt=0, alias="pages-lt", description="Количество страниц меньше чем")
-    ],
-    description: Annotated[str | None, Query(None, description="Описание книги")],
+        int | None, Query(gt=0, alias="pages-lt", description="Количество страниц меньше чем")
+    ] = None,
+    description: Annotated[str | None, Query(description="Описание книги")] = None,
     only_private: Annotated[
-        bool | None, Query(False, alias="only-private", description="Только приватные книги")
-    ],
-    tags: Annotated[list[str] | None, Query(None, description="Теги книги")],
-    page: Annotated[int, Query(1, gt=0, description="Номер страницы")],
-    per_page: Annotated[
-        int, Query(25, gte=1, alias="per-page", description="Количество элементов на странице")
-    ],
+        bool | None, Query(alias="only-private", description="Только приватные книги")
+    ] = False,
+    tags: Annotated[list[str] | None, Query(description="Теги книги")] = None,
 ) -> BookFilter:
     """Параметры поиска по книгам."""
 
@@ -127,8 +124,8 @@ def books_query_params(
         description=description,
         only_private=only_private,
         tags=tags,
-        page=page,
-        page_size=per_page,
+        page=paginator.page,
+        page_size=paginator.per_page,
     )
 
 
@@ -141,12 +138,12 @@ async def get_books_view(
     """Просмотр всех книг с фильтрацией по запросу."""
     query_params.viewer_id = current_user.id if current_user else None
     books, count = await book_query_handler.handle_get_list_books(query_params)
-    return BooksSchemaPaginated(
-        books=[BookSchema.model_validate(book) for book in books],
+
+    return BooksSchemaPaginated.from_books_dto(
+        books=books,
         total_count=count,
         current_page=query_params.page,
         per_page=query_params.page_size,
-        max_pages=count // query_params.page_size + 1 if count % query_params.page_size else 0,
     )
 
 
@@ -246,9 +243,9 @@ async def upload_book_file(
 async def download_book_file(
     book_id: int,
     user: Annotated[UserDTO | None, Depends(get_user_or_none)],
-    as_file: Annotated[bool, Query(False, alias="as-file")],
     book_query_handler: Annotated[BookQueryHandler, Depends(get_book_query_handler)],
     storage: Annotated[AbstractStorage, Depends(get_storage)],
+    as_file: Annotated[bool, Query(alias="as-file")] = False,
 ):
     """Скачивание файла книги"""
     book = await book_query_handler.handle_get_book(book_id)

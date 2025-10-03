@@ -7,7 +7,8 @@ from src.application.users.commands import (
     RegisterUserCommand,
     ResetPasswordCommand,
 )
-from src.application.users.dto import JWTokenDTO, UserDTO
+from src.application.users.dto import JWTokenDTO, UserDetailDTO, UserDTO
+from src.application.users.queries import UserFilterDTO
 from src.domain.auth.services import AuthService
 from src.domain.common.exceptions import (
     AuthorizationError,
@@ -15,7 +16,7 @@ from src.domain.common.exceptions import (
     ObjectNotFoundError,
 )
 from src.domain.common.unit_of_work import UnitOfWork
-from src.domain.users.entities import User
+from src.domain.users.entities import User, UserFilter
 from src.infrastructure.auth.hashers import PasswordHasherProtocol
 from src.infrastructure.auth.token_service import JWTService
 
@@ -147,3 +148,20 @@ class ResetPasswordHandler:
             user = await self.uow.users.get_by_id(cmd.user_id)
             user.password = password_hash
             await self.uow.users.update(user)
+
+
+class UserQueryHandler:
+
+    def __init__(self, uow: UnitOfWork):
+        self.uow = uow
+
+    async def handle_get_list(self, filter_: UserFilterDTO) -> tuple[list[UserDetailDTO], int]:
+        users, count = await self.uow.users.get_filtered_detail(
+            UserFilter(
+                page=filter_.page,
+                per_page=filter_.per_page,
+                sort_by=filter_.sort_by,
+                sort_order=filter_.sort_order,
+            )
+        )
+        return [UserDetailDTO.from_domain(user) for user in users], count

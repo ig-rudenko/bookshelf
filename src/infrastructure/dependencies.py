@@ -3,7 +3,6 @@ from src.application.services.storage import AbstractStorage
 from ..application.services.cache import AbstractCache
 from ..application.services.task_manager import TaskManager
 from .cache import InMemoryCache, RedisCache
-from .celery import celery_task_manager
 from .media_storage import LocalStorage, S3Storage
 from .settings import MediaStorageEnum, settings
 
@@ -40,6 +39,7 @@ def get_storage() -> AbstractStorage:
 
 def get_task_manager() -> TaskManager:
     global __task_manager__
+    from .celery import celery_task_manager
     if __task_manager__ is None:
         __task_manager__ = celery_task_manager
     return __task_manager__

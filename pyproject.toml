@@ -6,7 +6,7 @@ authors = [{ name = "ig-rudenko", email = "ig.rudenko1@yandex.ru" }]
 requires-python = ">=3.11,<4.0"
 readme = "README.md"
 dependencies = [
-    "fastapi>=0.115.12,<0.116",
+    "fastapi>=0.116.2",
     "uvicorn>=0.34.3,<0.35",
     "sqlalchemy[asyncio]>=2.0.41,<3",
     "alembic>=1.16.1,<2",

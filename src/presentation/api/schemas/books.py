@@ -1,6 +1,9 @@
 from datetime import datetime
+from typing import Self
 
 from pydantic import Field
+
+from src.application.books.dto import BookDTO
 
 from .base import CamelAliasModel, CamelSerializerModel
 
@@ -87,6 +90,23 @@ class BooksSchemaPaginated(CamelSerializerModel):
     max_pages: int
     per_page: int
 
+    @classmethod
+    def from_books_dto(
+        cls, *, books: list[BookDTO], total_count: int, current_page: int, per_page: int
+    ) -> Self:
+        if total_count % per_page == 0:
+            max_pages = total_count // per_page
+        else:
+            max_pages = total_count // per_page + 1
+
+        return cls(
+            books=[BookSchema.model_validate(book) for book in books],
+            total_count=total_count,
+            current_page=current_page,
+            max_pages=max_pages,
+            per_page=per_page,
+        )
+
 
 class BookWithReadPagesSchema(BookSchema):
     """Схема для представления информации о книге (без описания) с указанием прочитанных страниц."""
@@ -106,3 +126,20 @@ class BooksWithReadPagesPaginatedSchema(CamelSerializerModel):
     current_page: int
     max_pages: int
     per_page: int
+
+    @classmethod
+    def from_books_dto(
+        cls, *, books: list[BookDTO], total_count: int, current_page: int, per_page: int
+    ) -> Self:
+        if total_count % per_page == 0:
+            max_pages = total_count // per_page
+        else:
+            max_pages = total_count // per_page + 1
+
+        return cls(
+            books=[BookWithReadPagesSchema.model_validate(book) for book in books],
+            total_count=total_count,
+            current_page=current_page,
+            max_pages=max_pages,
+            per_page=per_page,
+        )

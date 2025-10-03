@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Annotated
 
 from fastapi import Query
 
@@ -10,9 +11,9 @@ class PaginatorQuery:
 
 
 def paginator_query(
-    page: int = Query(1, gt=0, description="Номер страницы"),
-    per_page: int = Query(
-        25, gte=1, le=100, alias="per-page", description="Количество элементов на странице"
-    ),
+    page: Annotated[int, Query(gt=0, description="Номер страницы")] = 1,
+    per_page: Annotated[
+        int, Query(gte=1, le=100, alias="per-page", description="Количество элементов на странице")
+    ] = 25,
 ) -> PaginatorQuery:
     return PaginatorQuery(page=page, per_page=per_page)

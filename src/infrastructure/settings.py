@@ -50,5 +50,9 @@ class _BaseSettings(BaseSettings):
     SMTP_PORT: int = 465
     FORGET_PASSWORD_LINK_EXPIRE_MINUTES: int = 10
 
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+
 
 settings: _BaseSettings = _BaseSettings()  # type: ignore

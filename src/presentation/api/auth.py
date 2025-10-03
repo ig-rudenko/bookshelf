@@ -1,6 +1,6 @@
 import re
 
-from fastapi import Depends, Header, HTTPException
+from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -89,3 +89,12 @@ async def get_user_by_reset_password_token(token: str, uow: UnitOfWork) -> UserD
             )
     except ObjectNotFoundError as exc:
         raise HTTPException(detail="Неверный токен для сброса пароля", status_code=403) from exc
+
+
+def superuser_required(current_user: UserDTO = Depends(get_current_user)) -> UserDTO:
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Superuser privileges required",
+        )
+    return current_user
