@@ -28,7 +28,7 @@ class SqlAlchemyBookReadHistoryRepositoryRepository(BookReadHistoryRepository):
 
     async def get_last_for_user(self, book_id: int, user_id: int) -> BookReadHistory:
         with wrap_sqlalchemy_exception(self._repo.dialect):
-            results = self._repo.list(
+            results = await self._repo.list(
                 LimitOffset(limit=1, offset=0),
                 OrderBy("id", "desc"),
                 BookHistoryModel.book_id == book_id,
@@ -50,8 +50,8 @@ class SqlAlchemyBookReadHistoryRepositoryRepository(BookReadHistoryRepository):
             )
 
         with wrap_sqlalchemy_exception(self._repo.dialect):
-            results, count = self._repo.list_and_count(*filters)
-            return results, count
+            results, count = await self._repo.list_and_count(*filters)
+            return [self._to_domain(book) for book in results], count
 
     async def add(self, book_history: BookReadHistory) -> BookReadHistory:
         with wrap_sqlalchemy_exception(self._repo.dialect):

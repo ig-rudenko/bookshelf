@@ -1,4 +1,5 @@
 from functools import cache
+from typing import AsyncIterator
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,12 +23,13 @@ from src.application.users.handlers import (
     ResetPasswordHandler,
     UserQueryHandler,
 )
+from src.domain.common.exceptions import RepositoryError
 from src.domain.common.unit_of_work import UnitOfWork
 from src.infrastructure.auth.hashers import BcryptPasswordHasher, PasswordHasherProtocol
 from src.infrastructure.auth.token_service import JWTService
 from src.infrastructure.cache import InMemoryCache, RedisCache
 from src.infrastructure.celery import celery_task_manager
-from src.infrastructure.db.session_manager import get_session
+from src.infrastructure.db.session_manager import db_manager
 from src.infrastructure.db.unit_of_work import SqlAlchemyUnitOfWork
 from src.infrastructure.media_storage import LocalStorage, S3Storage
 from src.infrastructure.settings import MediaStorageEnum, settings
@@ -70,6 +72,17 @@ def get_cache_service() -> AbstractCache:
 
 def get_recent_book_service(cache_: AbstractCache = Depends(get_cache_service)):
     return RecentBookService(cache=cache_)
+
+
+async def get_session() -> AsyncIterator[AsyncSession]:
+    """Контекстный менеджер для создания асинхронной сессии."""
+
+    # noinspection PyArgumentList
+    async with db_manager.session() as session:
+        try:
+            yield session
+        except OSError as exc:
+            raise RepositoryError("Repository error") from exc
 
 
 def get_unit_of_work(session: AsyncSession = Depends(get_session, use_cache=True)) -> UnitOfWork:

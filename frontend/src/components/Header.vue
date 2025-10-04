@@ -70,7 +70,7 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 import {mapActions, mapState} from "vuex";
-import api from "@/services/api.ts";
+import api from "@/services/api";
 import {AxiosResponse} from "axios";
 import {getCurrentTheme, setAutoTheme, setDarkTheme, setLightTheme, ThemesValues} from "@/themes.ts";
 import {getUserAvatar} from "@/user.ts";

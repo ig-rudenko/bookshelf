@@ -46,11 +46,11 @@ import {createHead} from "@unhead/vue";
 import {app} from '@/appInstance';
 import store from "@/store";
 import ToastService from 'primevue/toastservice';
-import setupInterceptors from '@/services/setupInterceptors';
+import setupInterceptors from '@/services/api/setupInterceptors';
 import router from "@/router";
 
 const head = createHead()
-setupInterceptors(store);
+setupInterceptors();
 app.use(head)
 app.use(VueRecaptchaPlugin, {v2SiteKey: '6LcpBc0pAAAAAHu7T0s0SpoqfEgW2iQk-XCX5hwp'})
 

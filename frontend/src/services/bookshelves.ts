@@ -1,5 +1,5 @@
-import api from "@/services/api.ts";
-import {FilterBookshelf} from "@/filters.ts";
+import api from "@/services/api";
+import {FilterBookshelf} from "@/filters";
 
 export interface EditBookshelf {
     name: string

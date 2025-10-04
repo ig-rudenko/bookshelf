@@ -42,7 +42,7 @@
 import {defineComponent, PropType} from 'vue'
 import BookCard from "@/components/BookCard.vue";
 import {Book} from "@/books.ts";
-import api from "@/services/api.ts";
+import api from "@/services/api";
 import {AxiosResponse} from "axios";
 
 export default defineComponent({

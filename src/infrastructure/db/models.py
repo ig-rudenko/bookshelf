@@ -25,13 +25,17 @@ class UserModel(OrmBase):
     reset_passwd_email_datetime: Mapped[datetime | None] = mapped_column(nullable=True)
 
     favorites = relationship(
-        "BookModel", secondary="favorite_books", back_populates="favorite_for_users", lazy="select"
+        "BookModel",
+        secondary="favorite_books",
+        back_populates="favorite_for_users",
+        lazy="select",
+        viewonly=True,
     )
     books_read = relationship(
-        "BookModel", secondary="books_read", back_populates="read_by_users", lazy="select"
+        "BookModel", secondary="books_read", back_populates="read_by_users", lazy="select", viewonly=True
     )
-    comments = relationship("CommentModel", back_populates="user", lazy="select")
-    bookshelves = relationship("BookshelfModel", back_populates="user", lazy="select")
+    comments = relationship("CommentModel", back_populates="user", lazy="select", viewonly=True)
+    bookshelves = relationship("BookshelfModel", back_populates="user", lazy="select", viewonly=True)
 
     def __str__(self):
         return self.username
@@ -46,7 +50,7 @@ class RefreshTokenModel(OrmBase):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
     token_hash: Mapped[str] = mapped_column(String(150), unique=True)
     issued_at: Mapped[int]
-    expire_at: Mapped[datetime]
+    expire_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     revoked: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
@@ -55,7 +59,9 @@ class PublisherModel(OrmBase):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(128), unique=True)
-    books: Mapped["BookModel"] = relationship("BookModel", back_populates="publisher", lazy="select")
+    books: Mapped["BookModel"] = relationship(
+        "BookModel", back_populates="publisher", lazy="select", viewonly=True
+    )
 
     def __str__(self):
         return self.name
@@ -110,19 +116,25 @@ class BookModel(OrmBase):
     # Define relationship to TagModel using the association table
     tags = relationship("TagModel", secondary=book_tag_association, back_populates="books", lazy="joined")
     bookshelves: Mapped[list["BookshelfModel"]] = relationship(
-        "BookshelfModel", secondary="bookshelf_book_association", back_populates="books", lazy="select"
+        "BookshelfModel",
+        secondary="bookshelf_book_association",
+        back_populates="books",
+        lazy="select",
+        viewonly=True,
     )
     # Define relationship to PublisherModel, UserModel
-    publisher: Mapped[PublisherModel] = relationship("PublisherModel", back_populates="books", lazy="joined")
-    user: Mapped[UserModel] = relationship("UserModel")
+    publisher: Mapped[PublisherModel] = relationship(
+        "PublisherModel", back_populates="books", lazy="joined", viewonly=True
+    )
+    user: Mapped[UserModel] = relationship("UserModel", viewonly=True)
     favorite_for_users = relationship(
-        "UserModel", secondary="favorite_books", back_populates="favorites", lazy="select"
+        "UserModel", secondary="favorite_books", back_populates="favorites", lazy="select", viewonly=True
     )
     read_by_users = relationship(
-        "UserModel", secondary="books_read", back_populates="books_read", lazy="select"
+        "UserModel", secondary="books_read", back_populates="books_read", lazy="select", viewonly=True
     )
     comments = relationship(
-        "CommentModel", back_populates="book", cascade="all, delete-orphan", lazy="select"
+        "CommentModel", back_populates="book", cascade="all, delete-orphan", lazy="select", viewonly=True
     )
 
     # Define a check constraint
@@ -145,9 +157,15 @@ class BookshelfModel(OrmBase):
     private: Mapped[bool] = mapped_column(Boolean, server_default=false())
 
     # relations
-    user: Mapped[UserModel] = relationship("UserModel", back_populates="bookshelves", lazy="select")
+    user: Mapped[UserModel] = relationship(
+        "UserModel", back_populates="bookshelves", lazy="select", viewonly=True
+    )
     books: Mapped[list[BookModel]] = relationship(
-        "BookModel", secondary="bookshelf_book_association", back_populates="bookshelves", lazy="select"
+        "BookModel",
+        secondary="bookshelf_book_association",
+        back_populates="bookshelves",
+        lazy="select",
+        viewonly=True,
     )
 
     def __str__(self):
@@ -171,8 +189,12 @@ class CommentModel(OrmBase):
     book_id: Mapped[int] = mapped_column(ForeignKey("books.id", ondelete="CASCADE"))
     text: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    user: Mapped[UserModel] = relationship("UserModel", back_populates="comments", lazy="select")
-    book: Mapped[BookModel] = relationship("BookModel", back_populates="comments", lazy="select")
+    user: Mapped[UserModel] = relationship(
+        "UserModel", back_populates="comments", lazy="joined", viewonly=True
+    )
+    book: Mapped[BookModel] = relationship(
+        "BookModel", back_populates="comments", lazy="select", viewonly=True
+    )
 
     def __str__(self):
         return self.text

@@ -84,7 +84,7 @@
     <CreateComment @created="getComments(1)" :book-id="book.id"/>
   </div>
 
-  <div class="flex flex-wrap flex-col items-center pt-4 p-2" v-if="results">
+  <div class="flex flex-wrap flex-col items-center pt-4 p-2 gap-3" v-if="results">
     <Comment @comment:delete="getComments(1)" @comment:update="getComments(1)"
              v-for="(comment, index) in results.comments" :key="index" :comment="comment"/>
     <Paginator class="w-full" v-if="results"

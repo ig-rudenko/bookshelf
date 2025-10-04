@@ -1,5 +1,5 @@
 <template>
-  <div class="p-3" v-if="user?.isStaff">
+  <div class="p-3" v-if="user?.isStaff || user?.isSuperuser">
     <BookForm/>
   </div>
 </template>
@@ -14,7 +14,7 @@ export default defineComponent({
   name: "CreateBook",
   components: {LoginForm, BookForm},
   mounted() {
-    if (!this.user?.isStaff) this.$router.push("/login");
+    if (!this.user?.isStaff && !this.user?.isSuperuser) this.$router.push("/login");
     document.title = "Добавление книги";
   },
   computed: {

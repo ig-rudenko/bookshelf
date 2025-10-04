@@ -35,13 +35,6 @@ class SqlAlchemyBookshelfRepository(BookshelfRepository):
         query = self._get_query().add_columns(over(func.count()).label("count"))
         query = query.limit(filter_.page_size).offset(offset)
 
-        if filter_.viewer_id:
-            query = query.where(
-                BookshelfModel.private.is_(False)
-                | (BookshelfModel.private.is_(True) & (BookshelfModel.user_id == filter_.viewer_id))
-            )
-        else:
-            query = query.where(BookshelfModel.private.is_(False))
         if filter_.search:
             query = query.where(
                 or_(
@@ -49,10 +42,16 @@ class SqlAlchemyBookshelfRepository(BookshelfRepository):
                     BookshelfModel.description.ilike(f"%{filter_.search}%"),
                 )
             )
-        if filter_.is_private:
-            query = query.where(BookshelfModel.private == filter_.is_private)
+        if filter_.is_private is not None and filter_.viewer_id is not None:
+            query = query.where(
+                BookshelfModel.private == filter_.is_private, BookshelfModel.user_id == filter_.viewer_id
+            )
+        else:
+            query = self.filter_by_viewer_id(query, filter_.viewer_id)
+
         if filter_.user_id:
             query = query.where(BookshelfModel.user_id == filter_.user_id)
+
         if filter_.book_id:
             query = query.join(
                 BookshelfBookAssociationModel, BookshelfBookAssociationModel.bookshelf_id == BookshelfModel.id
@@ -81,6 +80,15 @@ class SqlAlchemyBookshelfRepository(BookshelfRepository):
                     count = int(data.count)
 
         return instances, count
+
+    @staticmethod
+    def filter_by_viewer_id(query, viewer_id: int | None):
+        if viewer_id:
+            return query.where(
+                BookshelfModel.private.is_(False)
+                | (BookshelfModel.private.is_(True) & (BookshelfModel.user_id == viewer_id))
+            )
+        return query.where(BookshelfModel.private.is_(False))
 
     @staticmethod
     def _get_query() -> Select:

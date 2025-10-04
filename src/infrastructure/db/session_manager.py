@@ -25,7 +25,7 @@ class DatabaseSessionManager:
         self._engine: AsyncEngine | None = None
         self._session_maker: async_sessionmaker[AsyncSession] | None = None
 
-    def init(self, dsn: str, **conn_args) -> None:
+    def init(self, dsn: str, *, echo: bool, **conn_args) -> None:
         """Инициализирует соединение с базой данных."""
 
         # Just additional example of customization.
@@ -46,15 +46,16 @@ class DatabaseSessionManager:
             url=dsn,
             pool_pre_ping=True,
             connect_args=connect_args,
-            echo=True,
+            echo=echo,
         )
         self._session_maker = async_sessionmaker(
             bind=self._engine,
             expire_on_commit=False,
+            autoflush=False,
         )
 
     @property
-    def session_maker(self) -> async_sessionmaker[AsyncSession]:
+    def session_maker(self) -> async_sessionmaker[AsyncSession] | None:
         return self._session_maker
 
     async def close(self) -> None:
@@ -106,14 +107,6 @@ class DatabaseSessionManager:
 db_manager: DatabaseSessionManager = DatabaseSessionManager()
 
 
-async def get_session() -> AsyncIterator[AsyncSession]:
-    """Контекстный менеджер для создания асинхронной сессии."""
-
-    # noinspection PyArgumentList
-    async with db_manager.session() as session:
-        yield session
-
-
 @asynccontextmanager
 async def scoped_session():
     scoped_factory = async_scoped_session(
@@ -123,5 +116,6 @@ async def scoped_session():
     try:
         async with scoped_factory() as s:
             yield s
+            await s.commit()
     finally:
         await scoped_factory.remove()

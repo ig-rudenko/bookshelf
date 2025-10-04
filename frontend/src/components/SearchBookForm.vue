@@ -92,7 +92,7 @@
 import {defineComponent} from 'vue'
 import {FilterBook} from "@/filters.ts";
 import {AutoCompleteCompleteEvent} from "primevue/autocomplete";
-import api from "@/services/api.ts";
+import api from "@/services/api";
 import {AxiosResponse} from "axios";
 import LanguageDropdown from "@/components/LanguageDropdown.vue";
 

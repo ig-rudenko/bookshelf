@@ -1,13 +1,14 @@
-import AuthService from '../services/auth.service.js';
+import AuthService from '../services/auth/auth.service';
 import UserService from "../services/user.service";
-import TokenService from "@/services/token.service";
-import {createNewUser, LoginUser, RegisterUser, User, UserTokens} from "@/user";
-import api from "@/services/api";
+import {tokenService} from "@/services/auth/token.service";
+import {LoginUser, RegisterUser, User, UserTokens} from "@/user";
+import {getMyselfData} from "@/services/auth/user.service.ts";
 
 class Status {
     constructor(
         public loggedIn: boolean,
-    ) {}
+    ) {
+    }
 }
 
 class UserState {
@@ -15,14 +16,15 @@ class UserState {
         public status: Status,
         public user: User | null,
         public userTokens: UserTokens,
-    ) {}
+    ) {
+    }
 }
 
 const user = UserService.getUser()
 const initialState = new UserState(
     new Status(user !== null && user.username?.length > 0),
     user,
-    TokenService.getUserTokens(),
+    tokenService.getUserTokens(),
 )
 
 
@@ -30,7 +32,7 @@ export const auth = {
     namespaced: true,
     state: initialState,
     actions: {
-        login({ commit }: any, user: LoginUser) {
+        login({commit}: any, user: LoginUser) {
             return AuthService.login(user).then(
                 (data) => {
                     if (data.status == 200) {
@@ -44,11 +46,11 @@ export const auth = {
                 }
             );
         },
-        logout({ commit }: any) {
+        logout({commit}: any) {
             AuthService.logout();
             commit('logout');
         },
-        register({ commit }: any, user: RegisterUser) {
+        register({commit}: any, user: RegisterUser) {
             return AuthService.register(user).then(
                 response => {
                     commit('registerSuccess');
@@ -60,22 +62,20 @@ export const auth = {
                 }
             );
         },
-        refreshToken({ commit }: any, accessToken: string) {
-            commit('refreshToken', accessToken);
+        refreshToken({commit}: any, tokens: any) {
+            commit('refreshToken', tokens);
         }
     },
     mutations: {
         loginSuccess(state: UserState) {
             state.status.loggedIn = true;
-            api.get("/auth/myself")
-                .then(
-                    resp => {
-                        const user = createNewUser(resp.data)
-                        UserService.setUser(user)
-                        state.user = user
-                        state.userTokens = TokenService.getUserTokens()
-                    }
-                )
+            getMyselfData().then(
+                user => {
+                    UserService.setUser(user)
+                    state.user = user
+                    state.userTokens = tokenService.getUserTokens()
+                }
+            )
         },
         loginFailure(state: UserState) {
             state.status.loggedIn = false;
@@ -91,9 +91,10 @@ export const auth = {
         registerFailure(state: UserState) {
             state.status.loggedIn = false;
         },
-        refreshToken(state: UserState, accessToken: string) {
+        refreshToken(state: UserState, accessToken: string, refreshToken: string) {
             state.status.loggedIn = true;
             state.userTokens.accessToken = accessToken;
+            state.userTokens.refreshToken = refreshToken;
         }
     }
 };

@@ -1,17 +1,20 @@
-import api from "@/services/api.ts";
+import api from "@/services/api";
 import {AxiosResponse} from "axios";
 
 export class PdfHistory {
     constructor(
         public bookId: number,
         public history: string = "",
-    ) {}
+    ) {
+    }
 
     async getFromRemote() {
         this._setPdfHistory("")
         await api.get(`/user-data/book/${this.bookId}/pdf-history`).then(
-            (value: AxiosResponse<{pdfHistory: string}>) => {
-                if (value.status == 200) { this._setPdfHistory(value.data.pdfHistory) }
+            (value: AxiosResponse<{ pdfHistory: string }>) => {
+                if (value.status == 200) {
+                    this._setPdfHistory(value.data.pdfHistory)
+                }
                 return value.data.pdfHistory;
             }
         ).catch(error => console.log(error));
@@ -24,7 +27,7 @@ export class PdfHistory {
 
     private _pushToRemote(localHistory: string) {
         api.put(`/user-data/book/${this.bookId}/pdf-history`, {pdfHistory: localHistory}).then(
-            (value: AxiosResponse<{pdfHistory: string}>) => {
+            (value: AxiosResponse<{ pdfHistory: string }>) => {
                 if (value.status == 200) {
                     this._setPdfHistory(value.data.pdfHistory)
                 } else {

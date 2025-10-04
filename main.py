@@ -20,12 +20,11 @@ from src.presentation.api.handlers.books import router as book_router
 from src.presentation.api.handlers.bookshelves import router as bookshelf_router
 from src.presentation.api.handlers.comments import router as comment_router
 from src.presentation.api.handlers.history import router as history_router
-from src.presentation.middlewares.logging import LoggingMiddleware
 
 
 @asynccontextmanager
 async def startup(app_instance: FastAPI):
-    db_manager.init(settings.database_url)
+    db_manager.init(settings.database_url, echo=settings.database_echo)
     logger.info("Database initialized")
     yield
     logger.info("Closing database")
@@ -36,7 +35,7 @@ async def startup(app_instance: FastAPI):
 setup_logger(settings.log_level)
 server.logger = logger
 app = FastAPI(lifespan=startup)
-app.add_middleware(LoggingMiddleware, logger=logger, ignore_paths=["/ping"])  # noqa
+# app.add_middleware(LoggingMiddleware, logger=logger, ignore_paths=["/ping"])  # noqa
 
 # Регистрируем глобальные обработчики ошибок.
 app.add_exception_handler(RepositoryError, repository_error_handler)

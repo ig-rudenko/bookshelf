@@ -17,6 +17,7 @@ class BookDTO:
     user_id: int
     publisher: PublisherDTO
     title: str
+    description: str
     preview_image: str
     authors: str
     pages: int
@@ -32,6 +33,7 @@ class BookDTO:
             id=book.id,
             user_id=book.user_id,
             title=book.title,
+            description=book.description,
             publisher=PublisherDTO(
                 id=book.publisher.id,
                 name=book.publisher.name,

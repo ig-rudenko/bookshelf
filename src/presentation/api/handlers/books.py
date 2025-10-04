@@ -23,7 +23,6 @@ from src.presentation.api.schemas.books import (
     BookSchemaWithDesc,
     BooksSchemaPaginated,
     BooksWithReadPagesPaginatedSchema,
-    BookWithReadPagesSchema,
     CreateBookSchema,
 )
 
@@ -37,7 +36,7 @@ async def get_recent_books_view(
 ):
     """Последние 25 добавленных книг."""
     books = await query_handler.handle_get_recent_books(current_user.id if current_user else None)
-    return books
+    return [BookSchema.from_dto(book) for book in books]
 
 
 @router.get("/publishers", response_model=list[str])
@@ -74,13 +73,10 @@ async def get_last_viewed_books_view(
     result, count = await query_handler.handler_get_last_viewed_books(
         user.id, paginator.page, paginator.per_page
     )
-    return BooksWithReadPagesPaginatedSchema(
-        books=[BookWithReadPagesSchema.model_validate(book) for book in result],
+    return BooksWithReadPagesPaginatedSchema.from_books_dto(
+        books=result,
         total_count=count,
         current_page=paginator.page,
-        max_pages=(
-            count // paginator.per_page + 1 if count % paginator.per_page else count // paginator.per_page
-        ),
         per_page=paginator.per_page,
     )
 
@@ -102,7 +98,7 @@ def books_query_params(
     description: Annotated[str | None, Query(description="Описание книги")] = None,
     only_private: Annotated[
         bool | None, Query(alias="only-private", description="Только приватные книги")
-    ] = False,
+    ] = None,
     tags: Annotated[list[str] | None, Query(description="Теги книги")] = None,
 ) -> BookFilter:
     """Параметры поиска по книгам."""
@@ -167,13 +163,13 @@ async def create_book_view(
             tags=book_data.tags,
         )
     )
-    return book
+    return BookSchemaWithDesc.from_dto(book)
 
 
 @router.get("/{book_id}", response_model=BookSchemaDetail)
 async def get_book_view(
     book_id: int,
-    current_user: Annotated[UserDTO, Depends(get_current_user)],
+    current_user: Annotated[UserDTO | None, Depends(get_user_or_none)],
     book_query_handler: Annotated[BookQueryHandler, Depends(get_book_query_handler)],
 ):
     """Просмотр книги"""
@@ -203,7 +199,7 @@ async def update_book_view(
             tags=book_data.tags,
         )
     )
-    return book
+    return BookSchemaWithDesc.from_dto(book)
 
 
 @router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -236,7 +232,7 @@ async def upload_book_file(
     book = await book_command_handler.handler_upload_file(
         UploadBookFileCommand(user=current_user, book_id=book_id, file=file)
     )
-    return book
+    return BookSchema.from_dto(book)
 
 
 @router.get("/{book_id}/download", response_class=StreamingResponse)

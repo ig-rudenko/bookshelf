@@ -29,6 +29,7 @@ class _BaseSettings(BaseSettings):
     S3_ENDPOINT_URL: str = ""
 
     database_url: str = ""  # Путь к базе данных
+    database_echo: bool = False
     media_url: str = "/media"
 
     REDIS_HOST: str = ""

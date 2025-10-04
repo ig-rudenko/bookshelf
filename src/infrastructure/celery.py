@@ -1,6 +1,6 @@
 import asyncio
-import threading
 from collections.abc import Callable
+from functools import wraps
 
 from celery import Celery, Task
 
@@ -14,60 +14,74 @@ from src.infrastructure.dependencies import get_storage
 from src.infrastructure.email import SMTPEmailService
 from src.infrastructure.settings import settings
 
-db_manager.init(settings.database_url)
+if db_manager.session_maker is None:
+    db_manager.init(settings.database_url, echo=False)
 
 celery = Celery(__name__)
 if settings.CELERY_BROKER_URL:
     celery.conf.broker_url = settings.CELERY_BROKER_URL
-    loop = asyncio.get_event_loop()
 else:
-    print("celery.conf.task_always_eager")
+    print("⚠️ celery.conf.task_always_eager = True")
     celery.conf.task_always_eager = True
 
 
-def perform_async_task(coro):
-    if celery.conf.task_always_eager:
-        loop_ = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop_)
-        result = loop_.run_until_complete(coro)
-        loop_.close()
-        return result
-    else:
-        task = loop.create_task(coro)
-        loop.run_until_complete(task)
-
-
-@celery.task(name="create_book_preview", ignore_result=True)
-def create_book_preview_task(book_id: int):
+def celery_async_task(*celery_args, **celery_kwargs):
     """
-    Задача создания обложки книги.
+    Декоратор для создания async Celery-задач.
+    Работает корректно и при task_always_eager=True.
     """
 
-    async def async_task():
-        cache = RedisCache(
-            host=settings.REDIS_HOST,
-            port=settings.REDIS_PORT,
-            db=settings.REDIS_DB,
-            password=settings.REDIS_PASSWORD,
-            max_connections=1,
-        )
-        recent_book_service = RecentBookService(cache)
-        storage = get_storage()
+    def decorator(func):
+        # обычная celery-задача (но func — async)
+        task = celery.task(*celery_args, **celery_kwargs)(_wrap_async(func))
+        return task
 
-        # noinspection PyArgumentList
-        async with scoped_session() as session:
-            repo = SqlAlchemyBookRepository(session)
-            preview_name = await create_book_preview_and_update_pages_count(storage, repo, book_id)
+    return decorator
 
-        # Создаем эскизы обложки.
-        await create_thumbnails(storage, preview_name)
 
-        # Удаляем кэш недавно добавленных книг
-        await recent_book_service.delete_recent_books_cache()
+def _wrap_async(async_func):
+    """Обёртка, которая выполняет async функцию в подходящем event loop."""
 
-    thread = threading.Thread(target=perform_async_task, args=(async_task(),))
-    thread.start()
-    thread.join()
+    @wraps(async_func)
+    def wrapper(*args, **kwargs):
+        coro = async_func(*args, **kwargs)
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            # Нет активного event loop (например, worker) → создаём новый
+            return asyncio.run(coro)
+        else:
+            # Есть активный loop (например, FastAPI + task_always_eager=True)
+            return loop.create_task(coro)
+
+    return wrapper
+
+
+@celery_async_task(name="create_book_preview_task", ignore_result=True)
+async def create_book_preview_task(book_id: int):
+    """
+    Асинхронная логика задачи (используется SQLAlchemy, Redis и другие async-компоненты)
+    """
+    cache = RedisCache(
+        host=settings.REDIS_HOST,
+        port=settings.REDIS_PORT,
+        db=settings.REDIS_DB,
+        password=settings.REDIS_PASSWORD,
+        max_connections=1,
+    )
+    recent_book_service = RecentBookService(cache)
+    storage = get_storage()
+
+    # Работа с базой
+    async with scoped_session() as session:
+        repo = SqlAlchemyBookRepository(session)
+        preview_name = await create_book_preview_and_update_pages_count(storage, repo, book_id)
+
+    # Создание миниатюр
+    await create_thumbnails(storage, preview_name)
+
+    # Очистка кэша
+    await recent_book_service.delete_recent_books_cache()
 
 
 @celery.task(name="send_reset_password_email_task", ignore_result=True)

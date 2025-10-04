@@ -1,10 +1,9 @@
 from src.domain.common.unit_of_work import UnitOfWork
-
-from ...domain.comments.entities import Comment, CommentFilter
-from ...domain.common.exceptions import ObjectNotFoundError
 from .commands import CreateCommentCommand, UpdateCommentCommand
 from .dto import CommentDTO
 from .queries import CommentsListQuery
+from ...domain.comments.entities import Comment, CommentFilter
+from ...domain.common.exceptions import ObjectNotFoundError
 
 
 class CommentsQueryHandler:
@@ -19,7 +18,7 @@ class CommentsQueryHandler:
                 not query.user or query.user.id != book.user_id or not query.user.is_superuser
             ):
                 raise ObjectNotFoundError("Object not found")
-            comments, count = self.uow.comments.get_filtered(
+            comments, count = await self.uow.comments.get_filtered(
                 CommentFilter(
                     book_id=book.id,
                     page=query.page,

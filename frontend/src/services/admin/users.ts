@@ -1,4 +1,4 @@
-import api from "@/services/api.ts";
+import api from "@/services/api";
 
 
 export interface UserDetail {

@@ -32,7 +32,7 @@ class SqlAlchemyBookRepository(BookRepository):
 
     async def get_by_id(self, book_id: int) -> Book:
         with wrap_sqlalchemy_exception(self._repo.dialect):
-            model = await self._repo.get(book_id)
+            model = await self._repo.get(book_id, uniquify=True)
             return self._to_domain(model)
 
     async def get_filtered(self, filter_: BookFilter) -> tuple[list[Book], int]:
@@ -40,12 +40,10 @@ class SqlAlchemyBookRepository(BookRepository):
         query = select(BookModel).group_by(BookModel.id).limit(filter_.page_size).offset(offset)
 
         for field in filter_.sorted_by:
-            if field.startswith("-") and hasattr(BookModel, field[:-1]):
+            if field.startswith("-") and hasattr(BookModel, field[1:]):
                 query = query.order_by(getattr(BookModel, field[1:]).desc())
             elif hasattr(BookModel, field):
                 query = query.order_by(getattr(BookModel, field).asc())
-
-        query = self._filter_books_by_viewer(query, filter_.viewer_id)
 
         if filter_.search:
             query = query.where(
@@ -70,12 +68,16 @@ class SqlAlchemyBookRepository(BookRepository):
             query = query.where(BookModel.pages < filter_.pages_lt)
         if filter_.description:
             query = query.where(BookModel.description.ilike(f"%{filter_.description}%"))
-        if filter_.only_private is not None:
-            query = query.where(BookModel.private.is_(True))
+
+        if filter_.only_private is not None and filter_.viewer_id is not None:
+            query = query.where(BookModel.private.is_(True), BookModel.user_id == filter_.viewer_id)
+        else:
+            query = self._filter_books_by_viewer(query, filter_.viewer_id)
+
         if filter_.tags:
             query = query.join(BookModel.tags)
             for tag in filter_.tags:
-                query = query.where(func.lower(TagModel.name) == tag.lower())
+                query = query.where(func.lower(TagModel.name) == tag.lower())  # noqa
         if filter_.ids_in:
             query = query.where(BookModel.id.in_(filter_.ids_in))
 
@@ -105,8 +107,7 @@ class SqlAlchemyBookRepository(BookRepository):
             book_model = self._to_model(book)
             book_model.tags = tags_models
             book_model.publisher_id = publisher_model.id
-            self.session.add(book_model)
-            await self.session.flush()
+            book_model = await self._repo.update(book_model)
         return self._to_domain(book_model)
 
     async def delete(self, book_id: int) -> None:
@@ -127,7 +128,7 @@ class SqlAlchemyBookRepository(BookRepository):
                 .offset((filter_.page - 1) * filter_.page_size)
             )
             result, total = await self._repo.list_and_count(statement=query, uniquify=True)
-            return result, total
+            return [self._to_domain(book) for book in result], total
 
     async def update_favorite_status(self, book_id: int, user_id: int, favorite: bool) -> None:
         with wrap_sqlalchemy_exception(self._repo.dialect):
@@ -185,7 +186,7 @@ class SqlAlchemyBookRepository(BookRepository):
                 .offset((filter_.page - 1) * filter_.page_size)
             )
             result, total = await self._repo.list_and_count(statement=query, uniquify=True)
-            return result, total
+            return [self._to_domain(book) for book in result], total
 
     async def update_read_status(self, book_id: int, user_id: int, read: bool) -> None:
         with wrap_sqlalchemy_exception(self._repo.dialect):

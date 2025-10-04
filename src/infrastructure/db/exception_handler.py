@@ -65,7 +65,7 @@ def wrap_sqlalchemy_exception(  # noqa: C901, PLR0915
                                 f"Object with same {field or full_part} already exists",
                                 field=field or full_part,
                             ) from exc
-
+        print(exc)
         raise RepositoryError("Integrity error") from exc
 
     except SQLAlchemyInvalidRequestError as exc:

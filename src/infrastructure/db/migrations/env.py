@@ -5,8 +5,9 @@ from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from app.models import OrmBase
-from app.settings import settings
+from src.infrastructure.db.models import *  # noqa
+from src.infrastructure.db.models import OrmBase
+from src.infrastructure.settings import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -19,11 +20,6 @@ if not current_url:
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
 
 target_metadata = OrmBase.metadata
 

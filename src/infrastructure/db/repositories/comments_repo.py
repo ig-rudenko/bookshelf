@@ -58,6 +58,7 @@ class SqlAlchemyCommentRepository(CommentRepository):
         total = 0
         with wrap_sqlalchemy_exception(self._repo.dialect):
             result = await self.session.execute(query)
+            result.unique()
             for i, row in enumerate(result):
                 comments.append(
                     Comment(
@@ -83,7 +84,7 @@ class SqlAlchemyCommentRepository(CommentRepository):
     async def update(self, comment: Comment) -> Comment:
         model = self._to_model(comment)
         with wrap_sqlalchemy_exception(self._repo.dialect):
-            model = await self._repo.update(model, attribute_names=["text", "user_id", "book_id"])
+            model = await self._repo.update(model)
         return self._to_domain(model)
 
     async def delete(self, comment_id: int) -> None:
@@ -104,7 +105,7 @@ class SqlAlchemyCommentRepository(CommentRepository):
     @staticmethod
     def _to_model(domain: Comment) -> CommentModel:
         return CommentModel(
-            id=domain.id,
+            id=domain.id if domain.id else None,
             book_id=domain.book_id,
             user_id=domain.user_id,
             text=domain.text,

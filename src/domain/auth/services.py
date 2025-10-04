@@ -1,13 +1,13 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+from .entities import JWToken, TokenPayload
+from .repository import RefreshTokenRepository
 from ..common.exceptions import (
     InvalidTokenError,
     ObjectNotFoundError,
     RefreshTokenRevokedError,
 )
-from .entities import JWToken, TokenPayload
-from .repository import RefreshTokenRepository
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -56,7 +56,7 @@ class AuthService:
             InvalidTokenError: если токен не валиден
         """
         payload = self.token_service.get_payload(refresh_token)
-        if not payload.type != "refresh":
+        if payload.type != "refresh":
             raise InvalidTokenError("Refresh token is not valid. It is not a 'refresh' token")
 
         token_hash: str = self.token_service.get_token_hash(refresh_token)
@@ -68,7 +68,9 @@ class AuthService:
         if token.revoked:
             raise RefreshTokenRevokedError("Refresh token not found or already revoked")
 
-        pair = await self.token_service.refresh_token(refresh_token)
+        pair = await self.token_service.create_token_pair(int(payload.sub))
+        await self.refresh_repo.add(pair.refresh)
+
         try:
             await self.refresh_repo.revoke(token_hash)
         except ObjectNotFoundError as exc:

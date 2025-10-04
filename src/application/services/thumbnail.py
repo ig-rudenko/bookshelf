@@ -1,5 +1,5 @@
 import io
-from typing import Literal
+from typing import Literal, BinaryIO  # noqa
 
 from PIL import Image
 

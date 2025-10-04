@@ -3,7 +3,7 @@ import {defineComponent} from 'vue';
 import Vue3PdfApp from "vue3-pdf-app";
 import "vue3-pdf-app/dist/icons/main.css";
 
-import api from "@/services/api.ts";
+import api from "@/services/api";
 import {PdfHistory} from "@/services/userData.ts";
 import {mapState} from "vuex";
 

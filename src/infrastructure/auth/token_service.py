@@ -18,7 +18,7 @@ class JWTService(TokenService):
 
     async def get_user_id(self, token: str) -> int:
         payload = self.get_payload(token)
-        return payload.sub
+        return int(payload.sub)
 
     async def create_token_pair(self, user_id: int) -> TokenPair:
         access, access_payload = self._create_token(user_id, "access")
@@ -50,7 +50,7 @@ class JWTService(TokenService):
         payload = self.get_payload(refresh_token)
         if payload.type != "refresh":
             raise InvalidTokenError(f"Invalid token type. Expected 'refresh', got '{payload.type}'.")
-        return await self.create_token_pair(payload.sub)
+        return await self.create_token_pair(int(payload.sub))
 
     def get_payload(self, token: str) -> TokenPayload:
         try:
@@ -59,6 +59,8 @@ class JWTService(TokenService):
             raise InvalidTokenError("Token expired") from exc
         except jwt.InvalidTokenError as exc:
             raise InvalidTokenError("Invalid token") from exc
+        if not payload.sub.isdigit():
+            raise InvalidTokenError(f"Invalid token. Expected 'sub' to be a digit, got '{payload.sub}'")
         return payload
 
     def _create_token(self, user_id: int, type_: Literal["access", "refresh"]) -> tuple[str, TokenPayload]:
@@ -69,7 +71,7 @@ class JWTService(TokenService):
             exp += timedelta(days=self.refresh_expiration_days)
 
         payload = TokenPayload(
-            sub=user_id,
+            sub=str(user_id),
             exp=int(exp.timestamp()),
             type=type_,
             iat=int(datetime.now(UTC).timestamp()),

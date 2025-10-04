@@ -62,21 +62,21 @@ class BookCommandHandler:
         return BookDTO.from_domain(book)
 
     async def handler_upload_file(self, cmd: UploadBookFileCommand) -> BookDTO:
-        if not cmd.user.is_staff:
-            raise PermissionDeniedError("Недостаточно прав для изменения книги")
         async with self.uow:
             book = await self.uow.books.get_by_id(cmd.book_id)
+            if not cmd.user.is_superuser and book.user_id != cmd.user.id:
+                raise PermissionDeniedError("Недостаточно прав для изменения книги")
             book.size = cmd.file.size
+            book.file = (await self.storage.upload_book(cmd.file, cmd.book_id))[:512]
             await self.uow.books.update(book)
-            await self.storage.upload_book(cmd.file, cmd.book_id)
         await self.task_manager.run_task("create_book_preview_task", book.id)  # Отправляем задачу
         return BookDTO.from_domain(book)
 
     async def handle_update(self, cmd: UpdateBookCommand) -> BookDTO:
-        if not cmd.user.is_staff:
-            raise PermissionDeniedError("Недостаточно прав для изменения книги")
         async with self.uow:
             book = await self.uow.books.get_by_id(cmd.book_id)
+            if not cmd.user.is_superuser and book.user_id != cmd.user.id:
+                raise PermissionDeniedError("Недостаточно прав для изменения книги")
             book.publisher.name = cmd.publisher
             book.title = cmd.title
             book.authors = cmd.authors
@@ -91,9 +91,10 @@ class BookCommandHandler:
         return BookDTO.from_domain(book)
 
     async def handle_delete(self, cmd: DeleteBookCommand) -> None:
-        if not cmd.user.is_staff:
-            raise PermissionDeniedError("Недостаточно прав для изменения книги")
         async with self.uow:
+            book = await self.uow.books.get_by_id(cmd.book_id)
+            if not cmd.user.is_superuser and book.user_id != cmd.user.id:
+                raise PermissionDeniedError("Недостаточно прав для изменения книги")
             await self.uow.books.delete(cmd.book_id)
             await self.uow.book_read_history.delete_for_book(cmd.book_id)
         await self.storage.delete_book(cmd.book_id)
@@ -110,18 +111,23 @@ class BookQueryHandler:
         self.recent_book_service = recent_book_service
 
     async def handle_get_book(self, book_id: int) -> BookDTO:
-        with self.uow:
+        async with self.uow:
             book = await self.uow.books.get_by_id(book_id)
             return BookDTO.from_domain(book)
 
-    async def handle_get_book_detail(self, book_id: int, user_id: int) -> DetailBookDTO:
+    async def handle_get_book_detail(self, book_id: int, viewer_id: int | None) -> DetailBookDTO:
         async with self.uow:
             book = await self.uow.books.get_by_id(book_id)
-            is_read = await self.uow.books.is_read_by_user(book_id, user_id)
-            is_favorite = await self.uow.books.is_favorite_by_user(book_id, user_id)
+            if viewer_id is not None:
+                is_read = await self.uow.books.is_read_by_user(book_id, viewer_id)
+                is_favorite = await self.uow.books.is_favorite_by_user(book_id, viewer_id)
+            else:
+                is_read = False
+                is_favorite = False
+
             book_tags = await self.uow.books.get_book_tags(book_id)
             bookshelves, _ = await self.uow.bookshelves.get_filtered(
-                BookshelfFilter(book_id=book_id, page=1, page_size=10)
+                BookshelfFilter(book_id=book_id, page=1, page_size=10, viewer_id=viewer_id)
             )
         media_url = await self.storage.get_media_url(book.preview_image)
 
@@ -166,7 +172,7 @@ class BookQueryHandler:
         cached_books = await self.recent_book_service.get_recent_books(query)
         if cached_books is None:
             async with self.uow:
-                books, count = await self.uow.books.get_filtered(query)
+                books, _ = await self.uow.books.get_filtered(query)
             cached_books = [BookDTO.from_domain(book) for book in books]
             await self.recent_book_service.set_recent_books(cached_books, query)
 
@@ -214,7 +220,7 @@ class BookmarksCommandHandler:
             await self.uow.books.update_favorite_status(
                 user_id=cmd.user_id,
                 book_id=cmd.book_id,
-                favorite=True,
+                favorite=cmd.favorite,
             )
 
     async def handle_update_book_read(self, cmd: UpdateReadCommand) -> None:
@@ -222,7 +228,7 @@ class BookmarksCommandHandler:
             await self.uow.books.update_read_status(
                 user_id=cmd.user_id,
                 book_id=cmd.book_id,
-                read=True,
+                read=cmd.read,
             )
 
 

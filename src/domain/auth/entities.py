@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 class TokenPayload(BaseModel):
     type: Literal["access", "refresh"]
-    sub: int
+    sub: str
     exp: int
     iat: int
 
