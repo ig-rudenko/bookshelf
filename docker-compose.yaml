@@ -88,8 +88,6 @@ services:
     logging: *logging
     volumes:
       - "./pg_data:/var/lib/postgresql/data"
-    ports:
-      - "5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "sh -c 'pg_isready -U dbuser -d bookshelf'"]
       start_period: 5s
