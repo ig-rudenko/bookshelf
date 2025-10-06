@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends
 from src.application.history.commands import SetReadBookHistory
 from src.application.history.handlers import HistoryCommandHandler, HistoryQueryHandler
 from src.application.users.dto import UserDTO
+
 from ..auth import get_current_user
 from ..dependencies import get_history_command_handler, get_history_query_handler
 from ..schemas.history import CreatePdfJSHistorySchema, PdfJSHistorySchema

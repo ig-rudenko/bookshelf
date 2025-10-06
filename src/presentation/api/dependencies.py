@@ -1,5 +1,5 @@
+from collections.abc import AsyncIterator
 from functools import cache
-from typing import AsyncIterator
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession

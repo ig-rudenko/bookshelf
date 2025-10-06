@@ -1,9 +1,10 @@
 from src.domain.common.unit_of_work import UnitOfWork
+
+from ...domain.comments.entities import Comment, CommentFilter
+from ...domain.common.exceptions import ObjectNotFoundError
 from .commands import CreateCommentCommand, UpdateCommentCommand
 from .dto import CommentDTO
 from .queries import CommentsListQuery
-from ...domain.comments.entities import Comment, CommentFilter
-from ...domain.common.exceptions import ObjectNotFoundError
 
 
 class CommentsQueryHandler:

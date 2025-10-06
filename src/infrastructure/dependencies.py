@@ -1,9 +1,10 @@
 from src.application.services.storage import AbstractStorage
+
+from ..application.services.cache import AbstractCache
+from ..application.services.task_manager import TaskManager
 from .cache import InMemoryCache, RedisCache
 from .media_storage import LocalStorage, S3Storage
 from .settings import MediaStorageEnum, settings
-from ..application.services.cache import AbstractCache
-from ..application.services.task_manager import TaskManager
 
 __cache__: AbstractCache | None = None
 __storage__: AbstractStorage | None = None

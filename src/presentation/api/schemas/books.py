@@ -4,6 +4,7 @@ from typing import Self
 from pydantic import Field
 
 from src.application.books.dto import BookDTO, BookWithReadPagesDTO
+
 from .base import CamelAliasModel, CamelSerializerModel
 
 

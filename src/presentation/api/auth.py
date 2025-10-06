@@ -10,6 +10,7 @@ from src.domain.common.exceptions import ObjectNotFoundError, ValidationError
 from src.domain.common.unit_of_work import UnitOfWork
 from src.infrastructure.auth.token_service import JWTService, decode_reset_password_token
 from src.infrastructure.db.unit_of_work import SqlAlchemyUnitOfWork
+
 from .dependencies import get_jwt_token_service, get_session
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
