@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from advanced_alchemy.filters import LimitOffset
 from advanced_alchemy.repository import SQLAlchemyAsyncRepository
 from sqlalchemy import func, over, select
@@ -26,7 +24,7 @@ class SqlAlchemyUserRepository(UserRepository):
             session=session, auto_commit=False, auto_refresh=True, wrap_exceptions=False
         )
 
-    async def get_by_id(self, user_id: UUID) -> User:
+    async def get_by_id(self, user_id: int) -> User:
         with wrap_sqlalchemy_exception(self._repo.dialect):
             model = await self._repo.get(user_id)
         return self._to_domain(model)
@@ -73,14 +71,14 @@ class SqlAlchemyUserRepository(UserRepository):
             )
         return self._to_domain(model)
 
-    async def delete(self, user_id: UUID) -> None:
+    async def delete(self, user_id: int) -> None:
         with wrap_sqlalchemy_exception(self._repo.dialect):
             await self._repo.delete(user_id)
 
     async def get_filtered_detail(self, filter_: UserFilter) -> tuple[list[UserDetail], int]:
         query = (
             select(
-                over(func.count()).label("count"),
+                over(func.count()).label("total_count"),
                 UserModel.id,
                 UserModel.username,
                 UserModel.first_name,
@@ -143,7 +141,7 @@ class SqlAlchemyUserRepository(UserRepository):
                 )
             )
             if i == 0:
-                total_count = row.count
+                total_count = row.total_count
 
         return users, total_count
 
@@ -152,10 +150,10 @@ class SqlAlchemyUserRepository(UserRepository):
         return User(
             id=model.id,
             username=model.username,
-            email=model.email,
+            email=model.email or "",
             password=model.password,
-            first_name=model.first_name,
-            last_name=model.last_name,
+            first_name=model.first_name or "",
+            last_name=model.last_name or "",
             is_superuser=model.is_superuser,
             is_active=model.is_active,
             date_join=model.date_join,

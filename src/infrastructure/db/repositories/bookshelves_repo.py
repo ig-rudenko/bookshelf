@@ -32,7 +32,7 @@ class SqlAlchemyBookshelfRepository(BookshelfRepository):
 
     async def get_filtered(self, filter_: BookshelfFilter) -> tuple[list[Bookshelf], int]:
         offset = (filter_.page - 1) * filter_.page_size
-        query = self._get_query().add_columns(over(func.count()).label("count"))
+        query = self._get_query().add_columns(over(func.count()).label("total_count"))
         query = query.limit(filter_.page_size).offset(offset)
 
         if filter_.search:
@@ -77,7 +77,7 @@ class SqlAlchemyBookshelfRepository(BookshelfRepository):
                     )
                 )
                 if i == 0:
-                    count = int(data.count)
+                    count = int(data.total_count)
 
         return instances, count
 

@@ -1,5 +1,4 @@
 from datetime import UTC, datetime
-from uuid import UUID
 
 from advanced_alchemy.repository import SQLAlchemyAsyncRepository
 from sqlalchemy import update
@@ -46,7 +45,7 @@ class SqlAlchemyRefreshTokenRepository(RefreshTokenRepository):
             token.revoked = True
             await self._repo.update(token, attribute_names=["revoked"])
 
-    async def revoke_all_for_user(self, user_id: UUID) -> None:
+    async def revoke_all_for_user(self, user_id: int) -> None:
         with wrap_sqlalchemy_exception(self._repo.dialect):
             stmt = update(RefreshTokenModel).where(RefreshTokenModel.user_id == user_id).values(revoked=True)
             await self.session.execute(stmt)

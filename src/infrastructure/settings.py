@@ -1,7 +1,7 @@
 import enum
 from pathlib import Path
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class MediaStorageEnum(str, enum.Enum):
@@ -10,6 +10,11 @@ class MediaStorageEnum(str, enum.Enum):
 
 
 class _BaseSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=(".env.example", ".env"),
+        env_file_encoding="utf-8",
+    )
+
     log_level: str = "INFO"
 
     jwt_secret: str
@@ -17,7 +22,7 @@ class _BaseSettings(BaseSettings):
     jwt_refresh_token_expire_days: int = 30
 
     # Путь к медиа хранилищу
-    media_storage_type: MediaStorageEnum = "local"
+    media_storage_type: MediaStorageEnum = MediaStorageEnum.local
     media_storage: str = "./media"
     media_root: Path = Path(media_storage)
     media_root.mkdir(exist_ok=True, parents=True)
@@ -30,6 +35,8 @@ class _BaseSettings(BaseSettings):
 
     database_url: str = ""  # Путь к базе данных
     database_echo: bool = False
+    database_pool_size: int = 10
+    database_max_overflow: int = 20
     media_url: str = "/media"
 
     REDIS_HOST: str = ""
@@ -50,10 +57,6 @@ class _BaseSettings(BaseSettings):
     SMTP_SERVER: str = "smtp.yandex.ru"
     SMTP_PORT: int = 465
     FORGET_PASSWORD_LINK_EXPIRE_MINUTES: int = 10
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
 
 
 settings: _BaseSettings = _BaseSettings()  # type: ignore

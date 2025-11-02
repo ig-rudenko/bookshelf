@@ -4,6 +4,7 @@ from typing import Self
 from pydantic import Field
 
 from src.application.books.dto import BookDTO, BookWithReadPagesDTO
+
 from .base import CamelAliasModel, CamelSerializerModel
 
 
@@ -150,7 +151,7 @@ class BookWithReadPagesSchema(BookSchema):
     @classmethod
     def from_dto_with_read_pages(cls, book: BookWithReadPagesDTO) -> Self:
         obj = cls.from_dto(book)
-        obj.read_pages = book.read_pages
+        obj.read_pages = book.read_pages or 0
         obj.last_time_read = book.last_time_read
         return obj
 

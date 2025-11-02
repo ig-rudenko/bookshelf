@@ -40,6 +40,6 @@ class BookReadHistory:
 
 @dataclass(slots=True, kw_only=True)
 class BookReadHistoryFilter:
-    user_id: int
+    user_id: int | None
     page: int
     page_size: int

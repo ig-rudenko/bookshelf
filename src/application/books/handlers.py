@@ -66,7 +66,7 @@ class BookCommandHandler:
             book = await self.uow.books.get_by_id(cmd.book_id)
             if not cmd.user.is_superuser and book.user_id != cmd.user.id:
                 raise PermissionDeniedError("Недостаточно прав для изменения книги")
-            book.size = cmd.file.size
+            book.size = cmd.file.size or 0
             book.file = (await self.storage.upload_book(cmd.file, cmd.book_id))[:512]
             await self.uow.books.update(book)
         await self.task_manager.run_task("create_book_preview_task", book.id)  # Отправляем задачу
@@ -204,7 +204,8 @@ class BookQueryHandler:
                 if book.id not in viewed_books_map:
                     raise ObjectNotFoundError(f"Book with id {book.id} not found in viewed books map")
                 dto = BookWithReadPagesDTO.from_domain(book)
-                dto.read_pages = viewed_books_map.get(book.id, None).history.files[-1].page
+                if viewed_books_map.get(book.id) is not None:
+                    dto.read_pages = viewed_books_map[book.id].history.files[-1].page
                 dto.last_time_read = viewed_books_map[book.id].updated_at
                 results.append(dto)
             return results, count

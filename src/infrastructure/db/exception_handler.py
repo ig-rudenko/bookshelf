@@ -41,8 +41,10 @@ def wrap_sqlalchemy_exception(  # noqa: C901, PLR0915
         yield
 
     except advanced_alchemy_exceptions.NotFoundError as exc:
+        print(exc)
         raise ObjectNotFoundError("Object not found") from exc
     except MultipleResultsFound as exc:
+        print(exc)
         raise MultipleResultsFoundError("Multiple objects found") from exc
     except SQLAlchemyIntegrityError as exc:
         if dialect_name is not None:
@@ -75,6 +77,8 @@ def wrap_sqlalchemy_exception(  # noqa: C901, PLR0915
         print(exc)
         raise RepositoryError("There was an issue processing the statement") from exc
     except SQLAlchemyError as exc:
+        print(exc)
         raise RepositoryError("An error occurred during processing") from exc
     except AttributeError as exc:
+        print(exc)
         raise RepositoryError(f"An attribute error occurred during processing: {exc}") from exc

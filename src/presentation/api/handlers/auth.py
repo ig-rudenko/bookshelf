@@ -47,14 +47,14 @@ async def register_user(
     if not await verify_captcha(user.recaptcha_token, remote_ip=get_client_ip(request)):
         raise HTTPException(status_code=422, detail="Вы не прошли проверку для регистрации")
 
-    user = await register_handler.handle(
+    user_dto = await register_handler.handle(
         RegisterUserCommand(
             username=user.username,
             password=user.password,
             email=str(user.email),
         )
     )
-    return user
+    return user_dto
 
 
 @router.post("/token", response_model=TokenPairSchema)

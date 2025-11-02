@@ -5,7 +5,7 @@ from typing import BinaryIO, Protocol
 
 
 class FileProtocol(Protocol):
-    filename: str
+    filename: str | None
     file: BinaryIO
     size: int | None
 

@@ -10,6 +10,7 @@ from src.domain.common.exceptions import ObjectNotFoundError, ValidationError
 from src.domain.common.unit_of_work import UnitOfWork
 from src.infrastructure.auth.token_service import JWTService, decode_reset_password_token
 from src.infrastructure.db.unit_of_work import SqlAlchemyUnitOfWork
+
 from .dependencies import get_jwt_token_service, get_session
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
@@ -72,6 +73,8 @@ async def get_user_or_none(
 
 async def get_user_by_reset_password_token(token: str, uow: UnitOfWork) -> UserDTO:
     email = decode_reset_password_token(token)
+    if email is None:
+        raise HTTPException(detail="Неверный токен для сброса пароля", status_code=403)
     try:
         async with uow:
             user = await uow.users.get_by_email(email)

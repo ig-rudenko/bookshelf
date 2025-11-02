@@ -4,7 +4,8 @@ from fastapi import FastAPI
 from loguru import logger
 from uvicorn import server
 
-from src.domain.common.exceptions import RepositoryError, DomainError, AuthorizationError
+from src.domain.common.exceptions import AuthorizationError, DomainError, RepositoryError
+from src.infrastructure.celery import register_tasks
 from src.infrastructure.db.session_manager import db_manager
 from src.infrastructure.logging import setup_logger
 from src.infrastructure.settings import settings
@@ -24,7 +25,13 @@ from src.presentation.api.handlers.history import router as history_router
 
 @asynccontextmanager
 async def startup(app_instance: FastAPI):
-    db_manager.init(settings.database_url, echo=settings.database_echo)
+    db_manager.init(
+        settings.database_url,
+        echo=settings.database_echo,
+        pool_size=settings.database_pool_size,
+        max_overflow=settings.database_max_overflow,
+    )
+    await register_tasks()
     logger.info("Database initialized")
     yield
     logger.info("Closing database")

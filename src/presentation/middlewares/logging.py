@@ -12,7 +12,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
     Middleware для обработки запросов и ответов с целью журналирования
     """
 
-    def __init__(self, app: FastAPI, *, logger, ignore_paths: list = None) -> None:
+    def __init__(self, app: FastAPI, *, logger, ignore_paths: list | None = None) -> None:
         self._logger = logger
         if ignore_paths is None:
             ignore_paths = []
@@ -25,7 +25,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         request_id: str = str(uuid4())
-        logging_dict = {
+        logging_dict: dict = {
             "X-API-REQUEST-ID": request_id  # X-API-REQUEST-ID maps each request-response to a unique ID
         }
 
@@ -48,14 +48,15 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 "path": request.url.path,
                 "query": request.query_params,
             },
-            "client": {
-                "address": request.client.host,
-                "port": request.client.port,
-            },
             "user_agent": {
                 "original": request.headers.get("User-Agent"),
             },
         }
+        if request.client is not None:
+            request_logging["client"] = {
+                "address": request.client.host,
+                "port": request.client.port,
+            }
         return request_logging
 
     async def _log_response(

@@ -40,11 +40,11 @@ class SqlAlchemyBookReadHistoryRepositoryRepository(BookReadHistoryRepository):
 
     async def get_filtered(self, filter_: BookReadHistoryFilter) -> tuple[list[BookReadHistory], int]:
         offset = (filter_.page - 1) * filter_.page_size
-        filters = [
+        filters: list = [
             LimitOffset(limit=filter_.page_size, offset=offset),
             OrderBy("pdf_history_updated_at", "desc"),
         ]
-        if filter_.user_id:
+        if filter_.user_id is not None:
             filters.append(
                 BookHistoryModel.user_id == filter_.user_id,
             )

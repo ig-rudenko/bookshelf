@@ -34,3 +34,9 @@ class UnitOfWork(ABC):
     @property
     @abstractmethod
     def refresh_token(self) -> RefreshTokenRepository: ...
+
+    @abstractmethod
+    async def __aenter__(self) -> "UnitOfWork": ...
+
+    @abstractmethod
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None: ...

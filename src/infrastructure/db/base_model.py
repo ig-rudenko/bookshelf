@@ -1,7 +1,7 @@
 from collections.abc import Awaitable
 from typing import Any, Self, TypeVar
 
-from advanced_alchemy.base import CommonTableAttributes
+from advanced_alchemy.base import CommonTableAttributes, ModelProtocol
 from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.util import greenlet_spawn
@@ -51,7 +51,7 @@ class AwaitAttrs:
         return AwaitAttrs._AwaitAttrGetitem(self)  # type: ignore
 
 
-class OrmBase(AwaitAttrs, DeclarativeBase, CommonTableAttributes):
+class OrmBase(AwaitAttrs, DeclarativeBase, CommonTableAttributes, ModelProtocol):
     """
     Базовый класс для моделей SQLAlchemy с поддержкой асинхронного доступа к атрибутам.
 

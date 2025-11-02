@@ -12,7 +12,7 @@ class PublisherDTO:
 
 
 @dataclass(slots=True, kw_only=True)
-class BookDTO:
+class BaseBookDTO:
     id: int
     user_id: int
     publisher: PublisherDTO
@@ -25,6 +25,10 @@ class BookDTO:
     year: int
     private: bool
     language: str
+
+
+@dataclass(slots=True, kw_only=True)
+class BookDTO(BaseBookDTO):
     tags: list[str]
 
     @classmethod
@@ -63,7 +67,7 @@ class TagDTO:
 
 
 @dataclass(slots=True, kw_only=True)
-class DetailBookDTO(BookDTO):
+class DetailBookDTO(BaseBookDTO):
     description: str
     favorite: bool
     read: bool

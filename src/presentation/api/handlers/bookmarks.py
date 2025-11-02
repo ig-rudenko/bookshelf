@@ -4,10 +4,11 @@ from src.application.books.commands import UpdateFavoriteCommand, UpdateReadComm
 from src.application.books.handlers import BookmarksCommandHandler, BookmarksQueryHandler
 from src.application.users.dto import UserDTO
 from src.domain.books.entities import BookmarksQueryFilter
-from .queries import PaginatorQuery, paginator_query
+
 from ..auth import get_current_user
 from ..dependencies import get_bookmark_command_handler, get_bookmark_query_handler
 from ..schemas.books import BooksSchemaPaginated
+from .queries import PaginatorQuery, paginator_query
 
 router = APIRouter(prefix="/bookmarks", tags=["bookmarks"])
 

@@ -15,7 +15,12 @@ from src.infrastructure.email import SMTPEmailService
 from src.infrastructure.settings import settings
 
 if db_manager.session_maker is None:
-    db_manager.init(settings.database_url, echo=False)
+    db_manager.init(
+        settings.database_url,
+        echo=settings.database_echo,
+        pool_size=settings.database_pool_size,
+        max_overflow=settings.database_max_overflow,
+    )
 
 celery = Celery(__name__)
 if settings.CELERY_BROKER_URL:
@@ -110,11 +115,14 @@ class CeleryTaskManager(TaskManager):
 
 celery.task()
 celery_task_manager = CeleryTaskManager(celery)
-celery_task_manager.register_task(
-    "create_book_preview_task",
-    lambda book_id: create_book_preview_task.delay(book_id),
-)
-celery_task_manager.register_task(
-    "send_reset_password_email_task",
-    lambda email: send_reset_password_email_task.delay(email),
-)
+
+
+async def register_tasks():
+    await celery_task_manager.register_task(
+        "create_book_preview_task",
+        lambda book_id: create_book_preview_task.delay(book_id),
+    )
+    await celery_task_manager.register_task(
+        "send_reset_password_email_task",
+        lambda email: send_reset_password_email_task.delay(email),
+    )

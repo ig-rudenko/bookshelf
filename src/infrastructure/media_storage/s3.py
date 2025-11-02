@@ -33,7 +33,7 @@ class S3Storage(AbstractStorage):
 
     async def upload_book(self, file: FileProtocol, book_id: int) -> str:
         await self.delete_book(book_id)
-        key = self._book_key(book_id, file.filename)
+        key = self._book_key(book_id, str(file.filename))
         async with self._s3_async.client("s3", endpoint_url=self.endpoint_url) as s3:
             await s3.upload_fileobj(file.file, self.bucket_name, key)
         return key

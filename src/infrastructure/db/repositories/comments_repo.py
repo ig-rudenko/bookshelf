@@ -38,7 +38,7 @@ class SqlAlchemyCommentRepository(CommentRepository):
                 CommentModel.text,
                 CommentModel.created_at,
                 UserModel.username,
-                over(func.count()).label("count"),
+                over(func.count()).label("total_count"),
             )
             .join(UserModel)
             .group_by(CommentModel.id, UserModel.username)
@@ -71,7 +71,7 @@ class SqlAlchemyCommentRepository(CommentRepository):
                     )
                 )
                 if i == 0:
-                    total = row.count
+                    total = row.total_count
 
         return comments, total
 
