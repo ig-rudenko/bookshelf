@@ -170,9 +170,11 @@ class BookQueryHandler:
 
     async def handle_get_list_books(self, query: BookFilter) -> tuple[list[BookDTO], int]:
         books, count = await self.uow.books.get_filtered(query)
-        books_dto = [BookDTO.from_domain(book) for book in books]
-        for book in books_dto:
-            book.preview_image = await self.storage.get_media_url(book.preview_image)
+        books_dto = []
+        for book in books:
+            dto = BookDTO.from_domain(book)
+            dto.preview_image = await self.storage.get_media_url(book.preview_image)
+            books_dto.append(dto)
         return books_dto, count
 
     async def handle_get_recent_books(self, user_id: int | None = None) -> list[BookDTO]:
@@ -184,9 +186,12 @@ class BookQueryHandler:
         if cached_books is None:
             async with self.uow:
                 books, _ = await self.uow.books.get_filtered(query)
-            cached_books = [BookDTO.from_domain(book) for book in books]
-            for book in cached_books:
-                book.preview_image = await self.storage.get_media_url(book.preview_image)
+            cached_books = []
+            for book in books:
+                dto = BookDTO.from_domain(book)
+                dto.preview_image = await self.storage.get_media_url(book.preview_image)
+                cached_books.append(dto)
+
             await self.recent_book_service.set_recent_books(cached_books, query)
 
         return cached_books
@@ -222,6 +227,8 @@ class BookQueryHandler:
                     dto.read_pages = viewed_books_map[book.id].history.files[-1].page
                 dto.last_time_read = viewed_books_map[book.id].updated_at
                 results.append(dto)
+
+            results = sorted(results, key=lambda x: x.last_time_read, reverse=True)
             return results, count
 
 
@@ -249,13 +256,17 @@ class BookmarksCommandHandler:
 
 class BookmarksQueryHandler:
 
-    def __init__(self, uow: UnitOfWork) -> None:
+    def __init__(self, uow: UnitOfWork, storage: AbstractStorage) -> None:
         self.uow = uow
+        self.storage = storage
 
     async def handle_get_favorite_books(self, query: BookmarksQueryFilter) -> tuple[list[BookDTO], int]:
         async with self.uow:
             books, count = await self.uow.books.get_favorite_books(query)
-        return [BookDTO.from_domain(book) for book in books], count
+        books = [BookDTO.from_domain(book) for book in books]
+        for book in books:
+            book.preview_image = await self.storage.get_media_url(book.preview_image)
+        return books, count
 
     async def handle_get_favorite_books_count(self, user_id: int) -> int:
         async with self.uow:
@@ -265,7 +276,10 @@ class BookmarksQueryHandler:
     async def handle_get_read_books(self, query: BookmarksQueryFilter) -> tuple[list[BookDTO], int]:
         async with self.uow:
             books, count = await self.uow.books.get_read_books(query)
-        return [BookDTO.from_domain(book) for book in books], count
+        books = [BookDTO.from_domain(book) for book in books]
+        for book in books:
+            book.preview_image = await self.storage.get_media_url(book.preview_image)
+        return books, count
 
     async def handle_get_read_books_count(self, user_id: int) -> int:
         async with self.uow:

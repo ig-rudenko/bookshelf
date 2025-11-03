@@ -94,8 +94,10 @@ def get_reset_password_handler(
     return ResetPasswordHandler(uow=SqlAlchemyUnitOfWork(session), hasher=hasher)
 
 
-def get_bookmark_query_handler(session: AsyncSession = Depends(get_session, use_cache=True)):
-    return BookmarksQueryHandler(uow=SqlAlchemyUnitOfWork(session))
+def get_bookmark_query_handler(
+    session: AsyncSession = Depends(get_session, use_cache=True), storage=Depends(get_storage)
+):
+    return BookmarksQueryHandler(uow=SqlAlchemyUnitOfWork(session), storage=storage)
 
 
 def get_bookmark_command_handler(session: AsyncSession = Depends(get_session, use_cache=True)):
