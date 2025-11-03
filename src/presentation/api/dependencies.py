@@ -41,7 +41,7 @@ def get_hasher() -> PasswordHasherProtocol:
 @cache
 def get_jwt_token_service() -> JWTService:
     return JWTService(
-        secret=settings.jwt_secret,
+        secret=settings.jwt_secret_key,
         access_expiration_minutes=settings.jwt_access_token_expire_minutes,
         refresh_expiration_days=settings.jwt_refresh_token_expire_days,
     )

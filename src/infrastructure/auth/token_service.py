@@ -90,13 +90,13 @@ def create_reset_password_token(email: str) -> str:
         "sub": email,
         "exp": datetime.now(UTC) + timedelta(minutes=settings.FORGET_PASSWORD_LINK_EXPIRE_MINUTES),
     }
-    return jwt.encode(data, settings.jwt_secret, algorithm="HS512")
+    return jwt.encode(data, settings.jwt_secret_key, algorithm="HS512")
 
 
 def decode_reset_password_token(token: str) -> str | None:
     """Возвращает email или None"""
     try:
-        payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS512"])
+        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=["HS512"])
         email: str = payload.get("sub", "")
         exp: int = payload.get("exp", 0)
         if datetime.now(UTC) > datetime.fromtimestamp(exp) or not email:
