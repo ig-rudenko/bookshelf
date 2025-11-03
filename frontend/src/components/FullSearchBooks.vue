@@ -99,7 +99,8 @@ export default defineComponent({
     replaceThumb(data: PaginatedBookResult): PaginatedBookResult {
       if (this.isMobile) {
         for (const book of data.books) {
-          book.previewImage = book.previewImage.replace("medium.png", "small.png")
+          book.previewImage = book.previewImage.replace(".png", "_thumb_small.png")
+          console.log(book.previewImage)
         }
       }
       return data

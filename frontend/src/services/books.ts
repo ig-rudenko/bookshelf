@@ -11,7 +11,7 @@ class BooksService {
         if (perPage) urlParams += `&per-page=${perPage}`;
         if (filter?.urlParams) urlParams += `&${filter.urlParams}`;
 
-        history.pushState({path: urlParams}, '', urlParams);
+        history.pushState({}, "", "/" + urlParams)
 
         if (this.lastUrlParams == urlParams) return null;
         this.lastUrlParams = urlParams

@@ -58,7 +58,6 @@ import {mapState} from "vuex";
 import bookshelvesService, {EditBookshelf} from "@/services/bookshelves.ts";
 import SearchBookForm from "@/components/SearchBookForm.vue";
 import {FilterBook} from "@/filters.ts";
-import bookService from "@/services/books.ts";
 import {PaginatedBookResult} from "@/books.ts";
 import FullSearchBooks from "@/components/FullSearchBooks.vue";
 import BookshelfRow from "@/components/BookshelfRow.vue";
@@ -155,28 +154,6 @@ export default defineComponent({
                 this.formError = getVerboseAxiosError(reason)
               }
           );
-    },
-
-    getBooksList(page: number, filter: null | FilterBook = null) {
-      this.loadingBooks = true
-      location.hash = "#search-block";
-      bookService.getBooksList(page, filter, this.results?.perPage).then(
-          (value: PaginatedBookResult | null) => {
-            if (value) this.results = this.replaceThumb(value);
-            this.loadingBooks = false;
-          }
-      ).catch(() => {
-        this.loadingBooks = false
-      })
-    },
-
-    replaceThumb(data: PaginatedBookResult): PaginatedBookResult {
-      if (this.isMobile) {
-        for (const book of data.books) {
-          book.previewImage = book.previewImage.replace("medium.png", "small.png")
-        }
-      }
-      return data
     },
 
     removeBookByID(book_id: number) {

@@ -33,7 +33,7 @@ export default defineComponent({
     <div class="flex justify-center items-center">
       <div class="scroll-menu" style="width: 80rem;">
         <a :href="'/book/'+book.id" v-for="(book, index) in recentBooks" :key="index" class="m-2 inline-block shadow-3">
-          <img :alt="book.title" class="item flex" :src="book.previewImage.replace('small', 'medium')"
+          <img :alt="book.title" class="item flex" :src="book.previewImage.replace('.png', '_thumb_medium.png')"
                v-tooltip.bottom="book.title"/>
         </a>
       </div>
