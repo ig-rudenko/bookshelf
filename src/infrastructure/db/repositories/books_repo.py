@@ -123,7 +123,7 @@ class SqlAlchemyBookRepository(BookRepository):
                     FavoriteBookModel.book_id == BookModel.id,
                     FavoriteBookModel.user_id == filter_.user_id,
                 )
-                .group_by(BookModel.id)
+                .group_by(BookModel.id, FavoriteBookModel.id)
                 .limit(filter_.page_size)
                 .order_by(FavoriteBookModel.id.desc())
                 .offset((filter_.page - 1) * filter_.page_size)
@@ -182,7 +182,7 @@ class SqlAlchemyBookRepository(BookRepository):
                     ReadBookModel.book_id == BookModel.id,
                     ReadBookModel.user_id == filter_.user_id,
                 )
-                .group_by(BookModel.id)
+                .group_by(BookModel.id, ReadBookModel.id)
                 .limit(filter_.page_size)
                 .order_by(ReadBookModel.id.desc())
                 .offset((filter_.page - 1) * filter_.page_size)
