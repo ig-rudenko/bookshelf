@@ -132,14 +132,16 @@ def get_book_command_handler(
 
 def get_bookshelf_query_handler(
     session: AsyncSession = Depends(get_session, use_cache=True),
+    storage: AbstractStorage = Depends(get_storage),
 ):
-    return BookshelfQueryHandler(uow=SqlAlchemyUnitOfWork(session))
+    return BookshelfQueryHandler(uow=SqlAlchemyUnitOfWork(session), storage=storage)
 
 
 def get_bookshelf_command_handler(
     session: AsyncSession = Depends(get_session, use_cache=True),
+    storage: AbstractStorage = Depends(get_storage),
 ):
-    return BookshelfCommandHandler(uow=SqlAlchemyUnitOfWork(session))
+    return BookshelfCommandHandler(uow=SqlAlchemyUnitOfWork(session), storage=storage)
 
 
 def get_history_query_handler(
