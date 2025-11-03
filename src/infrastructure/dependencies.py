@@ -33,7 +33,8 @@ def get_storage() -> AbstractStorage:
     if __storage__ is None:
         if settings.media_storage_type == MediaStorageEnum.s3:
             __storage__ = S3Storage(bucket_name=settings.BUCKET_NAME, endpoint_url=settings.S3_ENDPOINT_URL)
-        __storage__ = LocalStorage(settings.media_root)
+        else:
+            __storage__ = LocalStorage(settings.media_root)
     return __storage__
 
 

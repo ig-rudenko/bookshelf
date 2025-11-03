@@ -40,6 +40,10 @@ async def domain_error_handler(request: Request, exc: Exception):
     )
 
 
+async def storage_error_handler(request: Request, exc: Exception):
+    return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"detail": "Файл книги не найден"})
+
+
 async def auth_error_handler(request: Request, exc: Exception):
     """Возвращает ответ с ошибкой 401, если ошибка авторизации"""
     return JSONResponse(

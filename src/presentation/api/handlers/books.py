@@ -257,10 +257,7 @@ async def download_book_file(
     if as_file:
         headers["Content-Disposition"] = f'attachment; filename="{slugify(book.title)}.pdf"'
 
-    try:
-        book_async_iterator = storage.get_book_iterator(book.id)
-    except storage.FileNotFoundError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Файл книги не найден") from exc
+    book_async_iterator = storage.get_book_iterator(book.id)
 
     return StreamingResponse(
         content=book_async_iterator,

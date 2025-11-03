@@ -27,17 +27,17 @@ class BookshelfQueryHandler:
         async with self.uow:
             bookshelves, count = await self.uow.bookshelves.get_filtered(filter_)
             result = []
-            for bookshelf in bookshelves:
-                dto = await get_bookshelf_dto(bookshelf, self.storage)
-                result.append(dto)
+        for bookshelf in bookshelves:
+            dto = await get_bookshelf_dto(bookshelf, self.storage)
+            result.append(dto)
 
-            return result, count
+        return result, count
 
     async def handle_get(self, id_: int, user_id: int | None) -> BookshelfDTO:
         async with self.uow:
             bookshelf = await self.uow.bookshelves.get(id_)
-            if bookshelf.private and bookshelf.user_id != user_id:
-                raise ObjectNotFoundError("Object not found")
+        if bookshelf.private and bookshelf.user_id != user_id:
+            raise ObjectNotFoundError("Object not found")
 
         return await get_bookshelf_dto(bookshelf, self.storage)
 

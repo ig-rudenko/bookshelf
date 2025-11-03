@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from loguru import logger
 from uvicorn import server
 
+from src.application.services.storage import AbstractStorage
 from src.domain.common.exceptions import AuthorizationError, DomainError, RepositoryError
 from src.infrastructure.celery import register_tasks
 from src.infrastructure.db.session_manager import db_manager
@@ -13,6 +14,7 @@ from src.presentation.api.exception_handlers import (
     auth_error_handler,
     domain_error_handler,
     repository_error_handler,
+    storage_error_handler,
 )
 from src.presentation.api.handlers.admin import router as admin_router
 from src.presentation.api.handlers.auth import router as auth_router
@@ -48,6 +50,7 @@ app = FastAPI(lifespan=startup)
 app.add_exception_handler(RepositoryError, repository_error_handler)
 app.add_exception_handler(DomainError, domain_error_handler)
 app.add_exception_handler(AuthorizationError, auth_error_handler)
+app.add_exception_handler(AbstractStorage.FileNotFoundError, storage_error_handler)
 
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(book_router, prefix="/api/v1")
