@@ -59,7 +59,7 @@ class BookCommandHandler:
                 )
             )
         await self.recent_book_service.delete_recent_books_cache()
-        return BookDTO.from_domain(book)
+        return await self._get_dto(book)
 
     async def handler_upload_file(self, cmd: UploadBookFileCommand) -> BookDTO:
         async with self.uow:
@@ -70,7 +70,7 @@ class BookCommandHandler:
             book.file = (await self.storage.upload_book(cmd.file, cmd.book_id))[:512]
             await self.uow.books.update(book)
         await self.task_manager.run_task("create_book_preview_task", book.id)  # Отправляем задачу
-        return BookDTO.from_domain(book)
+        return await self._get_dto(book)
 
     async def handle_update(self, cmd: UpdateBookCommand) -> BookDTO:
         async with self.uow:
@@ -88,7 +88,7 @@ class BookCommandHandler:
             await self.uow.books.update(book)
 
         await self.recent_book_service.delete_recent_books_cache()
-        return BookDTO.from_domain(book)
+        return await self._get_dto(book)
 
     async def handle_delete(self, cmd: DeleteBookCommand) -> None:
         async with self.uow:
@@ -99,6 +99,11 @@ class BookCommandHandler:
             await self.uow.book_read_history.delete_for_book(cmd.book_id)
         await self.storage.delete_book(cmd.book_id)
         await self.recent_book_service.delete_recent_books_cache()
+
+    async def _get_dto(self, book: Book) -> BookDTO:
+        dto = BookDTO.from_domain(book)
+        dto.preview_image = await self.storage.get_media_url(dto.preview_image)
+        return dto
 
 
 class BookQueryHandler:
@@ -113,7 +118,10 @@ class BookQueryHandler:
     async def handle_get_book(self, book_id: int) -> BookDTO:
         async with self.uow:
             book = await self.uow.books.get_by_id(book_id)
-            return BookDTO.from_domain(book)
+
+        book_dto = BookDTO.from_domain(book)
+        book_dto.preview_image = await self.storage.get_media_url(book_dto.preview_image)
+        return book_dto
 
     async def handle_get_book_detail(self, book_id: int, viewer_id: int | None) -> DetailBookDTO:
         async with self.uow:
@@ -162,7 +170,10 @@ class BookQueryHandler:
 
     async def handle_get_list_books(self, query: BookFilter) -> tuple[list[BookDTO], int]:
         books, count = await self.uow.books.get_filtered(query)
-        return [BookDTO.from_domain(book) for book in books], count
+        books_dto = [BookDTO.from_domain(book) for book in books]
+        for book in books_dto:
+            book.preview_image = await self.storage.get_media_url(book.preview_image)
+        return books_dto, count
 
     async def handle_get_recent_books(self, user_id: int | None = None) -> list[BookDTO]:
         """
@@ -174,6 +185,8 @@ class BookQueryHandler:
             async with self.uow:
                 books, _ = await self.uow.books.get_filtered(query)
             cached_books = [BookDTO.from_domain(book) for book in books]
+            for book in cached_books:
+                book.preview_image = await self.storage.get_media_url(book.preview_image)
             await self.recent_book_service.set_recent_books(cached_books, query)
 
         return cached_books
@@ -204,6 +217,7 @@ class BookQueryHandler:
                 if book.id not in viewed_books_map:
                     raise ObjectNotFoundError(f"Book with id {book.id} not found in viewed books map")
                 dto = BookWithReadPagesDTO.from_domain(book)
+                dto.preview_image = await self.storage.get_media_url(book.preview_image)
                 if viewed_books_map.get(book.id) is not None:
                     dto.read_pages = viewed_books_map[book.id].history.files[-1].page
                 dto.last_time_read = viewed_books_map[book.id].updated_at
