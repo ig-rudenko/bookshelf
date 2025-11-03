@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from app.schemas.base import CamelAliasModel, CamelSerializerModel
+from .base import CamelAliasModel, CamelSerializerModel
 
 
 class PDFHistorySchema(BaseModel):

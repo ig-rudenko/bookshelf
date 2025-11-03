@@ -1,6 +1,6 @@
 import aiohttp
 
-from app.settings import settings
+from src.infrastructure.settings import settings
 
 
 async def verify_captcha(captcha_token: str, remote_ip: str) -> bool:

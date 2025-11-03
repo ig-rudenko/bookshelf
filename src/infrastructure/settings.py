@@ -1,6 +1,8 @@
 import enum
 from pathlib import Path
+from uuid import uuid4
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,7 +19,7 @@ class _BaseSettings(BaseSettings):
 
     log_level: str = "INFO"
 
-    jwt_secret: str
+    jwt_secret: str = Field(default_factory=lambda: str(uuid4()))
     jwt_access_token_expire_minutes: int = 30
     jwt_refresh_token_expire_days: int = 30
 
@@ -59,4 +61,4 @@ class _BaseSettings(BaseSettings):
     FORGET_PASSWORD_LINK_EXPIRE_MINUTES: int = 10
 
 
-settings: _BaseSettings = _BaseSettings()  # type: ignore
+settings: _BaseSettings = _BaseSettings()

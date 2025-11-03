@@ -1,9 +1,9 @@
 from collections.abc import Awaitable
-from typing import Any, Self, TypeVar
+from typing import TYPE_CHECKING, Any, Self, TypeVar
 
-from advanced_alchemy.base import CommonTableAttributes, ModelProtocol
-from sqlalchemy import MetaData
-from sqlalchemy.orm import DeclarativeBase
+from advanced_alchemy.base import CommonTableAttributes
+from sqlalchemy import FromClause, MetaData
+from sqlalchemy.orm import DeclarativeBase, Mapper
 from sqlalchemy.util import greenlet_spawn
 
 # Default naming convention for all indexes and constraints
@@ -51,7 +51,7 @@ class AwaitAttrs:
         return AwaitAttrs._AwaitAttrGetitem(self)  # type: ignore
 
 
-class OrmBase(AwaitAttrs, DeclarativeBase, CommonTableAttributes, ModelProtocol):
+class OrmBase(AwaitAttrs, DeclarativeBase, CommonTableAttributes):
     """
     Базовый класс для моделей SQLAlchemy с поддержкой асинхронного доступа к атрибутам.
 
@@ -61,3 +61,8 @@ class OrmBase(AwaitAttrs, DeclarativeBase, CommonTableAttributes, ModelProtocol)
     """
 
     metadata = MetaData(naming_convention=convention)  # type: ignore
+
+    if TYPE_CHECKING:
+        __table__: FromClause  # type: ignore
+        __mapper__: Mapper[Any]  # type: ignore
+        __name__: str  # type: ignore

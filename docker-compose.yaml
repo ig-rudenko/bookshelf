@@ -1,7 +1,7 @@
 services:
 
   nginx:
-    image: bookshelf-nginx:0.7.3
+    image: bookshelf-nginx:1.0.0
     build: frontend
     restart: always
     logging: &logging
@@ -26,7 +26,7 @@ services:
 
   api-1: &backend
     build: .
-    image: bookshelf:0.7.3
+    image: bookshelf:1.0.0
     command: /bin/sh run.sh
     restart: always
     logging: *logging
@@ -48,7 +48,7 @@ services:
 
   index-meta-proxy:
     build: index-meta-proxy
-    image: bookshelf-index-meta-proxy:0.7.3
+    image: bookshelf-index-meta-proxy:1.0.0
     restart: always
     logging: *logging
     environment:
@@ -60,7 +60,7 @@ services:
 
   celery-worker:
     <<: *backend
-    command: celery -A app.services.celery worker --loglevel=info
+    command: celery -A src.infrastructure.celery.celery worker --loglevel=info
     logging: *logging
     healthcheck:
       test: .

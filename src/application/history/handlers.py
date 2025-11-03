@@ -1,9 +1,11 @@
+from datetime import datetime
+
 from pydantic import ValidationError as PydanticValidationError
 
 from src.domain.common.unit_of_work import UnitOfWork
-from src.domain.history.entities import BookReadFilesHistory
+from src.domain.history.entities import BookReadFilesHistory, BookReadHistory
 
-from ...domain.common.exceptions import ValidationError
+from ...domain.common.exceptions import ObjectNotFoundError, ValidationError
 from .commands import SetReadBookHistory
 from .dto import BookReadHistoryDTO
 
@@ -34,11 +36,27 @@ class HistoryCommandHandler:
         except PydanticValidationError as exc:
             raise ValidationError(exc.errors()) from exc
         async with self.uow:
-            read_history = await self.uow.book_read_history.get_last_for_user(
-                user_id=cmd.user_id, book_id=cmd.book_id
-            )
-            read_history.history = history_data
-            read_history = await self.uow.book_read_history.update(read_history)
+            try:
+                # Получаем последнюю запись.
+                read_history = await self.uow.book_read_history.get_last_for_user(
+                    user_id=cmd.user_id, book_id=cmd.book_id
+                )
+            except ObjectNotFoundError:
+                # Создаем новую запись, если её нет.
+                read_history = await self.uow.book_read_history.add(
+                    BookReadHistory.create(
+                        id_=0,
+                        user_id=cmd.user_id,
+                        book_id=cmd.book_id,
+                        history=cmd.history,
+                        updated_at=datetime.now(),
+                    )
+                )
+            else:
+                # Обновляем существующую запись.
+                read_history.history = history_data
+                read_history = await self.uow.book_read_history.update(read_history)
+
         return BookReadHistoryDTO(
             id=read_history.id,
             history=read_history.history.model_dump_json(),

@@ -1,6 +1,5 @@
 *
-!app
-!src/infrastructure/db/migrations
+!src
 !alembic.ini
 !main.py
 !uv.lock
