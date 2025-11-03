@@ -228,7 +228,7 @@ class BookQueryHandler:
                 dto.last_time_read = viewed_books_map[book.id].updated_at
                 results.append(dto)
 
-            results = sorted(results, key=lambda x: x.last_time_read, reverse=True)
+            results = sorted(results, key=lambda x: x.last_time_read or 0, reverse=True)
             return results, count
 
 
@@ -263,10 +263,12 @@ class BookmarksQueryHandler:
     async def handle_get_favorite_books(self, query: BookmarksQueryFilter) -> tuple[list[BookDTO], int]:
         async with self.uow:
             books, count = await self.uow.books.get_favorite_books(query)
-        books = [BookDTO.from_domain(book) for book in books]
+        results = []
         for book in books:
-            book.preview_image = await self.storage.get_media_url(book.preview_image)
-        return books, count
+            dto = BookDTO.from_domain(book)
+            dto.preview_image = await self.storage.get_media_url(book.preview_image)
+            results.append(dto)
+        return results, count
 
     async def handle_get_favorite_books_count(self, user_id: int) -> int:
         async with self.uow:
@@ -276,10 +278,12 @@ class BookmarksQueryHandler:
     async def handle_get_read_books(self, query: BookmarksQueryFilter) -> tuple[list[BookDTO], int]:
         async with self.uow:
             books, count = await self.uow.books.get_read_books(query)
-        books = [BookDTO.from_domain(book) for book in books]
+        results = []
         for book in books:
-            book.preview_image = await self.storage.get_media_url(book.preview_image)
-        return books, count
+            dto = BookDTO.from_domain(book)
+            dto.preview_image = await self.storage.get_media_url(book.preview_image)
+            results.append(dto)
+        return results, count
 
     async def handle_get_read_books_count(self, user_id: int) -> int:
         async with self.uow:
