@@ -2,6 +2,7 @@ import asyncio
 from collections.abc import Callable
 from functools import wraps
 
+import loguru
 from celery import Celery, Task
 
 from src.application.books.services import RecentBookService, create_book_preview_and_update_pages_count
@@ -26,7 +27,7 @@ celery = Celery(__name__)
 if settings.CELERY_BROKER_URL:
     celery.conf.broker_url = settings.CELERY_BROKER_URL
 else:
-    print("⚠️ celery.conf.task_always_eager = True")
+    loguru.logger.warning("⚠️ celery.conf.task_always_eager = True")
     celery.conf.task_always_eager = True
 
 

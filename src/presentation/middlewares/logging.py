@@ -2,22 +2,20 @@ import time
 from collections.abc import Callable
 from uuid import uuid4
 
-from fastapi import FastAPI, Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse
+from fastapi import Request, Response
+from fastapi.responses import ORJSONResponse
 
 
-class LoggingMiddleware(BaseHTTPMiddleware):
+class LoggingMiddleware:
     """
     Middleware для обработки запросов и ответов с целью журналирования
     """
 
-    def __init__(self, app: FastAPI, *, logger, ignore_paths: list | None = None) -> None:
+    def __init__(self, logger, ignore_paths: list | None = None) -> None:
         self._logger = logger
         if ignore_paths is None:
             ignore_paths = []
         self.ignore_paths = ignore_paths
-        super().__init__(app)
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """Dispatches request/response to be logged"""
@@ -105,4 +103,4 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
         except Exception as e:
             self._logger.exception({"path": request.url.path, "method": request.method, "reason": e})
-            return JSONResponse({"reason": str(e)}, status_code=500)
+            return ORJSONResponse({"reason": str(e)}, status_code=500)

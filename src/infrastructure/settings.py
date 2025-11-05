@@ -5,6 +5,8 @@ from uuid import uuid4
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from src.infrastructure.logging import setup_logger
+
 
 class MediaStorageEnum(str, enum.Enum):
     local = "local"
@@ -16,9 +18,11 @@ class _BaseSettings(BaseSettings):
         env_file=(".env.example", ".env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
+        extra="ignore",
     )
 
     log_level: str = "INFO"
+    log_serialize: bool = False
 
     jwt_secret_key: str = Field(default_factory=lambda: str(uuid4()))
     jwt_access_token_expire_minutes: int = 30
@@ -63,3 +67,4 @@ class _BaseSettings(BaseSettings):
 
 
 settings: _BaseSettings = _BaseSettings()
+setup_logger(settings.log_level, settings.log_serialize)

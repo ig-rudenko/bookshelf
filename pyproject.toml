@@ -1,5 +1,5 @@
 [project]
-name = "app"
+name = "src"
 version = "1"
 description = "Сайт книг для IT специалистов"
 authors = [{ name = "ig-rudenko", email = "ig.rudenko1@yandex.ru" }]
@@ -21,12 +21,13 @@ dependencies = [
     "asyncpg>=0.30.0,<0.31",
     "aiofiles==25.1.0",
     "python-slugify>=8.0.4,<9",
+    "redis[hiredis]>=5.2.1",
     "celery[redis]>=5.5.3,<6",
     "aiohttp>=3.13.2,<4",
     "loguru>=0.7.3,<0.8",
     "aioboto3==15.5.0",
     "advanced-alchemy==1.8.0",
-    "redis>=5.2.1",
+    "orjson>=3.11.4",
 ]
 
 [dependency-groups]

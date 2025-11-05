@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.responses import ORJSONResponse
 from loguru import logger
 from uvicorn import server
 
@@ -8,7 +9,6 @@ from src.application.services.storage import AbstractStorage
 from src.domain.common.exceptions import AuthorizationError, DomainError, RepositoryError
 from src.infrastructure.celery import register_tasks
 from src.infrastructure.db.session_manager import db_manager
-from src.infrastructure.logging import setup_logger
 from src.infrastructure.settings import settings
 from src.presentation.api.exception_handlers import (
     auth_error_handler,
@@ -23,6 +23,7 @@ from src.presentation.api.handlers.books import router as book_router
 from src.presentation.api.handlers.bookshelves import router as bookshelf_router
 from src.presentation.api.handlers.comments import router as comment_router
 from src.presentation.api.handlers.history import router as history_router
+from src.presentation.middlewares.logging import LoggingMiddleware
 
 
 @asynccontextmanager
@@ -41,10 +42,14 @@ async def startup(app_instance: FastAPI):
     logger.info("Database closed")
 
 
-setup_logger(settings.log_level)
-server.logger = logger
-app = FastAPI(lifespan=startup)
-# app.add_middleware(LoggingMiddleware, logger=logger, ignore_paths=["/ping"])  # noqa
+server.logger = logger  # type: ignore
+app = FastAPI(
+    default_response_class=ORJSONResponse,
+    lifespan=startup,
+)
+
+logging_middleware = LoggingMiddleware(logger)
+app.middleware("http")(logging_middleware.dispatch)
 
 # Регистрируем глобальные обработчики ошибок.
 app.add_exception_handler(RepositoryError, repository_error_handler)

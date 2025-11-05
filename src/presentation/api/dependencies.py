@@ -2,6 +2,7 @@ from collections.abc import AsyncIterator
 from functools import cache
 
 from fastapi import Depends
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.books.handlers import (
@@ -59,6 +60,7 @@ async def get_session() -> AsyncIterator[AsyncSession]:
         try:
             yield session
         except OSError as exc:
+            logger.error("Database error", exc_info=exc)
             raise RepositoryError("Repository error") from exc
 
 
