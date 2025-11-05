@@ -5,6 +5,7 @@
 !uv.lock
 !pyproject.toml
 !run.sh
+!run.py
 
 # Byte-compiled / optimized / DLL files
 **/__pycache__/
