@@ -53,7 +53,7 @@ def _wrap_async(async_func):
         coro = async_func(*args, **kwargs)
         try:
             loop = asyncio.get_running_loop()
-        except RuntimeError:
+        except Exception:
             # Нет активного event loop (например, worker) → создаём новый
             return asyncio.run(coro)
         else:
