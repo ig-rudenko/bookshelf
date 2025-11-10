@@ -45,20 +45,20 @@ def celery_async_task(*celery_args, **celery_kwargs):
     return decorator
 
 
-def _wrap_async(async_func):
-    """Обёртка, которая выполняет async функцию в подходящем event loop."""
+_worker_loop = None
 
+def _wrap_async(async_func):
     @wraps(async_func)
     def wrapper(*args, **kwargs):
-        coro = async_func(*args, **kwargs)
-        try:
-            loop = asyncio.get_running_loop()
-        except Exception:
-            # Нет активного event loop (например, worker) → создаём новый
-            return asyncio.run(coro)
-        else:
-            # Есть активный loop (например, FastAPI + task_always_eager=True)
-            return loop.create_task(coro)
+        global _worker_loop
+
+        # создаём loop один раз при старте воркера
+        if _worker_loop is None or _worker_loop.is_closed():
+            _worker_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(_worker_loop)
+
+        # выполняем задачу в этом loop
+        return _worker_loop.run_until_complete(async_func(*args, **kwargs))
 
     return wrapper
 

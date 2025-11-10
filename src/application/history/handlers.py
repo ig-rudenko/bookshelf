@@ -2,11 +2,12 @@ from datetime import datetime
 
 from pydantic import ValidationError as PydanticValidationError
 
+from src.domain.common.exceptions import ObjectNotFoundError, ValidationError
 from src.domain.common.unit_of_work import UnitOfWork
 from src.domain.history.entities import BookReadFilesHistory, BookReadHistory
+
 from .commands import SetReadBookHistory
 from .dto import BookReadHistoryDTO
-from ...domain.common.exceptions import ObjectNotFoundError, ValidationError
 
 
 class HistoryQueryHandler:
