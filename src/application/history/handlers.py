@@ -4,10 +4,9 @@ from pydantic import ValidationError as PydanticValidationError
 
 from src.domain.common.unit_of_work import UnitOfWork
 from src.domain.history.entities import BookReadFilesHistory, BookReadHistory
-
-from ...domain.common.exceptions import ObjectNotFoundError, ValidationError
 from .commands import SetReadBookHistory
 from .dto import BookReadHistoryDTO
+from ...domain.common.exceptions import ObjectNotFoundError, ValidationError
 
 
 class HistoryQueryHandler:
@@ -55,6 +54,7 @@ class HistoryCommandHandler:
             else:
                 # Обновляем существующую запись.
                 read_history.history = history_data
+                read_history.updated_at = datetime.now()
                 read_history = await self.uow.book_read_history.update(read_history)
 
         return BookReadHistoryDTO(
