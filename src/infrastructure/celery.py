@@ -47,6 +47,7 @@ def celery_async_task(*celery_args, **celery_kwargs):
 
 _worker_loop = None
 
+
 def _wrap_async(async_func):
     @wraps(async_func)
     def wrapper(*args, **kwargs):
