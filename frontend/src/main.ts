@@ -41,7 +41,7 @@ import {
 } from "primevue";
 import 'primeicons/primeicons.css'
 import {VueRecaptchaPlugin} from 'vue-recaptcha';
-import {createHead} from "@unhead/vue";
+import {createHead} from "@unhead/vue/client";
 
 import {app} from '@/appInstance';
 import store from "@/store";
