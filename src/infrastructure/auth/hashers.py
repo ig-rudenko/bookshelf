@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from passlib.context import CryptContext
+import bcrypt
 
 
 class PasswordHasherProtocol(ABC):
@@ -11,11 +11,10 @@ class PasswordHasherProtocol(ABC):
 
 
 class BcryptPasswordHasher(PasswordHasherProtocol):
-    def __init__(self):
-        self.ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     def hash(self, password: str) -> str:
-        return self.ctx.hash(password)
+        return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
     def verify(self, password: str, hash_: str) -> bool:
-        return self.ctx.verify(password, hash_)
+        """Verify a password against its hash"""
+        return bcrypt.checkpw(password.encode("utf-8"), hash_.encode("utf-8"))
