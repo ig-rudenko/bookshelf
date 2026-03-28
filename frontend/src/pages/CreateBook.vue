@@ -8,11 +8,10 @@
 import {defineComponent} from 'vue'
 import BookForm from "@/components/BookForm.vue"
 import {mapState} from "vuex";
-import LoginForm from "@/components/LoginForm.vue";
 
 export default defineComponent({
   name: "CreateBook",
-  components: {LoginForm, BookForm},
+  components: {BookForm},
   mounted() {
     if (!this.user?.isStaff && !this.user?.isSuperuser) this.$router.push("/login");
     document.title = "Добавление книги";

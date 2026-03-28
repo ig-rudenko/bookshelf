@@ -110,8 +110,9 @@
           <div class="flex flex-col gap-2 pb-2">
             <label for="book.tags">Теги</label>
             <InputGroup>
-              <InputText @keydown.enter="addTag" id="book.tags" v-cloak v-model="currentTag" separator=","
-                         aria-describedby="book.tags-help"/>
+              <AutoComplete @keydown.enter="addTag" @complete="searchTags" :suggestions="tagsList" id="book.tags"
+                            v-cloak v-model="currentTag"
+                            separator="," aria-describedby="book.tags-help"/>
               <Button icon="pi pi-plus" severity="success" @click="addTag"/>
             </InputGroup>
             <div class="flex flex-col zoomin cursor-pointer" v-tooltip="'Проверить заново'"
@@ -172,6 +173,7 @@ export default defineComponent({
       currentTag: "",
       windowWidth: window.innerWidth,
       publishersList: [] as string[],
+      tagsList: [] as string[],
       loading: false,
       uploadProgress: 0,
     }
@@ -218,6 +220,15 @@ export default defineComponent({
           .then(
               (value: AxiosResponse<string[]>) => {
                 this.publishersList = value.data;
+              }
+          )
+    },
+
+    searchTags(event: AutoCompleteCompleteEvent) {
+      api.get("/books/tags?name=" + event.query)
+          .then(
+              (value: AxiosResponse<string[]>) => {
+                this.tagsList = value.data;
               }
           )
     },

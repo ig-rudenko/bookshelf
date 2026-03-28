@@ -53,3 +53,6 @@ class BookRepository(ABC):
 
     @abstractmethod
     async def get_authors(self, search: str | None, user_id: int | None) -> list[str]: ...
+
+    @abstractmethod
+    async def get_tags(self, search: str | None, user_id: int | None) -> list[str]: ...

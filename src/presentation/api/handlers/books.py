@@ -51,6 +51,16 @@ async def get_publishers_view(
     )
 
 
+@router.get("/tags", response_model=list[str])
+async def get_tags_view(
+    current_user: Annotated[UserDTO | None, Depends(get_user_or_none)],
+    query_handler: Annotated[BookQueryHandler, Depends(get_book_query_handler)],
+    name: Annotated[str | None, Query(description="Издательство")] = None,
+):
+    """Поиск тегов по названию."""
+    return await query_handler.handle_get_tags(search=name, user_id=current_user.id if current_user else None)
+
+
 @router.get("/authors", response_model=list[str])
 async def get_authors_view(
     current_user: Annotated[UserDTO | None, Depends(get_user_or_none)],

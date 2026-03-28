@@ -247,6 +247,16 @@ class SqlAlchemyBookRepository(BookRepository):
         results = await self.session.execute(query)
         return list(results.scalars().all())
 
+    async def get_tags(self, search: str | None, user_id: int | None) -> list[str]:
+        query: Select[tuple[str]] = (
+            select(distinct(TagModel.name)).join(BookModel.tags).limit(10).order_by(TagModel.name.desc())
+        )
+        query = self._filter_books_by_viewer(query, user_id)
+        if search is not None:
+            query = query.where(TagModel.name.ilike(f"%{search}%"))
+        results = await self.session.execute(query)
+        return list(results.scalars().all())
+
     async def get_book_tags(self, book_id: int) -> list[Tag]:
         query = select(TagModel).join(BookModel.tags).where(BookModel.id == book_id)
         result = await self.session.execute(query)

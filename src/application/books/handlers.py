@@ -201,6 +201,11 @@ class BookQueryHandler:
             publishers = await self.uow.books.get_publishers(search, user_id)
             return publishers
 
+    async def handle_get_tags(self, search: str | None, user_id: int | None) -> list[str]:
+        async with self.uow:
+            tags = await self.uow.books.get_tags(search, user_id)
+            return tags
+
     async def handle_get_authors(self, search: str | None, user_id: int | None) -> list[str]:
         async with self.uow:
             authors = await self.uow.books.get_authors(search, user_id)
