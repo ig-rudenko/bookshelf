@@ -25,10 +25,11 @@ export interface UserDetailPaginatedResult {
 
 class UsersService {
 
-    async getAllUsersList(page: number = 0, perPage?: number, sortBy?: string, sortDirection?: number): Promise<UserDetailPaginatedResult | null> {
+    async getAllUsersList(page: number = 0, perPage?: number, sortBy?: string, sortDirection?: number, search?: string): Promise<UserDetailPaginatedResult | null> {
         let params: any = {
             "page": page,
             "per-page": perPage,
+            "search": search,
         };
         if (sortBy && sortDirection) {
             params = {

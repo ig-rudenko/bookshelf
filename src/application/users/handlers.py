@@ -158,6 +158,7 @@ class UserQueryHandler:
     async def handle_get_list(self, filter_: UserFilterDTO) -> tuple[list[UserDetailDTO], int]:
         users, count = await self.uow.users.get_filtered_detail(
             UserFilter(
+                search=filter_.search,
                 page=filter_.page,
                 per_page=filter_.per_page,
                 sort_by=filter_.sort_by,

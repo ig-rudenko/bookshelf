@@ -60,6 +60,7 @@ class UserDetail(User):
 
 @dataclass(slots=True, kw_only=True)
 class UserFilter:
+    search: str = ""
     sort_by: str = ""
     sort_order: Literal["asc", "desc"] = "desc"
     page: int

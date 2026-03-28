@@ -21,6 +21,7 @@ router = APIRouter(prefix="/users")
 
 
 def users_query_params(
+    search: Annotated[str, Query(description="Поиск")],
     paginator: Annotated[PaginatorQuery, Depends(paginator_query)],
     sort_by: Annotated[str, Query(description="Сортировка", alias="sort-by")] = "id",
     sort_order: Annotated[
@@ -46,6 +47,7 @@ def users_query_params(
         raise ValueError("Неверное значение направления сортировки")
 
     return UserFilterDTO(
+        search=search,
         sort_by=available_sort_fields[sort_by],
         sort_order=sort_order,
         page=paginator.page,

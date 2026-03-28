@@ -1,6 +1,6 @@
 from advanced_alchemy.filters import LimitOffset
 from advanced_alchemy.repository import SQLAlchemyAsyncRepository
-from sqlalchemy import func, over, select
+from sqlalchemy import func, or_, over, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.users.entities import User, UserDetail, UserFilter
@@ -101,6 +101,14 @@ class SqlAlchemyUserRepository(UserRepository):
             .group_by(UserModel.id)
         )
         query = query.offset((filter_.page - 1) * filter_.per_page).limit(filter_.per_page)
+
+        if filter_.search:
+            query = query.where(
+                or_(
+                    UserModel.username.like(f"%{filter_.search}%"),
+                    UserModel.username.like(f"%{filter_.search}%"),
+                )
+            )
 
         if sort_by := filter_.sort_by:
             if sort_by == "favorites_count":
