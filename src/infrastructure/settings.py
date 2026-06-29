@@ -8,7 +8,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from src.infrastructure.logging import setup_logger
 
 
-class MediaStorageEnum(str, enum.Enum):
+class MediaStorageEnum(enum.StrEnum):
     local = "local"
     s3 = "s3"
 

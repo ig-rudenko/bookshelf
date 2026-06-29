@@ -1,6 +1,6 @@
-FROM python:3.13.9-slim AS builder
+FROM python:3.14.6-slim AS builder
 
-ARG python_version=3.13
+ARG python_version=3.14
 
 SHELL ["/bin/sh", "-exc"]
 
@@ -27,7 +27,7 @@ RUN --mount=type=cache,destination=/root/.cache/uv uv sync \
   --frozen
 
 
-FROM python:3.13.9-slim
+FROM python:3.14.6-slim
 
 ARG user_id=1000
 ARG group_id=1000
@@ -38,7 +38,7 @@ SHELL ["/bin/sh", "-exc"]
 
 RUN addgroup --gid $group_id app \
     && adduser --disabled-password --home /app --uid $user_id --gid $group_id app \
-    && chown -R app:app /app;
+    && chown -R $user_id:$group_id /app;
 
 ENV PATH=/app/venv/bin:$PATH \
     PYTHONOPTIMIZE=1 \

@@ -1,4 +1,4 @@
-FROM python:3.13.9-alpine
+FROM python:3.14.6-slim
 
 ENV PYTHONOPTIMIZE=1 \
     PYTHONFAULTHANDLER=1 \
@@ -8,8 +8,8 @@ SHELL ["/bin/sh", "-exc"]
 ARG user_id=1000
 ARG group_id=1001
 
-RUN addgroup -g $group_id usergroup \
-    && adduser -D -h /app -u $user_id user $group_id \
+RUN addgroup --gid $group_id app \
+    && adduser --disabled-password --home /app --uid $user_id --gid $group_id app \
     && chown -R $user_id:$group_id /app;
 
 WORKDIR /app

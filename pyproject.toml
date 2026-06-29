@@ -6,47 +6,42 @@ authors = [{ name = "ig-rudenko", email = "ig.rudenko1@yandex.ru" }]
 requires-python = ">=3.12,<4.0"
 readme = "README.md"
 dependencies = [
-    "fastapi>=0.121.2",
-    "uvicorn>=0.38",
-    "sqlalchemy[asyncio,mypy]>=2.0.41,<3",
-    "alembic>=1.17.2,<2",
-    "passlib>=1.7.4,<2",
-    "pydantic[email]>=2.12.4,<3",
-    "pyjwt>=2.10.1",
+    "fastapi>=0.138.2",
+    "uvicorn>=0.49.0",
+    "sqlalchemy>=2.0.51",
+    "alembic>=1.18.5",
+    "pydantic[email]>=2.13.4",
+    "pyjwt>=2.13.0",
     "bcrypt>=5.0.0",
-    "pillow>=12.0.0",
-    "python-multipart>=0.0.22",
-    "PyMuPDF>=1.26.6,<2",
-    "pydantic-settings>=2.12.0,<3",
+    "pillow>=12.2.0",
+    "python-multipart>=0.0.32",
+    "PyMuPDF>=1.28.0",
+    "pydantic-settings>=2.14.2",
     "asyncpg>=0.31.0",
-    "aiofiles==25.1.0",
-    "python-slugify>=8.0.4,<9",
-    "redis[hiredis]>=6.4.0",
-    "celery[redis]>=5.5.3,<6",
-    "aiohttp>=3.13.2,<4",
-    "loguru>=0.7.3,<0.8",
-    "aioboto3==15.5.0",
-    "advanced-alchemy>=1.8.2",
-    "orjson>=3.11.4",
-    "types-aiofiles>=23.2.0.20240623",
-    "types-boto3>=1.40.64",
+    "aiofiles>=25.1.0",
+    "python-slugify>=8.0.4",
+    "redis[hiredis]>=8.0.1",
+    "celery>=5.6.3",
+    "aiohttp>=3.14.1",
+    "loguru>=0.7.3",
+    "aioboto3>=15.5.0",
+    "advanced-alchemy>=1.11.0",
+    "orjson>=3.11.9",
 ]
 
 [dependency-groups]
 dev = [
-    "aiosqlite>=0.21.0,<0.22",
-    "httpx>=0.28.1,<0.29",
-    "coverage>=7.11.3,<8",
-    "black[d]>=25.11.0,<26",
-    "mypy>=1.15.0,<2",
-    "types-passlib>=1.7.7.20240327,<2",
-    "types-python-jose>=3.3.4.20240106,<4",
-    "types-aiofiles>=23.2.0.20240403,<24",
-    "celery-types>=0.23.0,<0.24",
-    "pydeps>=1.12.20,<2",
-    "graphviz>=0.20.3,<0.21",
+    "aiosqlite>=0.22.1",
+    "httpx>=0.28.1",
+    "coverage>=7.14.3",
+    "black>=26.5.1",
+    "mypy>=2.1.0",
+    "types-aiofiles>=25.1.0.20260518",
+    "celery-types>=0.26.0",
+    "pydeps>=3.0.6",
+    "graphviz>=0.21",
     "types-aioboto3>=15.5.0",
-    "types-boto3>=1.40.64",
+    "boto3-stubs~=1.40.61",
 ]
 
 [tool.uv]
@@ -85,3 +80,7 @@ lint.ignore = [
     # Module level import not at top of file
     "E402"
 ]
+
+[tool.black]
+line-length = 110
+target-version = ["py312"]

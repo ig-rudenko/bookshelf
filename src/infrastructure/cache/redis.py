@@ -29,7 +29,7 @@ class RedisCache(AbstractCache):
 
         value = await self._redis.get(key)
         if value is not None:
-            return pickle.loads(value)
+            return pickle.loads(value)  # type: ignore
         return None
 
     async def set(self, key: str, value: Any, expire: int) -> None:

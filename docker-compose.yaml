@@ -81,7 +81,7 @@ services:
       - backend
 
   database:
-    image: postgres:18.0-alpine
+    image: postgres:18.4-alpine
     restart: always
     env_file:
       - config/env/postgres
@@ -100,8 +100,9 @@ services:
       - backend
 
   pgadmin-balancer:
-    image: nginx:1.28.0-alpine
+    image: nginx:1.31.2-alpine
     restart: always
+    profiles: ["pgadmin"]
     logging: *logging
     ports:
       - "8080:8080"
@@ -118,6 +119,7 @@ services:
 
   pgadmin4:
     image: elestio/pgadmin:latest
+    profiles: ["pgadmin"]
     restart: always
     env_file:
       - config/env/pgadmin

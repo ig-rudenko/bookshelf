@@ -65,6 +65,4 @@ class SMTPEmailService(EmailService):
             <div>
                 <a href="{reset_link}" target="_blank">Ссылка будет доступна в течение {link_expire_minutes} минут.</a>
             </div>
-    """.format(
-            **context
-        )
+    """.format(**context)

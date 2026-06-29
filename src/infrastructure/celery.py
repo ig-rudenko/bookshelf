@@ -25,10 +25,10 @@ if db_manager.session_maker is None:
 
 celery = Celery(__name__)
 if settings.CELERY_BROKER_URL:
-    celery.conf.broker_url = settings.CELERY_BROKER_URL
+    celery.config_from_object({"broker_url": settings.CELERY_BROKER_URL})
 else:
     loguru.logger.warning("⚠️ celery.conf.task_always_eager = True")
-    celery.conf.task_always_eager = True
+    celery.config_from_object({"task_always_eager": True})
 
 
 def celery_async_task(*celery_args, **celery_kwargs):

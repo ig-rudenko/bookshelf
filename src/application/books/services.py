@@ -51,7 +51,7 @@ async def create_book_preview_and_update_pages_count(
     total_pages: int = doc.page_count
     page = doc.load_page(0)
     pix: fitz.Pixmap = page.get_pixmap()
-    image: bytearray = pix.tobytes()
+    image: bytes = pix.tobytes()
 
     preview_name = f"previews/{book_id}/preview.png"
     await storage.upload_file(preview_name, image)
