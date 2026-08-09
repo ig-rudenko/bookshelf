@@ -18,7 +18,7 @@ from src.domain.common.exceptions import (
 @contextmanager
 def wrap_sqlalchemy_exception(  # noqa: C901, PLR0915
     dialect_name: str | None = None,
-) -> Generator[None, None, None]:
+) -> Generator[None]:
     """Do something within context to raise a ``RepositoryError`` chained
     from an original ``SQLAlchemyError``.
 

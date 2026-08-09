@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from src.application.users.commands import (
@@ -42,24 +44,23 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 async def register_user(
     user: UserCreateSchema,
     request: Request,
-    register_handler: RegisterUserHandler = Depends(get_register_handler),
+    register_handler: Annotated[RegisterUserHandler, Depends(get_register_handler)],
 ):
     if not await verify_captcha(user.recaptcha_token, remote_ip=get_client_ip(request)):
         raise HTTPException(status_code=422, detail="Вы не прошли проверку для регистрации")
 
-    user_dto = await register_handler.handle(
+    return await register_handler.handle(
         RegisterUserCommand(
             username=user.username,
             password=user.password,
             email=str(user.email),
         )
     )
-    return user_dto
 
 
 @router.post("/token", response_model=TokenPairSchema)
 async def get_token_pair(
-    user_data: UserCredentialsSchema, jwt_handler: JWTHandler = Depends(get_token_auth_handler)
+    user_data: UserCredentialsSchema, jwt_handler: Annotated[JWTHandler, Depends(get_token_auth_handler)]
 ):
     cmd = LoginUserCommand(username=user_data.username, password=user_data.password)
     try:
@@ -71,14 +72,14 @@ async def get_token_pair(
 
 @router.post("/token/refresh", response_model=TokenPairSchema)
 async def refresh_tokens(
-    token_data: RefreshTokenSchema, jwt_handler: JWTHandler = Depends(get_token_auth_handler)
+    token_data: RefreshTokenSchema, jwt_handler: Annotated[JWTHandler, Depends(get_token_auth_handler)]
 ):
     token_pair = await jwt_handler.handle_refresh_token(token_data.refresh_token)
     return TokenPairSchema(access_token=token_pair.access, refresh_token=token_pair.refresh)
 
 
 @router.get("/myself", response_model=UserSchema)
-def verify_jwt(user: UserDTO = Depends(get_current_user)):
+def verify_jwt(user: Annotated[UserDTO, Depends(get_current_user)]):
     """Проверка JWT"""
     return user
 
@@ -87,7 +88,7 @@ def verify_jwt(user: UserDTO = Depends(get_current_user)):
 async def forgot_password_api_view(
     data: ForgotPasswordSchema,
     request: Request,
-    handler: ForgotPasswordHandler = Depends(get_forgot_password_handler),
+    handler: Annotated[ForgotPasswordHandler, Depends(get_forgot_password_handler)],
 ):
     if not await verify_captcha(data.recaptcha_token, remote_ip=get_client_ip(request)):
         return ForgotPasswordResponseSchema(
@@ -101,14 +102,14 @@ async def forgot_password_api_view(
 
 
 @router.get("/reset-password/verify/{token}", response_model=UserSchema)
-async def reset_password_verify_api_view(token: str, uow: UnitOfWork = Depends(get_unit_of_work)):
+async def reset_password_verify_api_view(token: str, uow: Annotated[UnitOfWork, Depends(get_unit_of_work)]):
     """Проверка токена для сброса пароля"""
     return await get_user_by_reset_password_token(token, uow)
 
 
 @router.post("/reset-password")
 async def reset_password_api_view(
-    data: ResetPasswordSchema, handler: ResetPasswordHandler = Depends(get_reset_password_handler)
+    data: ResetPasswordSchema, handler: Annotated[ResetPasswordHandler, Depends(get_reset_password_handler)]
 ):
     """Сброс пароля пользователя"""
     if data.password1 != data.password2:

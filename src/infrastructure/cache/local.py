@@ -24,8 +24,7 @@ class InMemoryCache(AbstractCache):
         if value := self._cache.get(key, None):
             if value["expires"] > datetime.now():
                 return pickle.loads(value["data"])
-            else:
-                await self.delete(key)
+            await self.delete(key)
         return None
 
     async def set(self, key: str, value: Any, timeout: int) -> None:

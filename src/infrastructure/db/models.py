@@ -59,7 +59,7 @@ class PublisherModel(OrmBase):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(128), unique=True)
-    books: Mapped["BookModel"] = relationship(
+    books: Mapped[BookModel] = relationship(
         "BookModel", back_populates="publisher", lazy="select", viewonly=True
     )
 
@@ -115,7 +115,7 @@ class BookModel(OrmBase):
 
     # Define relationship to TagModel using the association table
     tags = relationship("TagModel", secondary=book_tag_association, back_populates="books", lazy="joined")
-    bookshelves: Mapped[list["BookshelfModel"]] = relationship(
+    bookshelves: Mapped[list[BookshelfModel]] = relationship(
         "BookshelfModel",
         secondary="bookshelf_book_association",
         back_populates="books",

@@ -44,7 +44,7 @@ class Book:
     def __post_init__(self):
         if self.id < 0:
             raise ValidationError(f"Book id must be greater than 0, got {self.id}")
-        elif self.user_id <= 0:
+        if self.user_id <= 0:
             raise ValidationError(f"User id must be greater than 0, got {self.user_id}")
         if self.pages <= 0:
             raise ValidationError(f"Pages must be greater than 0, got {self.pages}")

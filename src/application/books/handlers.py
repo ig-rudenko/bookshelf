@@ -107,7 +107,6 @@ class BookCommandHandler:
 
 
 class BookQueryHandler:
-
     def __init__(
         self, uow: UnitOfWork, storage: AbstractStorage, recent_book_service: RecentBookService
     ) -> None:
@@ -198,18 +197,15 @@ class BookQueryHandler:
 
     async def handle_get_publishers(self, search: str | None, user_id: int | None) -> list[str]:
         async with self.uow:
-            publishers = await self.uow.books.get_publishers(search, user_id)
-            return publishers
+            return await self.uow.books.get_publishers(search, user_id)
 
     async def handle_get_tags(self, search: str | None, user_id: int | None) -> list[str]:
         async with self.uow:
-            tags = await self.uow.books.get_tags(search, user_id)
-            return tags
+            return await self.uow.books.get_tags(search, user_id)
 
     async def handle_get_authors(self, search: str | None, user_id: int | None) -> list[str]:
         async with self.uow:
-            authors = await self.uow.books.get_authors(search, user_id)
-            return authors
+            return await self.uow.books.get_authors(search, user_id)
 
     async def handler_get_last_viewed_books(
         self, user_id: int | None, page: int, page_size: int
@@ -238,7 +234,6 @@ class BookQueryHandler:
 
 
 class BookmarksCommandHandler:
-
     def __init__(self, uow: UnitOfWork) -> None:
         self.uow = uow
 
@@ -260,7 +255,6 @@ class BookmarksCommandHandler:
 
 
 class BookmarksQueryHandler:
-
     def __init__(self, uow: UnitOfWork, storage: AbstractStorage) -> None:
         self.uow = uow
         self.storage = storage
@@ -277,8 +271,7 @@ class BookmarksQueryHandler:
 
     async def handle_get_favorite_books_count(self, user_id: int) -> int:
         async with self.uow:
-            count = await self.uow.books.get_favorite_books_count(user_id)
-            return count
+            return await self.uow.books.get_favorite_books_count(user_id)
 
     async def handle_get_read_books(self, query: BookmarksQueryFilter) -> tuple[list[BookDTO], int]:
         async with self.uow:
@@ -292,5 +285,4 @@ class BookmarksQueryHandler:
 
     async def handle_get_read_books_count(self, user_id: int) -> int:
         async with self.uow:
-            count = await self.uow.books.get_read_books_count(user_id)
-            return count
+            return await self.uow.books.get_read_books_count(user_id)

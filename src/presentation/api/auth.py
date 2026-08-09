@@ -1,4 +1,5 @@
 import re
+from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -17,9 +18,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    session: AsyncSession = Depends(get_session, use_cache=True),
-    token_service: JWTService = Depends(get_jwt_token_service),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    session: Annotated[AsyncSession, Depends(get_session, use_cache=True)],
+    token_service: Annotated[JWTService, Depends(get_jwt_token_service)],
 ) -> UserDTO:
     """Получение текущего пользователя по токену аутентификации."""
     uow = SqlAlchemyUnitOfWork(session)
@@ -34,9 +35,9 @@ async def get_current_user(
 
 
 async def get_admin_user(
-    token: str = Depends(oauth2_scheme),
-    session: AsyncSession = Depends(get_session, use_cache=True),
-    token_service: JWTService = Depends(get_jwt_token_service),
+    token: Annotated[str, Depends(oauth2_scheme)],
+    session: Annotated[AsyncSession, Depends(get_session, use_cache=True)],
+    token_service: Annotated[JWTService, Depends(get_jwt_token_service)],
 ) -> UserDTO:
     uow = SqlAlchemyUnitOfWork(session)
     try:
@@ -50,9 +51,9 @@ async def get_admin_user(
 
 
 async def get_user_or_none(
-    authorization: str | None = Header(None),
-    session: AsyncSession = Depends(get_session, use_cache=True),
-    token_service: JWTService = Depends(get_jwt_token_service),
+    authorization: Annotated[str | None, Header(None)],
+    session: Annotated[AsyncSession, Depends(get_session, use_cache=True)],
+    token_service: Annotated[JWTService, Depends(get_jwt_token_service)],
 ) -> UserDTO | None:
     """
     Получение текущего пользователя по токену аутентификации.
@@ -93,7 +94,7 @@ async def get_user_by_reset_password_token(token: str, uow: UnitOfWork) -> UserD
         raise HTTPException(detail="Неверный токен для сброса пароля", status_code=403) from exc
 
 
-def superuser_required(current_user: UserDTO = Depends(get_current_user)) -> UserDTO:
+def superuser_required(current_user: Annotated[UserDTO, Depends(get_current_user)]) -> UserDTO:
     if not current_user.is_superuser:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

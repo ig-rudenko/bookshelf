@@ -1,4 +1,4 @@
-FROM python:3.14.6-slim
+FROM python:3.14.7-slim
 
 ENV PYTHONOPTIMIZE=1 \
     PYTHONFAULTHANDLER=1 \

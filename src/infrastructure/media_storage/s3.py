@@ -61,7 +61,7 @@ class S3Storage(AbstractStorage):
                 yield chunk
 
     @contextmanager
-    def get_book_binary(self, book_id: int) -> Generator[BinaryIO, None, None]:
+    def get_book_binary(self, book_id: int) -> Generator[BinaryIO]:
         prefix = self._book_prefix(book_id)
         try:
             result = self._s3_sync.list_objects_v2(Bucket=self.bucket_name, Prefix=prefix)
@@ -89,7 +89,7 @@ class S3Storage(AbstractStorage):
         return key
 
     @contextmanager
-    def get_file_binary(self, file_name: str) -> Generator[BinaryIO, None, None]:
+    def get_file_binary(self, file_name: str) -> Generator[BinaryIO]:
         key = self._file_key(file_name)
         try:
             with tempfile.NamedTemporaryFile(delete=False) as tmp:

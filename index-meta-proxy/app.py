@@ -1,9 +1,10 @@
 import os
 import re
+from collections.abc import AsyncIterable, Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import AsyncIterable, Any, Callable
+from typing import Any
 
 import aiohttp
 from fastapi import FastAPI
@@ -13,7 +14,7 @@ app = FastAPI()
 
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
-CACHE: dict[int | str, "MemoryCache"] = {}
+CACHE: dict[int | str, MemoryCache] = {}
 
 
 @dataclass
@@ -29,7 +30,7 @@ class MemoryCache:
     expire: datetime
 
 
-def cache(key_get_func: Callable[[...], str], timeout: int):
+def cache(key_get_func: Callable[..., str], timeout: int):
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs) -> Any:
@@ -39,8 +40,7 @@ def cache(key_get_func: Callable[[...], str], timeout: int):
             if data := CACHE.get(cache_key):
                 if data.expire > now:
                     return data.value
-                else:
-                    CACHE.pop(cache_key)
+                CACHE.pop(cache_key)
 
             new_value = await func(*args, **kwargs)
             CACHE[cache_key] = MemoryCache(new_value, datetime.now() + timedelta(minutes=timeout))
@@ -53,21 +53,22 @@ def cache(key_get_func: Callable[[...], str], timeout: int):
 
 @cache(lambda *args: "origin_index", timeout=5)
 async def get_origin_index() -> str:
-    async with aiohttp.ClientSession() as session:
-        async with session.get(API_URL) as response:
-            return await response.text()
+    async with aiohttp.ClientSession() as session, session.get(API_URL) as response:
+        return await response.text()
 
 
 @cache(lambda book_id: book_id, timeout=60 * 10)
 async def get_book_data(book_id: int) -> BookData:
-    async with aiohttp.ClientSession() as session:
-        async with session.get(f"{API_URL}/api/v1/books/{book_id}") as response:
-            data: dict = await response.json()
-            return BookData(
-                title=data["title"],
-                desc=data["description"][:100] + "...",  # Короткое описание.
-                preview_image=data["previewImage"],
-            )
+    async with (
+        aiohttp.ClientSession() as session,
+        session.get(f"{API_URL}/api/v1/books/{book_id}") as response,
+    ):
+        data: dict = await response.json()
+        return BookData(
+            title=data["title"],
+            desc=data["description"][:100] + "...",  # Короткое описание.
+            preview_image=data["previewImage"],
+        )
 
 
 async def replace_meta_data(book_id: int) -> str:
@@ -101,13 +102,12 @@ async def replace_meta_data(book_id: int) -> str:
         index_data,
     )
     image_prefix = API_URL if not book_data.preview_image.startswith("http") else ""
-    index_data = re.sub(
+    return re.sub(
         r'<meta property="og:image" content=".+?">',
         f"""<meta property="og:image" content="{image_prefix}{book_data.preview_image}">
         <meta property="og:image:alt" content="{book_data.title}">""",
         index_data,
     )
-    return index_data
 
 
 async def to_async_gen(data: str) -> AsyncIterable[bytes]:

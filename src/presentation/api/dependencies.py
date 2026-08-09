@@ -1,5 +1,6 @@
 from collections.abc import AsyncIterator
 from functools import cache
+from typing import Annotated
 
 from fastapi import Depends
 from loguru import logger
@@ -17,6 +18,7 @@ from src.application.comments.handler import CommentsCommandHandler, CommentsQue
 from src.application.history.handlers import HistoryCommandHandler, HistoryQueryHandler
 from src.application.services.cache import AbstractCache
 from src.application.services.storage import AbstractStorage
+from src.application.services.task_manager import TaskManager
 from src.application.users.handlers import (
     ForgotPasswordHandler,
     JWTHandler,
@@ -48,7 +50,7 @@ def get_jwt_token_service() -> JWTService:
     )
 
 
-def get_recent_book_service(cache_: AbstractCache = Depends(get_cache)):
+def get_recent_book_service(cache_: Annotated[AbstractCache, Depends(get_cache)]):
     return RecentBookService(cache=cache_)
 
 
@@ -64,52 +66,54 @@ async def get_session() -> AsyncIterator[AsyncSession]:
             raise RepositoryError("Repository error") from exc
 
 
-def get_unit_of_work(session: AsyncSession = Depends(get_session, use_cache=True)) -> UnitOfWork:
+def get_unit_of_work(session: Annotated[AsyncSession, Depends(get_session, use_cache=True)]) -> UnitOfWork:
     return SqlAlchemyUnitOfWork(session)
 
 
 def get_token_auth_handler(
-    session: AsyncSession = Depends(get_session, use_cache=True),
-    hasher: BcryptPasswordHasher = Depends(get_hasher),
-    token_service: JWTService = Depends(get_jwt_token_service),
+    session: Annotated[AsyncSession, Depends(get_session, use_cache=True)],
+    hasher: Annotated[BcryptPasswordHasher, Depends(get_hasher)],
+    token_service: Annotated[JWTService, Depends(get_jwt_token_service)],
 ) -> JWTHandler:
     return JWTHandler(uow=SqlAlchemyUnitOfWork(session), hasher=hasher, token_service=token_service)
 
 
 def get_register_handler(
-    session: AsyncSession = Depends(get_session, use_cache=True),
-    hasher: BcryptPasswordHasher = Depends(get_hasher),
+    session: Annotated[AsyncSession, Depends(get_session, use_cache=True)],
+    hasher: Annotated[BcryptPasswordHasher, Depends(get_hasher)],
 ) -> RegisterUserHandler:
     return RegisterUserHandler(uow=SqlAlchemyUnitOfWork(session), hasher=hasher)
 
 
 def get_forgot_password_handler(
-    session: AsyncSession = Depends(get_session, use_cache=True), task_manager=Depends(get_task_manager)
+    session: Annotated[AsyncSession, Depends(get_session, use_cache=True)],
+    task_manager: Annotated[TaskManager, Depends(get_task_manager)],
 ):
     return ForgotPasswordHandler(uow=SqlAlchemyUnitOfWork(session), task_manager=task_manager)
 
 
 def get_reset_password_handler(
-    session: AsyncSession = Depends(get_session, use_cache=True),
-    hasher: BcryptPasswordHasher = Depends(get_hasher),
+    session: Annotated[AsyncSession, Depends(get_session, use_cache=True)],
+    hasher: Annotated[BcryptPasswordHasher, Depends(get_hasher)],
 ):
     return ResetPasswordHandler(uow=SqlAlchemyUnitOfWork(session), hasher=hasher)
 
 
 def get_bookmark_query_handler(
-    session: AsyncSession = Depends(get_session, use_cache=True), storage=Depends(get_storage)
+    session: Annotated[AsyncSession, Depends(get_session, use_cache=True)],
+    storage: Annotated[AbstractStorage, Depends(get_storage)],
 ):
     return BookmarksQueryHandler(uow=SqlAlchemyUnitOfWork(session), storage=storage)
 
 
-def get_bookmark_command_handler(session: AsyncSession = Depends(get_session, use_cache=True)):
+def get_bookmark_command_handler(session: Annotated[AsyncSession, Depends(get_session, use_cache=True)]):
     return BookmarksCommandHandler(uow=SqlAlchemyUnitOfWork(session))
 
 
 def get_book_query_handler(
-    session: AsyncSession = Depends(get_session, use_cache=True),
-    storage: AbstractStorage = Depends(get_storage),
-    recent_book_service: RecentBookService = Depends(get_recent_book_service),
+    session: Annotated[AsyncSession, Depends(get_session, use_cache=True)],
+    storage: Annotated[AbstractStorage, Depends(get_storage)],
+    recent_book_service: Annotated[RecentBookService, Depends(get_recent_book_service)],
 ):
     return BookQueryHandler(
         uow=SqlAlchemyUnitOfWork(session),
@@ -119,10 +123,10 @@ def get_book_query_handler(
 
 
 def get_book_command_handler(
-    session: AsyncSession = Depends(get_session, use_cache=True),
-    storage: AbstractStorage = Depends(get_storage),
-    task_manager=Depends(get_task_manager),
-    recent_book_service: RecentBookService = Depends(get_recent_book_service),
+    session: Annotated[AsyncSession, Depends(get_session, use_cache=True)],
+    storage: Annotated[AbstractStorage, Depends(get_storage)],
+    task_manager: Annotated[TaskManager, Depends(get_task_manager)],
+    recent_book_service: Annotated[RecentBookService, Depends(get_recent_book_service)],
 ):
     return BookCommandHandler(
         uow=SqlAlchemyUnitOfWork(session),
@@ -133,44 +137,44 @@ def get_book_command_handler(
 
 
 def get_bookshelf_query_handler(
-    session: AsyncSession = Depends(get_session, use_cache=True),
-    storage: AbstractStorage = Depends(get_storage),
+    session: Annotated[AsyncSession, Depends(get_session, use_cache=True)],
+    storage: Annotated[AbstractStorage, Depends(get_storage)],
 ):
     return BookshelfQueryHandler(uow=SqlAlchemyUnitOfWork(session), storage=storage)
 
 
 def get_bookshelf_command_handler(
-    session: AsyncSession = Depends(get_session, use_cache=True),
-    storage: AbstractStorage = Depends(get_storage),
+    session: Annotated[AsyncSession, Depends(get_session, use_cache=True)],
+    storage: Annotated[AbstractStorage, Depends(get_storage)],
 ):
     return BookshelfCommandHandler(uow=SqlAlchemyUnitOfWork(session), storage=storage)
 
 
 def get_history_query_handler(
-    session: AsyncSession = Depends(get_session, use_cache=True),
+    session: Annotated[AsyncSession, Depends(get_session, use_cache=True)],
 ):
     return HistoryQueryHandler(uow=SqlAlchemyUnitOfWork(session))
 
 
 def get_history_command_handler(
-    session: AsyncSession = Depends(get_session, use_cache=True),
+    session: Annotated[AsyncSession, Depends(get_session, use_cache=True)],
 ):
     return HistoryCommandHandler(uow=SqlAlchemyUnitOfWork(session))
 
 
 def get_comment_query_handler(
-    session: AsyncSession = Depends(get_session, use_cache=True),
+    session: Annotated[AsyncSession, Depends(get_session, use_cache=True)],
 ):
     return CommentsQueryHandler(uow=SqlAlchemyUnitOfWork(session))
 
 
 def get_comment_command_handler(
-    session: AsyncSession = Depends(get_session, use_cache=True),
+    session: Annotated[AsyncSession, Depends(get_session, use_cache=True)],
 ):
     return CommentsCommandHandler(uow=SqlAlchemyUnitOfWork(session))
 
 
 def get_user_query_handler(
-    session: AsyncSession = Depends(get_session, use_cache=True),
+    session: Annotated[AsyncSession, Depends(get_session, use_cache=True)],
 ):
     return UserQueryHandler(uow=SqlAlchemyUnitOfWork(session))

@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, status
 
 from src.application.comments.commands import CreateCommentCommand, UpdateCommentCommand
@@ -16,9 +18,9 @@ router = APIRouter(prefix="/comments", tags=["comments"])
 @router.get("/book/{book_id}", response_model=CommentsPaginateSchema)
 async def get_book_comments_view(
     book_id: int,
-    query_params: PaginatorQuery = Depends(paginator_query),
-    user: UserDTO | None = Depends(get_user_or_none),
-    handler: CommentsQueryHandler = Depends(get_comment_query_handler),
+    query_params: Annotated[PaginatorQuery, Depends(paginator_query)],
+    user: Annotated[UserDTO | None, Depends(get_user_or_none)],
+    handler: Annotated[CommentsQueryHandler, Depends(get_comment_query_handler)],
 ):
     """Возвращает список комментариев к книге"""
     comments, total = await handler.handle_comments_list(
@@ -47,8 +49,8 @@ async def get_book_comments_view(
 async def create_book_comment_view(
     book_id: int,
     comment_data: CommentCreateUpdateSchema,
-    user: UserDTO = Depends(get_current_user),
-    handler: CommentsCommandHandler = Depends(get_comment_command_handler),
+    user: Annotated[UserDTO, Depends(get_current_user)],
+    handler: Annotated[CommentsCommandHandler, Depends(get_comment_command_handler)],
 ):
     """Создание комментария к книге"""
     comment = await handler.handle_comment_create(
@@ -65,8 +67,8 @@ async def create_book_comment_view(
 async def update_comment_view(
     comment_id: int,
     comment_data: CommentCreateUpdateSchema,
-    user: UserDTO = Depends(get_current_user),
-    handler: CommentsCommandHandler = Depends(get_comment_command_handler),
+    user: Annotated[UserDTO, Depends(get_current_user)],
+    handler: Annotated[CommentsCommandHandler, Depends(get_comment_command_handler)],
 ):
     """Редактирование комментария"""
     comment = await handler.handle_comment_update(
@@ -82,8 +84,8 @@ async def update_comment_view(
 @router.delete("/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_comment_view(
     comment_id: int,
-    user: UserDTO = Depends(get_current_user),
-    handler: CommentsCommandHandler = Depends(get_comment_command_handler),
+    user: Annotated[UserDTO, Depends(get_current_user)],
+    handler: Annotated[CommentsCommandHandler, Depends(get_comment_command_handler)],
 ) -> None:
     """Удаление комментария"""
     await handler.handle_comment_delete(comment_id, user.id)

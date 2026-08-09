@@ -41,9 +41,8 @@ class SqlAlchemyRefreshTokenRepository(RefreshTokenRepository):
             token = await self._repo.get_one(RefreshTokenModel.token_hash == token_hash)
         if token.revoked:
             raise ObjectNotFoundError("Refresh token not found or already revoked")
-        else:
-            token.revoked = True
-            await self._repo.update(token, attribute_names=["revoked"])
+        token.revoked = True
+        await self._repo.update(token, attribute_names=["revoked"])
 
     async def revoke_all_for_user(self, user_id: int) -> None:
         with wrap_sqlalchemy_exception(self._repo.dialect):

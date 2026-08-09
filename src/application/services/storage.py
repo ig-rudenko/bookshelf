@@ -15,7 +15,7 @@ class FileProtocol(Protocol):
 class AbstractStorage(ABC):
     """Абстрактное хранилище для книг."""
 
-    class FileNotFoundError(Exception):
+    class FileNotFoundError(Exception):  # noqa: A001
         """Класс ошибки файла не найдено."""
 
     @abstractmethod
@@ -40,7 +40,7 @@ class AbstractStorage(ABC):
 
     @contextmanager
     @abstractmethod
-    def get_book_binary(self, book_id: int) -> Generator[BinaryIO, None, None]:
+    def get_book_binary(self, book_id: int) -> Generator[BinaryIO]:
         """
         Возвращает итератор бинарного файла книги.
         :param book_id: Идентификатор книги.
@@ -59,7 +59,7 @@ class AbstractStorage(ABC):
 
     @contextmanager
     @abstractmethod
-    def get_file_binary(self, file_name: str) -> Generator[BinaryIO, None, None]:
+    def get_file_binary(self, file_name: str) -> Generator[BinaryIO]:
         """
         Возвращает итератор бинарного файла.
         :param file_name: Путь к файлу в хранилище.

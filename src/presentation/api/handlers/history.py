@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends
 
 from src.application.history.commands import SetReadBookHistory
@@ -14,8 +16,8 @@ router = APIRouter(prefix="/user-data", tags=["user-data"])
 @router.get("/book/{book_id}/pdf-history", response_model=PdfJSHistorySchema)
 async def get_pdf_history_view(
     book_id: int,
-    current_user: UserDTO = Depends(get_current_user),
-    handler: HistoryQueryHandler = Depends(get_history_query_handler),
+    current_user: Annotated[UserDTO, Depends(get_current_user)],
+    handler: Annotated[HistoryQueryHandler, Depends(get_history_query_handler)],
 ):
     """Возвращает место на котором остановился просмотр книги."""
     history = await handler.handle_get(book_id=book_id, user_id=current_user.id)
@@ -30,8 +32,8 @@ async def get_pdf_history_view(
 async def set_pdf_history_view(
     book_id: int,
     data: CreatePdfJSHistorySchema,
-    current_user: UserDTO = Depends(get_current_user),
-    handler: HistoryCommandHandler = Depends(get_history_command_handler),
+    current_user: Annotated[UserDTO, Depends(get_current_user)],
+    handler: Annotated[HistoryCommandHandler, Depends(get_history_command_handler)],
 ):
     """Сохраняет данные о просмотре книги."""
     history = await handler.handle_update(

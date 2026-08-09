@@ -3,7 +3,6 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, Query, status
 
 from src.application.books.handlers import BookmarksQueryHandler, BookQueryHandler
-from src.application.users.dto import UserDTO
 from src.application.users.handlers import UserQueryHandler
 from src.application.users.queries import UserFilterDTO
 from src.domain.books.entities import BookmarksQueryFilter
@@ -17,7 +16,7 @@ from src.presentation.api.handlers.queries import PaginatorQuery, paginator_quer
 from src.presentation.api.schemas.books import BooksSchemaPaginated, BooksWithReadPagesPaginatedSchema
 from src.presentation.api.schemas.users import UserDetailSchema, UserSchemaPaginated
 
-router = APIRouter(prefix="/users")
+router = APIRouter(prefix="/users", dependencies=[Depends(superuser_required)])
 
 
 def users_query_params(
@@ -59,7 +58,6 @@ def users_query_params(
 async def get_users(
     query_params: Annotated[UserFilterDTO, Depends(users_query_params)],
     handler: Annotated[UserQueryHandler, Depends(get_user_query_handler)],
-    _: Annotated[UserDTO, Depends(superuser_required)],
 ):
     """Возвращает всех пользователей."""
     users, count = await handler.handle_get_list(filter_=query_params)
@@ -81,7 +79,6 @@ async def get_favorite_books_view(
     user_id: int,
     paginator: Annotated[PaginatorQuery, Depends(paginator_query)],
     handler: Annotated[BookmarksQueryHandler, Depends(get_bookmark_query_handler)],
-    _=Depends(superuser_required),
 ):
     """Возвращает избранные книги пользователя."""
     books, count = await handler.handle_get_favorite_books(
@@ -104,7 +101,6 @@ async def get_read_books_view(
     user_id: int,
     paginator: Annotated[PaginatorQuery, Depends(paginator_query)],
     handler: Annotated[BookmarksQueryHandler, Depends(get_bookmark_query_handler)],
-    _=Depends(superuser_required),
 ):
     """Возвращает прочитанные книги пользователя."""
     books, count = await handler.handle_get_read_books(
@@ -129,7 +125,6 @@ async def get_last_viewed_books_view(
     user_id: int,
     paginator: Annotated[PaginatorQuery, Depends(paginator_query)],
     query_handler: Annotated[BookQueryHandler, Depends(get_book_query_handler)],
-    _=Depends(superuser_required),
 ):
     """Возвращает просмотренные книги пользователя с кол-вом просмотренных страниц."""
     result, count = await query_handler.handler_get_last_viewed_books(

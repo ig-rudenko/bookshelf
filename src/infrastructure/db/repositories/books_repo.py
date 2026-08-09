@@ -75,9 +75,14 @@ class SqlAlchemyBookRepository(BookRepository):
             query = self._filter_books_by_viewer(query, filter_.viewer_id)
 
         if filter_.tags:
-            query = query.join(BookModel.tags)
-            for tag in filter_.tags:
-                query = query.where(func.lower(TagModel.name) == tag.lower())  # noqa
+            tags = {tag.lower() for tag in filter_.tags}
+
+            query = (
+                query.join(BookModel.tags)
+                .where(func.lower(TagModel.name).in_(tags))
+                .having(func.count(func.distinct(TagModel.id)) == len(tags))
+            )
+
         if filter_.ids_in:
             query = query.where(BookModel.id.in_(filter_.ids_in))
 
@@ -269,8 +274,7 @@ class SqlAlchemyBookRepository(BookRepository):
                 BookModel.private.is_(False)
                 | (BookModel.private.is_(True) & (BookModel.user_id == viewer_id))
             )
-        else:
-            return query.where(BookModel.private.is_(False))
+        return query.where(BookModel.private.is_(False))
 
     @staticmethod
     def _to_domain(model: BookModel) -> Book:

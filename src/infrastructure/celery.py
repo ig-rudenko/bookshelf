@@ -39,8 +39,7 @@ def celery_async_task(*celery_args, **celery_kwargs):
 
     def decorator(func):
         # обычная celery-задача (но func — async)
-        task = celery.task(*celery_args, **celery_kwargs)(_wrap_async(func))
-        return task
+        return celery.task(*celery_args, **celery_kwargs)(_wrap_async(func))
 
     return decorator
 
