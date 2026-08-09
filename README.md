@@ -2,18 +2,14 @@
 
 Исходный код сайта с книгами для IT специалистов: [it-bookshelf.ru](https://it-bookshelf.ru).
 
-![Python](https://img.shields.io/badge/python-3.12+-blue.svg)
+![Python](https://img.shields.io/badge/python-3.14+-blue.svg)
 [![Code style: black](https://img.shields.io/badge/code_style-black-black.svg)](https://github.com/psf/black)
 
-<div>
-  <img height="48" src="/docs/img/docker.svg">
-  <img height="48" src="/docs/img/nginx.svg">
-  <img height="48" src="/docs/img/vue.svg">
-  <img height="48" src="/docs/img/fastapi.svg">
-  <img height="48" src="/docs/img/redis.svg">
-  <img height="48" src="/docs/img/celery.png">
-  <img height="48" src="/docs/img/postgres.svg">
-</div>
+![](https://go-skill-icons.vercel.app/api/icons?i=typescript,vite,vuejs,primevue,tailwindcss&perline=10)
+
+![](https://skills.syvixor.com/api/icons?i=python,astraluv,uvicorn,fastapi,pydantic,sqlalchemy,celery&perline=12&radius=40)
+
+![](https://go-skill-icons.vercel.app/api/icons?i=nginx,docker,redis,postgresql,s3&perline=10)
 
 ---
 
