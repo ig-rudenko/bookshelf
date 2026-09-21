@@ -51,16 +51,16 @@ async def get_admin_user(
 
 
 async def get_user_or_none(
-    authorization: Annotated[str | None, Header(None)],
     session: Annotated[AsyncSession, Depends(get_session, use_cache=True)],
     token_service: Annotated[JWTService, Depends(get_jwt_token_service)],
+    authorization: Annotated[str | None, Header()] = None,
 ) -> UserDTO | None:
     """
     Получение текущего пользователя по токену аутентификации.
 
-    :param authorization: Значение заголовка HTTP (Authorization).
     :param session: :class:`AsyncSession` объект сессии.
     :param token_service: Объект сервиса для работы с токенами.
+    :param authorization: Значение заголовка HTTP (Authorization).
     :return: Объект пользователя :class:`User` или :class:`None`.
     :raises CredentialsException: Если пользователь не найден.
     """
