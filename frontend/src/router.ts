@@ -4,7 +4,7 @@ import {
     NavigationGuardNext,
     RouteLocationNormalized,
     Router,
-    RouteRecordRaw
+    RouteRecordRaw,
 } from "vue-router";
 
 import Login from "@/pages/Login.vue";
@@ -23,40 +23,37 @@ import Bookshelves from "@/pages/Bookshelves.vue";
 import CreateUpdateBookshelf from "@/pages/CreateUpdateBookshelf.vue";
 import AllUsers from "@/pages/admin/AllUsers.vue";
 
-
 const beforeEnter = (to: RouteLocationNormalized, _: RouteLocationNormalized, next: NavigationGuardNext) => {
     const id = Number(to.params.id);
     if (!isNaN(id) && Number.isInteger(id)) {
         next();
     } else {
-        next({path: '/'}); // Редирект на главную страницу, если id не числовое
+        next({ path: "/" }); // Редирект на главную страницу, если id не числовое
     }
-}
+};
 
 const routes: RouteRecordRaw[] = [
-    {path: "/", component: Home, name: "home"},
-    {path: "/login", component: Login, name: "login"},
-    {path: "/signup", component: Register, name: "register"},
-    {path: "/forgot-password", component: ForgotPassword, name: "forgotPassword"},
-    {path: "/reset-password/:token", component: ResetPassword, name: "resetPassword"},
-    {path: "/favorites", component: Favorites, name: "favorites"},
-    {path: "/read", component: ReadBooks, name: "readBooks"},
-    {path: "/last-viewed", component: LastViewed, name: "lastViewed"},
-    {path: "/create-book", component: CreateBook, name: "createBook"},
+    { path: "/", component: Home, name: "home" },
+    { path: "/login", component: Login, name: "login" },
+    { path: "/signup", component: Register, name: "register" },
+    { path: "/forgot-password", component: ForgotPassword, name: "forgotPassword" },
+    { path: "/reset-password/:token", component: ResetPassword, name: "resetPassword" },
+    { path: "/favorites", component: Favorites, name: "favorites" },
+    { path: "/read", component: ReadBooks, name: "readBooks" },
+    { path: "/last-viewed", component: LastViewed, name: "lastViewed" },
+    { path: "/create-book", component: CreateBook, name: "createBook" },
     {
         path: "/admin",
         component: AllUsers,
-        children: [
-            {path: "/admin/users", component: AllUsers},
-        ]
+        children: [{ path: "/admin/users", component: AllUsers }],
     },
-    {path: "/bookshelves", component: Bookshelves, name: "bookshelves"},
-    {path: "/bookshelves/create", component: CreateUpdateBookshelf, name: "createBookshelf"},
-    {path: "/bookshelves/:id/edit", component: CreateUpdateBookshelf, name: "editBookshelf"},
-    {path: "/book/:id", component: BookPage, beforeEnter: beforeEnter, name: "book"},
-    {path: "/book/:id/edit", component: UpdateBook, beforeEnter: beforeEnter, name: "editBook"},
-    {path: "/book/:id/show", component: ShowBook, beforeEnter: beforeEnter, name: "showBook"},
-]
+    { path: "/bookshelves", component: Bookshelves, name: "bookshelves" },
+    { path: "/bookshelves/create", component: CreateUpdateBookshelf, name: "createBookshelf" },
+    { path: "/bookshelves/:id/edit", component: CreateUpdateBookshelf, name: "editBookshelf" },
+    { path: "/book/:id", component: BookPage, beforeEnter: beforeEnter, name: "book" },
+    { path: "/book/:id/edit", component: UpdateBook, beforeEnter: beforeEnter, name: "editBook" },
+    { path: "/book/:id/show", component: ShowBook, beforeEnter: beforeEnter, name: "showBook" },
+];
 
 const router: Router = createRouter({
     history: createWebHistory(),

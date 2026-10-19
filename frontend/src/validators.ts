@@ -1,20 +1,19 @@
 export function validateUsername(value: string): string {
     if (value.length <= 3) {
-        return "Укажите более 3 символов"
+        return "Укажите более 3 символов";
     }
-    return ""
+    return "";
 }
 
 export function validatePassword(value: string): string {
     if (value.length < 8) {
-        return "Пароль должен быть 8 или более символов"
+        return "Пароль должен быть 8 или более символов";
     }
     if (!value.match(/\d/) || !value.match(/\D/)) {
-        return "Пароль должен состоять, как минимум, из цифр и букв"
+        return "Пароль должен состоять, как минимум, из цифр и букв";
     }
-    return ""
+    return "";
 }
-
 
 export function validateEmail(value: string): string {
     if (!value.match(/^[A-Z0-9._%+-]+@[A-Z0-9-]+.+\.[A-Z]{2,4}$/i)) {

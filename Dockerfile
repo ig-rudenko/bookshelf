@@ -1,18 +1,14 @@
-FROM python:3.14.7-slim AS builder
+FROM python:3.14.8-slim AS builder
 
 ARG python_version=3.14
 
 SHELL ["/bin/sh", "-exc"]
 
+COPY --from=ghcr.io/astral-sh/uv:0.13.1 /uv /uvx /bin/
+
 WORKDIR /app
 
-# The installer requires curl (and certificates) to download the release archive
-RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
-ADD https://astral.sh/uv/install.sh /uv-installer.sh
-RUN sh /uv-installer.sh
-
-ENV PATH="/root/.local/bin/:$PATH" \
-    UV_PYTHON="python$python_version" \
+ENV UV_PYTHON="python$python_version" \
     UV_PYTHON_DOWNLOADS=never \
     UV_PROJECT_ENVIRONMENT=/app/venv \
     UV_LINK_MODE=copy \
@@ -21,13 +17,15 @@ ENV PATH="/root/.local/bin/:$PATH" \
 
 COPY pyproject.toml uv.lock /app/
 
-RUN --mount=type=cache,destination=/root/.cache/uv uv sync \
-  --no-dev \
-  --no-install-project \
-  --frozen
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    uv sync \
+      --no-dev \
+      --no-install-project \
+      --frozen
 
 
-FROM python:3.14.7-slim
+FROM python:3.14.8-slim
 
 ARG user_id=1000
 ARG group_id=1000

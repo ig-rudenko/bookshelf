@@ -37,65 +37,65 @@ import {
     Skeleton,
     Textarea,
     ToggleSwitch,
-    Tooltip
+    Tooltip,
 } from "primevue";
-import 'primeicons/primeicons.css'
-import {VueRecaptchaPlugin} from 'vue-recaptcha';
-import {createHead} from "@unhead/vue/client";
+import "primeicons/primeicons.css";
+import { VueRecaptchaPlugin } from "vue-recaptcha";
+import { createHead } from "@unhead/vue/client";
 
-import {app} from '@/appInstance';
+import { app } from "@/appInstance";
 import store from "@/store";
-import ToastService from 'primevue/toastservice';
-import setupInterceptors from '@/services/api/setupInterceptors';
+import ToastService from "primevue/toastservice";
+import setupInterceptors from "@/services/api/setupInterceptors";
 import router from "@/router";
 
-const head = createHead()
+const head = createHead();
 setupInterceptors();
-app.use(head)
-app.use(VueRecaptchaPlugin, {v2SiteKey: '6LcpBc0pAAAAAHu7T0s0SpoqfEgW2iQk-XCX5hwp'})
+app.use(head);
+app.use(VueRecaptchaPlugin, { v2SiteKey: "6LcpBc0pAAAAAHu7T0s0SpoqfEgW2iQk-XCX5hwp" });
 
 app.use(ToastService);
 app.use(ConfirmationService);
-app.directive('tooltip', Tooltip);
+app.directive("tooltip", Tooltip);
 app.use(store);
 app.use(router);
 
-app.component('AutoComplete', AutoComplete);
-app.component('Accordion', Accordion);
-app.component('AccordionPanel', AccordionPanel);
-app.component('AccordionContent', AccordionContent);
-app.component('AccordionHeader', AccordionHeader);
-app.component('Avatar', Avatar);
-app.component('Badge', Badge);
-app.component('Button', Button);
-app.component('Card', Card);
-app.component('Carousel', Carousel);
-app.component('Chip', Chip);
-app.component('Chips', InputChips);
-app.component('Column', Column);
-app.component('Divider', Divider);
-app.component('DeferredContent', DeferredContent);
-app.component('Select', Select);
-app.component('DataTable', DataTable);
-app.component('Dialog', Dialog);
-app.component('FloatLabel', FloatLabel);
-app.component('FileUpload', FileUpload);
-app.component('IconField', IconField);
-app.component('InputIcon', InputIcon);
-app.component('Message', Message);
-app.component('InputNumber', InputNumber);
-app.component('InputText', InputText);
-app.component('InputGroupAddon', InputGroupAddon);
-app.component('InputGroup', InputGroup);
-app.component('Menu', Menu);
-app.component('MegaMenu', MegaMenu);
-app.component('MeterGroup', MeterGroup);
-app.component('Popover', Popover);
-app.component('Paginator', Paginator);
-app.component('Password', Password);
-app.component('Skeleton', Skeleton);
-app.component('Textarea', Textarea);
-app.component('ToggleSwitch', ToggleSwitch);
-app.component('ScrollPanel', ScrollPanel);
+app.component("AutoComplete", AutoComplete);
+app.component("Accordion", Accordion);
+app.component("AccordionPanel", AccordionPanel);
+app.component("AccordionContent", AccordionContent);
+app.component("AccordionHeader", AccordionHeader);
+app.component("Avatar", Avatar);
+app.component("Badge", Badge);
+app.component("Button", Button);
+app.component("Card", Card);
+app.component("Carousel", Carousel);
+app.component("Chip", Chip);
+app.component("Chips", InputChips);
+app.component("Column", Column);
+app.component("Divider", Divider);
+app.component("DeferredContent", DeferredContent);
+app.component("Select", Select);
+app.component("DataTable", DataTable);
+app.component("Dialog", Dialog);
+app.component("FloatLabel", FloatLabel);
+app.component("FileUpload", FileUpload);
+app.component("IconField", IconField);
+app.component("InputIcon", InputIcon);
+app.component("Message", Message);
+app.component("InputNumber", InputNumber);
+app.component("InputText", InputText);
+app.component("InputGroupAddon", InputGroupAddon);
+app.component("InputGroup", InputGroup);
+app.component("Menu", Menu);
+app.component("MegaMenu", MegaMenu);
+app.component("MeterGroup", MeterGroup);
+app.component("Popover", Popover);
+app.component("Paginator", Paginator);
+app.component("Password", Password);
+app.component("Skeleton", Skeleton);
+app.component("Textarea", Textarea);
+app.component("ToggleSwitch", ToggleSwitch);
+app.component("ScrollPanel", ScrollPanel);
 
-app.mount('#app');
+app.mount("#app");

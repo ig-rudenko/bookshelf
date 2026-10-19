@@ -3,7 +3,7 @@ class Comment {
         public id: number,
         public text: string,
         public createdAt: string,
-        public user: {id: number, username: string},
+        public user: { id: number; username: string }
     ) {}
 }
 
@@ -17,4 +17,4 @@ class CommentResult {
     ) {}
 }
 
-export {Comment, CommentResult};
+export { Comment, CommentResult };

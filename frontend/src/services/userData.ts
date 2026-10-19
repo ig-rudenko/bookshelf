@@ -1,23 +1,23 @@
 import api from "@/services/api";
-import {AxiosResponse} from "axios";
+import { AxiosResponse } from "axios";
 
 export class PdfHistory {
     constructor(
         public bookId: number,
-        public history: string = "",
-    ) {
-    }
+        public history: string = ""
+    ) {}
 
     async getFromRemote() {
-        this._setPdfHistory("")
-        await api.get(`/user-data/book/${this.bookId}/pdf-history`).then(
-            (value: AxiosResponse<{ pdfHistory: string }>) => {
+        this._setPdfHistory("");
+        await api
+            .get(`/user-data/book/${this.bookId}/pdf-history`)
+            .then((value: AxiosResponse<{ pdfHistory: string }>) => {
                 if (value.status == 200) {
-                    this._setPdfHistory(value.data.pdfHistory)
+                    this._setPdfHistory(value.data.pdfHistory);
                 }
                 return value.data.pdfHistory;
-            }
-        ).catch(error => console.log(error));
+            })
+            .catch((error) => console.log(error));
     }
 
     checkLocalChanges() {
@@ -26,20 +26,19 @@ export class PdfHistory {
     }
 
     private _pushToRemote(localHistory: string) {
-        api.put(`/user-data/book/${this.bookId}/pdf-history`, {pdfHistory: localHistory}).then(
-            (value: AxiosResponse<{ pdfHistory: string }>) => {
+        api.put(`/user-data/book/${this.bookId}/pdf-history`, { pdfHistory: localHistory })
+            .then((value: AxiosResponse<{ pdfHistory: string }>) => {
                 if (value.status == 200) {
-                    this._setPdfHistory(value.data.pdfHistory)
+                    this._setPdfHistory(value.data.pdfHistory);
                 } else {
                     this._setPdfHistory("");
                 }
-            }
-        ).catch(error => console.log(error));
+            })
+            .catch((error) => console.log(error));
     }
 
     private _setPdfHistory(pdfHistory: string) {
         this.history = pdfHistory;
-        localStorage.setItem("pdfjs.history", pdfHistory)
+        localStorage.setItem("pdfjs.history", pdfHistory);
     }
-
 }

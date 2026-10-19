@@ -130,6 +130,9 @@ class BookFilter:
     page_size: int = 25
     sorted_by: list[str] = field(default_factory=lambda: ["-year", "-id"])
     ids_in: list[int] | None = None
+    favorite_by: int | None = None
+    read_by: int | None = None
+    viewed_by: int | None = None
 
     def remove_sorted_by_field(self, field_: str):
         with contextlib.suppress(ValueError):
@@ -142,3 +145,4 @@ class BookmarksQueryFilter:
     user_id: int
     page: int
     page_size: int
+    book_filter: BookFilter | None = None

@@ -1,5 +1,5 @@
 import axiosInstance from "./index";
-import {refreshAccessToken, tokenService} from "@/services/auth/token.service";
+import { refreshAccessToken, tokenService } from "@/services/auth/token.service";
 
 const ignoreURLs = ["/api/v1/auth/token"];
 
@@ -7,14 +7,14 @@ const setup = () => {
     axiosInstance.interceptors.request.use(
         async (config) => {
             const token = await tokenService.getLocalAccessToken();
-            if (token) config.headers["Authorization"] = 'Bearer ' + token;
+            if (token) config.headers["Authorization"] = "Bearer " + token;
             return config;
         },
-        error => Promise.reject(error)
+        (error) => Promise.reject(error)
     );
 
     axiosInstance.interceptors.response.use(
-        response => response,
+        (response) => response,
         async (err) => {
             const originalConfig = err.config;
             if (ignoreURLs.includes(originalConfig.url) || !err.response) return Promise.reject(err);
@@ -24,7 +24,7 @@ const setup = () => {
                 originalConfig._retry = true;
                 originalConfig.headers["Content-Type"] = "application/json";
                 try {
-                    const status = await refreshAccessToken()
+                    const status = await refreshAccessToken();
                     if (status) return axiosInstance(originalConfig);
                 } catch (_error) {
                     return Promise.reject(_error);

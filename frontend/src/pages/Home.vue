@@ -1,23 +1,22 @@
 <template>
-  <RecentBooks/>
-  <FullSearchBooks @click:book="showBook"/>
+    <div class="catalog-shell py-6 md:py-10">
+        <header class="mb-5">
+            <h1 class="page-title">Книги для IT-специалистов</h1>
+        </header>
+        <FullSearchBooks>
+            <template #after-search><RecentBooks /></template>
+        </FullSearchBooks>
+    </div>
 </template>
 
 <script lang="ts">
-import {defineComponent} from 'vue';
+import { defineComponent } from "vue";
 
 import RecentBooks from "@/components/RecentBooks.vue";
 import FullSearchBooks from "@/components/FullSearchBooks.vue";
-import {Book} from "@/books.ts";
-
 
 export default defineComponent({
-  name: "Home",
-  components: {FullSearchBooks, RecentBooks},
-  methods: {
-    showBook(book: Book) {
-      document.location.href = `/book/${book.id}`;
-    }
-  }
-})
+    name: "Home",
+    components: { FullSearchBooks, RecentBooks },
+});
 </script>

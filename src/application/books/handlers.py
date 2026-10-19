@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 from src.application.books.commands import (
     CreateBookCommand,
     DeleteBookCommand,
@@ -208,24 +210,28 @@ class BookQueryHandler:
             return await self.uow.books.get_authors(search, user_id)
 
     async def handler_get_last_viewed_books(
-        self, user_id: int | None, page: int, page_size: int
+        self, user_id: int, page: int, page_size: int, book_filter: BookFilter | None = None
     ) -> tuple[list[BookWithReadPagesDTO], int]:
         async with self.uow:
-            last_viewed_books, count = await self.uow.book_read_history.get_filtered(
-                BookReadHistoryFilter(user_id=user_id, page=page, page_size=page_size)
+            books_data, count = await self.uow.books.get_filtered(replace(
+                book_filter or BookFilter(), viewer_id=user_id, viewed_by=user_id,
+                page=page, page_size=page_size, sorted_by=[],
+            ))
+            if not books_data:
+                return [], count
+            last_viewed_books, _ = await self.uow.book_read_history.get_filtered(
+                BookReadHistoryFilter(user_id=user_id, page=1, page_size=len(books_data),
+                                      book_ids=[book.id for book in books_data])
             )
             viewed_books_map = {book.book_id: book for book in last_viewed_books}
-            books_data, count = await self.uow.books.get_filtered(
-                BookFilter(ids_in=list(viewed_books_map.keys()), page=page, page_size=page_size)
-            )
             results = []
             for book in books_data:
                 if book.id not in viewed_books_map:
                     raise ObjectNotFoundError(f"Book with id {book.id} not found in viewed books map")
                 dto = BookWithReadPagesDTO.from_domain(book)
                 dto.preview_image = await self.storage.get_media_url(book.preview_image)
-                if viewed_books_map.get(book.id) is not None:
-                    dto.read_pages = viewed_books_map[book.id].history.files[-1].page
+                files = viewed_books_map[book.id].history.files
+                dto.read_pages = files[-1].page if files else 0
                 dto.last_time_read = viewed_books_map[book.id].updated_at
                 results.append(dto)
 
