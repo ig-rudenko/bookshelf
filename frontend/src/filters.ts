@@ -10,9 +10,8 @@ class FilterBook {
         public pagesLt: number | null = null,
         public description: string = "",
         public onlyPrivate: boolean | null = null,
-        public tags: string[] = [],
-    ) {
-    }
+        public tags: string[] = []
+    ) {}
 
     clear() {
         this.search = "";
@@ -36,8 +35,8 @@ class FilterBook {
         if (this.publisher) urlParams.set("publisher", this.publisher);
         if (this.year) urlParams.set("year", String(this.year));
         if (this.language) urlParams.set("language", this.language);
-        if (this.pagesGt) urlParams.set("pages-gt", String(this.pagesGt));
-        if (this.pagesLt) urlParams.set("pages-lt", String(this.pagesLt));
+        if (this.pagesGt !== null) urlParams.set("pages-gt", String(this.pagesGt));
+        if (this.pagesLt !== null) urlParams.set("pages-lt", String(this.pagesLt));
         if (this.description) urlParams.set("description", this.description);
         if (this.onlyPrivate) urlParams.set("only-private", String(this.onlyPrivate));
         for (const tag of this.tags) {
@@ -47,13 +46,12 @@ class FilterBook {
     }
 }
 
-
 function createFilterBook(params: any): FilterBook {
-    let tags: string[]
+    let tags: string[];
     if (typeof params.tags === "string") {
-        tags = [params.tags]
+        tags = [params.tags];
     } else {
-        tags = params.tags
+        tags = params.tags;
     }
 
     return new FilterBook(
@@ -63,21 +61,19 @@ function createFilterBook(params: any): FilterBook {
         params.publisher,
         params.year,
         params.language,
-        params.pagesGt,
-        params.pagesLt,
+        params["pages-gt"] != null ? Number(params["pages-gt"]) : null,
+        params["pages-lt"] != null ? Number(params["pages-lt"]) : null,
         params.description,
         params.onlyPrivate,
-        tags,
-    )
+        tags
+    );
 }
-
 
 class FilterBookshelf {
     constructor(
         public search: string = "",
-        public private_: boolean | null = null,
-    ) {
-    }
+        public private_: boolean | null = null
+    ) {}
 
     clear() {
         this.search = "";
@@ -96,7 +92,6 @@ class FilterBookshelf {
         }
         return urlParams.toString();
     }
-
 }
 
 function createFilterBookshelf(params: any): FilterBookshelf {
@@ -109,4 +104,4 @@ function createFilterBookshelf(params: any): FilterBookshelf {
     }
 }
 
-export {FilterBook, createFilterBook, FilterBookshelf, createFilterBookshelf}
+export { FilterBook, createFilterBook, FilterBookshelf, createFilterBookshelf };

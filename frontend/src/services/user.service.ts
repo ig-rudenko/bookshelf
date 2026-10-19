@@ -1,13 +1,13 @@
-import {createNewUser, User} from "@/user";
+import { createNewUser, User } from "@/user";
 
 class UserService {
     getUser(): User | null {
-        const data = localStorage.getItem("user")
+        const data = localStorage.getItem("user");
         if (data) {
-            const jsonData = JSON.parse(data)
-            return createNewUser(jsonData)
+            const jsonData = JSON.parse(data);
+            return createNewUser(jsonData);
         }
-        return null
+        return null;
     }
 
     setUser(user: User): void {
@@ -17,7 +17,6 @@ class UserService {
     removeUser(): void {
         localStorage.removeItem("user");
     }
-
 }
 
 export default new UserService();

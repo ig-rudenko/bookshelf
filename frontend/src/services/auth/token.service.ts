@@ -2,7 +2,7 @@ import axios from "axios";
 
 import store from "@/store";
 import router from "@/router";
-import {UserTokens} from "@/user";
+import { UserTokens } from "@/user";
 
 export async function refreshAccessToken() {
     if (tokenService.isRefreshing) {
@@ -11,36 +11,31 @@ export async function refreshAccessToken() {
         return true;
     }
 
-    const oldRefreshToken = tokenService.getLocalRefreshToken()
+    const oldRefreshToken = tokenService.getLocalRefreshToken();
     if (!oldRefreshToken) return;
 
     tokenService.isRefreshing = true;
 
     const logout = async () => {
-        await store.dispatch("auth/logout")
+        await store.dispatch("auth/logout");
         await router.push("/login");
         return false;
-    }
+    };
 
     try {
-        const rs = await axios.post(
-            "/api/v1/auth/token/refresh",
-            {refreshToken: oldRefreshToken},
-        )
-        if (rs.status !== 200) return logout()
+        const rs = await axios.post("/api/v1/auth/token/refresh", { refreshToken: oldRefreshToken });
+        if (rs.status !== 200) return logout();
 
-        const {accessToken, refreshToken} = rs.data;
+        const { accessToken, refreshToken } = rs.data;
         // Обновляем access и refresh токены.
-        await store.dispatch('auth/refreshTokens', rs.data);
+        await store.dispatch("auth/refreshTokens", rs.data);
         tokenService.setTokens(accessToken, refreshToken);
-        return true
-
+        return true;
     } catch (error) {
         console.error(error);
         tokenService.isRefreshing = false;
         return logout();
     }
-
 }
 
 export class TokenService {
@@ -52,8 +47,8 @@ export class TokenService {
     }
 
     private load() {
-        const data = localStorage.getItem("tokens")
-        if (data) this._tokens = JSON.parse(data)
+        const data = localStorage.getItem("tokens");
+        if (data) this._tokens = JSON.parse(data);
     }
 
     private save() {
@@ -73,11 +68,11 @@ export class TokenService {
 
     getUserTokens(): UserTokens {
         this.load();
-        return this._tokens || {accessToken: "", refreshToken: ""}
+        return this._tokens || { accessToken: "", refreshToken: "" };
     }
 
     setTokens(access: string, refresh: string) {
-        this._tokens = {accessToken: access, refreshToken: refresh};
+        this._tokens = { accessToken: access, refreshToken: refresh };
         this.save();
         tokenService.isRefreshing = false;
     }
@@ -89,11 +84,11 @@ export class TokenService {
 
     async waitRefreshingIsFinished() {
         while (this.isRefreshing) {
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
         }
     }
 }
 
 const tokenService = new TokenService();
 
-export {tokenService}
+export { tokenService };

@@ -1,7 +1,8 @@
 from advanced_alchemy.filters import LimitOffset, OrderBy
 from advanced_alchemy.repository import SQLAlchemyAsyncRepository
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 
 from src.domain.common.exceptions import ObjectNotFoundError
 from src.domain.history.entities import BookReadHistory, BookReadHistoryFilter
@@ -48,6 +49,15 @@ class SqlAlchemyBookReadHistoryRepositoryRepository(BookReadHistoryRepository):
             filters.append(
                 BookHistoryModel.user_id == filter_.user_id,
             )
+
+        if filter_.book_ids is not None:
+            filters.append(BookHistoryModel.book_id.in_(filter_.book_ids))
+            latest_history = aliased(BookHistoryModel)
+            latest_id = select(latest_history.id).where(
+                latest_history.book_id == BookHistoryModel.book_id,
+                latest_history.user_id == BookHistoryModel.user_id,
+            ).order_by(latest_history.pdf_history_updated_at.desc(), latest_history.id.desc()).limit(1).scalar_subquery()
+            filters.append(BookHistoryModel.id == latest_id)
 
         with wrap_sqlalchemy_exception(self._repo.dialect):
             results, count = await self._repo.list_and_count(*filters)

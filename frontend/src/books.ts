@@ -7,9 +7,8 @@ export class CreateBook {
         public year: number | null = null,
         public private_: boolean = false,
         public tags: string[] = [],
-        public language: string | null = null,
-    ) {
-    }
+        public language: string | null = null
+    ) {}
 
     get private(): boolean {
         return this.private_;
@@ -19,7 +18,6 @@ export class CreateBook {
         this.private_ = value;
     }
 }
-
 
 export class BookValidator {
     private _isValid: boolean = true;
@@ -33,9 +31,8 @@ export class BookValidator {
         public private_: boolean = true,
         public tagsCount: boolean = true,
         public tagLength: boolean = true,
-        public language: boolean = true,
-    ) {
-    }
+        public language: boolean = true
+    ) {}
 
     validateTitle(title: string) {
         this.title = title.length > 0 && title.length < 100;
@@ -62,7 +59,7 @@ export class BookValidator {
         for (const tag of tags) {
             if (tag.length > 128 || tag.length == 0) {
                 this.tagLength = false;
-                return
+                return;
             }
         }
         this.tagLength = true;
@@ -73,62 +70,68 @@ export class BookValidator {
     }
 
     validate(book: CreateBook) {
-        this.validateTitle(book.title)
-        this.validateAuthors(book.authors)
-        this.validatePublisher(book.publisher)
-        this.validateDescription(book.description)
-        this.validateYear(book.year)
-        this.validateTags(book.tags)
-        this.validateLanguage(book.language)
-        this._isValid = this.title && this.authors && this.description && this.publisher && this.year && this.tagsCount && this.tagLength && this.language;
+        this.validateTitle(book.title);
+        this.validateAuthors(book.authors);
+        this.validatePublisher(book.publisher);
+        this.validateDescription(book.description);
+        this.validateYear(book.year);
+        this.validateTags(book.tags);
+        this.validateLanguage(book.language);
+        this._isValid =
+            this.title &&
+            this.authors &&
+            this.description &&
+            this.publisher &&
+            this.year &&
+            this.tagsCount &&
+            this.tagLength &&
+            this.language;
     }
 
     get isValid(): boolean {
-        return this._isValid
+        return this._isValid;
     }
 }
 
-
 export interface Book {
-    id: number
-    userId: number
-    title: string
-    previewImage: string
-    authors: string
-    pages: number
-    size: number
-    year: number
-    private: boolean
-    language: string
-    tags: { id: number, name: string }[]
-    publisher: { id: number, name: string }
-    bookshelves?: { id: number, name: string, private: boolean }[]
+    id: number;
+    userId: number;
+    title: string;
+    previewImage: string;
+    authors: string;
+    pages: number;
+    size: number;
+    year: number;
+    private: boolean;
+    language: string;
+    tags: { id: number; name: string }[];
+    publisher: { id: number; name: string };
+    bookshelves?: { id: number; name: string; private: boolean }[];
 }
 
 export interface BookWithDesc extends Book {
-    description: string
+    description: string;
 }
 
 export interface BookDetail extends Book {
-    description: string
-    favorite: boolean
-    read: boolean
+    description: string;
+    favorite: boolean;
+    read: boolean;
 }
 
 export interface BookWithReadPages extends Book {
-    readPages: number
-    lastTimeRead: string | null
+    readPages: number;
+    lastTimeRead: string | null;
 }
 
-
 export interface PaginatedBookResult {
-    books: Book[],
-    totalCount: number,
-    currentPage: number,
-    maxPages: number,
-    perPage: number
+    books: Book[];
+    totalCount: number;
+    currentPage: number;
+    maxPages: number;
+    perPage: number;
 }
 
 export interface BookWithReadPagesPaginatedResult extends PaginatedBookResult {
-    books: BookWithReadPages[],
+    books: BookWithReadPages[];
 }

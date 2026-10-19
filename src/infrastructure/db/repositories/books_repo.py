@@ -1,12 +1,16 @@
+from dataclasses import replace
+
 from advanced_alchemy.repository import SQLAlchemyAsyncRepository
 from sqlalchemy import Select, delete, distinct, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
 
 from src.domain.books.entities import Book, BookFilter, BookmarksQueryFilter, Publisher, Tag
 from src.domain.books.repository import BookRepository
 from src.infrastructure.db.exception_handler import wrap_sqlalchemy_exception
 from src.infrastructure.db.models import (
+    BookHistoryModel,
     BookModel,
     FavoriteBookModel,
     PublisherModel,
@@ -39,6 +43,22 @@ class SqlAlchemyBookRepository(BookRepository):
         offset = (filter_.page - 1) * filter_.page_size
         query = select(BookModel).group_by(BookModel.id).limit(filter_.page_size).offset(offset)
 
+        if filter_.favorite_by is not None:
+            query = query.join(FavoriteBookModel).where(FavoriteBookModel.user_id == filter_.favorite_by)
+            query = query.group_by(FavoriteBookModel.id).order_by(FavoriteBookModel.id.desc())
+        if filter_.read_by is not None:
+            query = query.join(ReadBookModel).where(ReadBookModel.user_id == filter_.read_by)
+            query = query.group_by(ReadBookModel.id).order_by(ReadBookModel.id.desc())
+        if filter_.viewed_by is not None:
+            latest_history = aliased(BookHistoryModel)
+            latest_id = select(latest_history.id).where(
+                latest_history.book_id == BookModel.id, latest_history.user_id == filter_.viewed_by,
+            ).order_by(latest_history.pdf_history_updated_at.desc(), latest_history.id.desc()).limit(1).scalar_subquery()
+            query = query.join(BookHistoryModel, BookHistoryModel.id == latest_id)
+            query = query.group_by(BookHistoryModel.id).order_by(
+                BookHistoryModel.pdf_history_updated_at.desc(), BookHistoryModel.id.desc()
+            )
+
         for field in filter_.sorted_by:
             if field.startswith("-") and hasattr(BookModel, field[1:]):
                 query = query.order_by(getattr(BookModel, field[1:]).desc())
@@ -49,6 +69,8 @@ class SqlAlchemyBookRepository(BookRepository):
             query = query.where(
                 BookModel.title.ilike(f"%{filter_.search}%")
                 | BookModel.description.ilike(f"%{filter_.search}%")
+                | BookModel.authors.ilike(f"%{filter_.search}%")
+                | BookModel.tags.any(TagModel.name.ilike(f"%{filter_.search}%"))
             )
         if filter_.title:
             query = query.where(BookModel.title.ilike(f"%{filter_.title}%"))
@@ -83,7 +105,7 @@ class SqlAlchemyBookRepository(BookRepository):
                 .having(func.count(func.distinct(TagModel.id)) == len(tags))
             )
 
-        if filter_.ids_in:
+        if filter_.ids_in is not None:
             query = query.where(BookModel.id.in_(filter_.ids_in))
 
         with wrap_sqlalchemy_exception(self._repo.dialect):
@@ -120,21 +142,10 @@ class SqlAlchemyBookRepository(BookRepository):
             await self._repo.delete(book_id)
 
     async def get_favorite_books(self, filter_: BookmarksQueryFilter) -> tuple[list[Book], int]:
-        with wrap_sqlalchemy_exception(self._repo.dialect):
-            query = (
-                select(BookModel)
-                .join(FavoriteBookModel)
-                .where(
-                    FavoriteBookModel.book_id == BookModel.id,
-                    FavoriteBookModel.user_id == filter_.user_id,
-                )
-                .group_by(BookModel.id, FavoriteBookModel.id)
-                .limit(filter_.page_size)
-                .order_by(FavoriteBookModel.id.desc())
-                .offset((filter_.page - 1) * filter_.page_size)
-            )
-            result, total = await self._repo.list_and_count(statement=query, uniquify=True)
-            return [self._to_domain(book) for book in result], total
+        return await self.get_filtered(replace(
+            filter_.book_filter or BookFilter(), viewer_id=filter_.user_id, favorite_by=filter_.user_id,
+            page=filter_.page, page_size=filter_.page_size, sorted_by=[],
+        ))
 
     async def update_favorite_status(self, book_id: int, user_id: int, favorite: bool) -> None:
         with wrap_sqlalchemy_exception(self._repo.dialect):
@@ -179,21 +190,10 @@ class SqlAlchemyBookRepository(BookRepository):
             return bool(result.scalar_one_or_none())
 
     async def get_read_books(self, filter_: BookmarksQueryFilter) -> tuple[list[Book], int]:
-        with wrap_sqlalchemy_exception(self._repo.dialect):
-            query = (
-                select(BookModel)
-                .join(ReadBookModel)
-                .where(
-                    ReadBookModel.book_id == BookModel.id,
-                    ReadBookModel.user_id == filter_.user_id,
-                )
-                .group_by(BookModel.id, ReadBookModel.id)
-                .limit(filter_.page_size)
-                .order_by(ReadBookModel.id.desc())
-                .offset((filter_.page - 1) * filter_.page_size)
-            )
-            result, total = await self._repo.list_and_count(statement=query, uniquify=True)
-            return [self._to_domain(book) for book in result], total
+        return await self.get_filtered(replace(
+            filter_.book_filter or BookFilter(), viewer_id=filter_.user_id, read_by=filter_.user_id,
+            page=filter_.page, page_size=filter_.page_size, sorted_by=[],
+        ))
 
     async def update_read_status(self, book_id: int, user_id: int, read: bool) -> None:
         with wrap_sqlalchemy_exception(self._repo.dialect):

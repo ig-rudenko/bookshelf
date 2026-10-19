@@ -1,7 +1,7 @@
 const languagesList = [
-    {label: "Русский", code: "ru"},
-    {label: "Английский", code: "gb"}
-]
+    { label: "Русский", code: "ru" },
+    { label: "Английский", code: "gb" },
+];
 
 function getLanguagePairByLabel(label: string) {
     for (const element of languagesList) {
@@ -10,4 +10,4 @@ function getLanguagePairByLabel(label: string) {
     return languagesList[0];
 }
 
-export {languagesList, getLanguagePairByLabel}
+export { languagesList, getLanguagePairByLabel };

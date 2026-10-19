@@ -73,27 +73,9 @@ async def get_authors_view(
     )
 
 
-@router.get("/last-viewed", response_model=BooksWithReadPagesPaginatedSchema)
-async def get_last_viewed_books_view(
-    paginator: Annotated[PaginatorQuery, Depends(paginator_query)],
-    user: Annotated[UserDTO, Depends(get_current_user)],
-    query_handler: Annotated[BookQueryHandler, Depends(get_book_query_handler)],
-):
-    """Возвращает просмотренные книги пользователя с кол-вом просмотренных страниц."""
-    result, count = await query_handler.handler_get_last_viewed_books(
-        user.id, paginator.page, paginator.per_page
-    )
-    return BooksWithReadPagesPaginatedSchema.from_books_dto(
-        books=result,
-        total_count=count,
-        current_page=paginator.page,
-        per_page=paginator.per_page,
-    )
-
-
 def books_query_params(
     paginator: Annotated[PaginatorQuery, Depends(paginator_query)],
-    search: Annotated[str | None, Query(max_length=254, description="Поиск по названию и описанию")] = None,
+    search: Annotated[str | None, Query(max_length=254, description="Поиск по названию, автору, теме и описанию")] = None,
     title: Annotated[str | None, Query(max_length=254, description="Заголовок")] = None,
     authors: Annotated[str | None, Query(max_length=254, description="Авторы книги")] = None,
     publisher: Annotated[str | None, Query(max_length=128, description="Издательство")] = None,
@@ -132,6 +114,21 @@ def books_query_params(
         tags=tags,
         page=paginator.page,
         page_size=paginator.per_page,
+    )
+
+
+@router.get("/last-viewed", response_model=BooksWithReadPagesPaginatedSchema)
+async def get_last_viewed_books_view(
+    query_params: Annotated[BookFilter, Depends(books_query_params)],
+    user: Annotated[UserDTO, Depends(get_current_user)],
+    query_handler: Annotated[BookQueryHandler, Depends(get_book_query_handler)],
+):
+    """Возвращает просмотренные книги пользователя с фильтрами и прогрессом чтения."""
+    result, count = await query_handler.handler_get_last_viewed_books(
+        user.id, query_params.page, query_params.page_size, query_params
+    )
+    return BooksWithReadPagesPaginatedSchema.from_books_dto(
+        books=result, total_count=count, current_page=query_params.page, per_page=query_params.page_size,
     )
 
 

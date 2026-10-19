@@ -1,192 +1,267 @@
 <template>
-
-  <div class="sticky text-right z-5">
-    <Button v-if="maximize" @click="() => changeMaximize(false)" v-tooltip.left="'Свернуть'" class="!absolute"
-            icon="pi pi-angle-double-up" style="right: 10px; top: 10px"/>
-    <Button v-else @click="() => changeMaximize(true)" v-tooltip.left="'Развернуть'" class="!absolute"
-            icon="pi pi-angle-double-down" style="right: 10px; top: 10px"/>
-  </div>
-
-  <!--Подсказка-->
-  <div class="sticky z-1">
-    <div v-if="!isMobile && maximize" class="absolute flex items-center left-0 p-4 text-400 text-xs top-0">
-      <span class="pr-1">Листайте вправо с зажатым</span>
-      <Button outlined style="padding: 2px; font-size: 12px">Shift</Button>
-    </div>
-  </div>
-
-  <div v-if="books.length" class="p-5 my-4 bookshelf relative" :style="bookshelfStyle">
-
-    <!--Обложки книг-->
-    <div v-for="book in books" :key="book.id" class="inline-block relative book-block" :style="bookBlockStyle">
-      <div class="absolute image-block flex flex-row" @mouseover="getBook(book.id)">
-        <!--Картинка книги-->
-        <div>
-          <img @click="$emit('click:book', book)"
-               :src="book.preview"
-               class="book-image" :style="bookImageStyle" alt="book-preview"/>
-        </div>
-
-        <!--Описание книги-->
-        <div v-if="currentBook" class="book-detail scale-[0.92]" :class="isMobile?'absolute':''">
-          <BookCard :book="currentBook" :show-image="false"
-                    class="bg-white dark:bg-surface-800 !shadow-none !max-w-[25rem] text-wrap"/>
-        </div>
-      </div>
+    <div class="bookshelf-controls flex justify-end mt-3 px-2">
+        <Button
+            v-if="maximize"
+            @click="() => changeMaximize(false)"
+            :aria-expanded="true"
+            icon="pi pi-angle-double-up"
+            label="Свернуть полку"
+            severity="secondary"
+            outlined
+            size="small"
+        />
+        <Button
+            v-else
+            @click="() => changeMaximize(true)"
+            :aria-expanded="false"
+            icon="pi pi-angle-double-down"
+            label="Развернуть полку"
+            severity="secondary"
+            outlined
+            size="small"
+        />
     </div>
 
-  </div>
+    <!--Подсказка-->
+    <div class="sticky z-1">
+        <div v-if="!isMobile && maximize" class="absolute flex items-center left-0 p-4 text-400 text-xs top-0">
+            <span class="pr-1">Листайте вправо с зажатым</span>
+            <Button outlined style="padding: 2px; font-size: 12px">Shift</Button>
+        </div>
+    </div>
+
+    <div
+        v-if="books.length"
+        class="p-5 my-4 bookshelf relative"
+        :style="bookshelfStyle"
+        :class="{ 'is-draggable': !maximize, 'is-dragging': dragging }"
+        @pointerdown="startShelfDrag"
+        @pointermove="moveShelfDrag"
+        @pointerup="endDrag"
+        @pointercancel="endDrag"
+        @pointerleave="endDrag"
+        @lostpointercapture="endDrag"
+        @click.capture="clickBook"
+        @dragstart="!maximize && $event.preventDefault()"
+    >
+        <!--Обложки книг-->
+        <div v-for="book in books" :key="book.id" class="inline-block relative book-block" :style="bookBlockStyle">
+            <div
+                class="absolute image-block flex flex-row"
+                @mouseenter="showDetails($event, book.id)"
+                @mouseleave="hideDetails"
+            >
+                <!--Картинка книги-->
+                <a
+                    :href="'/book/' + book.id"
+                    @click="$emit('click:book', book, $event)"
+                    @focus="showDetails($event, book.id)"
+                >
+                    <img
+                        :src="book.preview"
+                        class="book-image"
+                        :style="bookImageStyle"
+                        :alt="viewedBooks.get(book.id)?.title || 'Книга ' + book.id"
+                    />
+                </a>
+            </div>
+        </div>
+    </div>
+    <Popover
+        ref="bookDetails"
+        class="w-[min(28rem,calc(100vw-2rem))] max-h-[70vh] overflow-y-auto"
+        @mouseenter="keepDetails"
+        @mouseleave="hideDetails"
+    >
+        <BookCard
+            v-if="currentBook"
+            :book="currentBook"
+            :show-image="false"
+            class="!border-0 !p-0 !bg-transparent whitespace-normal"
+        />
+    </Popover>
 </template>
 
 <script lang="ts">
-import {defineComponent, PropType} from 'vue'
+import { defineComponent, nextTick, PropType } from "vue";
 import BookCard from "@/components/BookCard.vue";
-import {Book} from "@/books.ts";
+import { Book } from "@/books.ts";
 import api from "@/services/api";
-import {AxiosResponse} from "axios";
+import horizontalDrag from "@/horizontalDrag";
 
 export default defineComponent({
-  name: "BookshelfImages",
-  components: {BookCard},
-  props: {
-    books: {required: true, type: Object as PropType<{ id: number, preview: string }[]>},
-  },
-  emits: ["click:book", "maximize"],
-  data() {
-    return {
-      bookImages: [] as { id: number, src: string }[],
-      viewedBooks: new Map() as Map<number, Book>,
-      currentBook: undefined as Book | undefined,
-      windowWidth: window.innerWidth,
-      maximize: false,
-    }
-  },
-
-  mounted() {
-    window.addEventListener('resize', () => this.windowWidth = window.innerWidth);
-  },
-
-  computed: {
-    isMobile() {
-      return this.windowWidth <= 768;
+    name: "BookshelfImages",
+    mixins: [horizontalDrag],
+    components: { BookCard },
+    props: {
+        books: { required: true, type: Object as PropType<{ id: number; preview: string }[]> },
+    },
+    emits: ["click:book", "maximize"],
+    data() {
+        return {
+            bookImages: [] as { id: number; src: string }[],
+            viewedBooks: new Map() as Map<number, Book>,
+            currentBook: undefined as Book | undefined,
+            windowWidth: window.innerWidth,
+            maximize: false,
+            detailsBookId: null as number | null,
+            hideDetailsTimer: undefined as ReturnType<typeof setTimeout> | undefined,
+        };
     },
 
-    bookBlockStyle() {
-      if (this.maximize) {
-        return {
-          padding: "1rem",
-          width: "10rem !important",
-          margin: "1rem !important",
-        }
-      }
-      return {}
+    mounted() {
+        window.addEventListener("resize", () => (this.windowWidth = window.innerWidth));
+    },
+    beforeUnmount() {
+        clearTimeout(this.hideDetailsTimer);
+        this.detailsBookId = null;
     },
 
-    bookshelfStyle() {
-      if (this.maximize) {
-        return {
-          "white-space": "pre-wrap !important",
-          padding: "3rem !important",
-        }
-      }
-      return {}
-    },
+    computed: {
+        isMobile() {
+            return this.windowWidth <= 768;
+        },
 
-    bookImageStyle() {
-      if (this.maximize) {
-        return {
-          transform: "rotate3d(1, 1, 1, -1deg)"
-        }
-      }
-      return {}
-    }
-
-  },
-
-  methods: {
-    getBook(bookID: number): void {
-      this.currentBook = this.viewedBooks.get(bookID)
-      if (!this.currentBook) {
-        api.get(`/books/${bookID}`).then(
-            (value: AxiosResponse<Book>) => {
-              this.viewedBooks.set(bookID, value.data);
-              this.currentBook = value.data
+        bookBlockStyle() {
+            if (this.maximize) {
+                return {
+                    padding: "1rem",
+                    width: "10rem !important",
+                    margin: "1rem !important",
+                };
             }
-        ).catch(
-            reason => console.log(reason)
-        )
-      }
+            return {};
+        },
+
+        bookshelfStyle() {
+            if (this.maximize) {
+                return {
+                    "white-space": "pre-wrap !important",
+                    padding: "3rem !important",
+                };
+            }
+            return {};
+        },
+
+        bookImageStyle() {
+            if (this.maximize) {
+                return {
+                    transform: "rotate3d(1, 1, 1, -1deg)",
+                };
+            }
+            return {};
+        },
     },
 
-    changeMaximize(status: boolean) {
-      this.maximize = status;
-      this.$emit("maximize", this.maximize);
-    }
+    methods: {
+        startShelfDrag(event: PointerEvent) {
+            if (!this.maximize) this.startDrag(event);
+        },
+        moveShelfDrag(event: PointerEvent) {
+            this.moveDrag(event);
+            if (this.dragging) {
+                clearTimeout(this.hideDetailsTimer);
+                this.detailsBookId = null;
+                (<any>this.$refs.bookDetails).hide();
+            }
+        },
+        async showDetails(event: Event, bookID: number) {
+            if (this.dragging) return;
+            this.keepDetails();
+            this.detailsBookId = bookID;
+            const target = event.currentTarget;
+            try {
+                let book = this.viewedBooks.get(bookID);
+                if (!book) {
+                    const response = await api.get<Book>(`/books/${bookID}`);
+                    book = response.data;
+                    this.viewedBooks.set(bookID, book);
+                }
+                if (this.detailsBookId !== bookID) return;
+                const popover = <any>this.$refs.bookDetails;
+                popover.hide();
+                this.currentBook = book;
+                await nextTick();
+                if (this.detailsBookId === bookID) popover.show(event, target);
+            } catch {
+                if (this.detailsBookId === bookID) this.detailsBookId = null;
+            }
+        },
+        keepDetails() {
+            clearTimeout(this.hideDetailsTimer);
+        },
+        hideDetails() {
+            this.detailsBookId = null;
+            this.hideDetailsTimer = setTimeout(() => (<any>this.$refs.bookDetails).hide(), 150);
+        },
 
-  },
-})
+        changeMaximize(status: boolean) {
+            this.endDrag();
+            this.dragged = false;
+            this.maximize = status;
+            this.$emit("maximize", this.maximize);
+        },
+    },
+});
 </script>
 
-
 <style scoped>
-
 .bookshelf {
-  width: 90vw;
-  overflow-x: auto;
-  white-space: nowrap;
-  overflow-y: auto;
-  border: none;
-  border-bottom: 5px solid var(--p-surface-700);
-  box-shadow: 1px 1px 4px var(--p-surface-700);
-  border-radius: 10px;
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    overflow-y: auto;
+    border: none;
+    border-bottom: 3px solid var(--p-content-border-color);
+    border-radius: 0;
 }
 
 .book-block {
-  min-height: 230px;
-  width: 9rem !important;
+    min-height: 230px;
+    width: 9rem !important;
 }
 
+.bookshelf.is-draggable {
+    cursor: grab;
+    user-select: none;
+}
+.bookshelf.is-dragging {
+    cursor: grabbing;
+}
+.bookshelf.is-draggable a,
+.bookshelf.is-draggable .book-image {
+    cursor: inherit;
+}
 
 .book-image {
-  border-radius: .75rem !important;
-  max-height: 230px;
-  min-height: 230px;
-  max-width: 250px;
-  margin-top: 5px;
-  box-shadow: -6px -2px 2px #959595;
-  border-left: 1px solid #959595;
-  border-bottom: 1px solid #959595;
-  cursor: pointer;
+    border-radius: 0.75rem !important;
+    max-height: 230px;
+    min-height: 230px;
+    max-width: 250px;
+    margin-top: 5px;
+    box-shadow: -6px -2px 2px #959595;
+    border-left: 1px solid #959595;
+    border-bottom: 1px solid #959595;
+    cursor: pointer;
 }
 
 /* При наведении на обложку поднимаем её на передний план */
-.image-block:hover, .image-block:active {
-  z-index: 2;
+.image-block:hover,
+.image-block:active,
+.image-block:focus-within {
+    z-index: 2;
 }
 
 /* Увеличение книги при наведении на обложку */
 .image-block:hover .book-image {
-  transform: scale(1.15) !important;
-  box-shadow: 0 0 5px #121212;
+    transform: scale(1.15) !important;
+    box-shadow: 0 0 5px #121212;
 }
-
-
-/* По умолчанию описание книги скрыто */
-.book-detail {
-  display: none;
-}
-
-/* При наведении на обложку показывает описание книги */
-.image-block:hover .book-detail, .image-block:active .book-detail {
-  display: block;
-}
-
 
 @media (width < 768px) {
-  .bookshelf {
-    width: 100vw;
-    border-radius: 0;
-  }
-
+    .bookshelf {
+        width: 100%;
+        border-radius: 0;
+    }
 }
 </style>

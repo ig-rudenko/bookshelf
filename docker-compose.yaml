@@ -1,23 +1,32 @@
+x-frontend-image: &frontend-image bookshelf-nginx:1.2.0
+x-backend-image: &backend-image bookshelf:1.2.0
+x-index-meta-proxy-image: &index-meta-proxy-image bookshelf-index-meta-proxy:1.2.0
+x-logging: &logging
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-common-environment: &common-environment
+  TZ: ${TZ:-UTC}
+
 services:
 
   nginx:
-    image: bookshelf-nginx:1.0.0
+    image: *frontend-image
     build: frontend
     restart: always
-    logging: &logging
-      driver: "json-file"
-      options:
-        max-size: 10m
-        max-file: "3"
+    logging: *logging
+    environment:
+      <<: *common-environment
     ports:
       - "${BIND_HOST:-0.0.0.0}:${BIND_PORT_HTTP:-80}:80"
       - "${BIND_HOST:-0.0.0.0}:${BIND_PORT_HTTPS:-443}:443"
     volumes:
       - "${NGINX_CONFIG:-./config/nginx/frontend.conf}:/etc/nginx/conf.d/default.conf:ro"
       - "./media/previews:/var/www/media/previews:ro"
-      - "${CERT_DIR:-/etc/letsencrypt/live/it-bookshelf.ru/}/fullchain.pem:/etc/ssl/fullchain.pem:ro"
-      - "${CERT_DIR:-/etc/letsencrypt/live/it-bookshelf.ru/}/privkey.pem:/etc/ssl/privkey.pem:ro"
-      - "${DH_PARAMS:-/etc/letsencrypt/ssl-dhparams.pem}:/etc/ssl/ssl-dhparams.pem:ro"
+    #      - "${CERT_DIR:-/etc/letsencrypt/live/it-bookshelf.ru/}/fullchain.pem:/etc/ssl/fullchain.pem:ro"
+    #      - "${CERT_DIR:-/etc/letsencrypt/live/it-bookshelf.ru/}/privkey.pem:/etc/ssl/privkey.pem:ro"
+    #      - "${DH_PARAMS:-/etc/letsencrypt/ssl-dhparams.pem}:/etc/ssl/ssl-dhparams.pem:ro"
     depends_on:
       api-1:
         condition: service_started
@@ -26,11 +35,12 @@ services:
 
   api-1: &backend
     build: .
-    image: bookshelf:1.0.0
+    image: *backend-image
     command: /bin/sh run.sh
     restart: always
     logging: *logging
     environment:
+      <<: *common-environment
       CELERY_BROKER_URL: "redis://redis:6379/1"
       REDIS_HOST: "redis"
       REDIS_DB: 0
@@ -41,17 +51,19 @@ services:
     depends_on:
       database:
         condition: service_healthy
-
+    ports:
+      - "8000:8000"
     networks:
       - frontend
       - backend
 
   index-meta-proxy:
     build: index-meta-proxy
-    image: bookshelf-index-meta-proxy:1.0.0
+    image: *index-meta-proxy-image
     restart: always
     logging: *logging
     environment:
+      <<: *common-environment
       API_URL: "${BASE_URL:-https://it-bookshelf.ru}"
     depends_on:
       - nginx
@@ -72,10 +84,13 @@ services:
         condition: service_healthy
     networks:
       - backend
+    ports: [ ]
 
   redis:
     image: redis:8.0-alpine
     restart: always
+    environment:
+      <<: *common-environment
     logging: *logging
     networks:
       - backend
@@ -83,6 +98,8 @@ services:
   database:
     image: postgres:18.4-alpine
     restart: always
+    environment:
+      <<: *common-environment
     env_file:
       - config/env/postgres
     logging: *logging
@@ -91,7 +108,7 @@ services:
     ports:
       - "127.0.0.1:5433:5432"
     healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready -U dbuser -d bookshelf'"]
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U dbuser -d bookshelf'" ]
       start_period: 5s
       timeout: 10s
       interval: 5s
@@ -102,15 +119,17 @@ services:
   pgadmin-balancer:
     image: nginx:1.31.2-alpine
     restart: always
-    profiles: ["pgadmin"]
+    profiles: [ "pgadmin" ]
+    environment:
+      <<: *common-environment
     logging: *logging
     ports:
       - "8080:8080"
     volumes:
       - "${PG_ADMIN_NGINX_CONFIG:-./config/nginx/pgadmin.conf}:/etc/nginx/conf.d/default.conf:ro"
-      - "${CERT_DIR:-/etc/letsencrypt/live/it-bookshelf.ru}/fullchain.pem:/etc/ssl/fullchain.pem:ro"
-      - "${CERT_DIR:-/etc/letsencrypt/live/it-bookshelf.ru}/privkey.pem:/etc/ssl/privkey.pem:ro"
-      - "${DH_PARAMS:-/etc/letsencrypt/ssl-dhparams.pem}:/etc/ssl/ssl-dhparams.pem:ro"
+    #      - "${CERT_DIR:-/etc/letsencrypt/live/it-bookshelf.ru}/fullchain.pem:/etc/ssl/fullchain.pem:ro"
+    #      - "${CERT_DIR:-/etc/letsencrypt/live/it-bookshelf.ru}/privkey.pem:/etc/ssl/privkey.pem:ro"
+    #      - "${DH_PARAMS:-/etc/letsencrypt/ssl-dhparams.pem}:/etc/ssl/ssl-dhparams.pem:ro"
     depends_on:
       pgadmin4:
         condition: service_started
@@ -119,7 +138,9 @@ services:
 
   pgadmin4:
     image: elestio/pgadmin:latest
-    profiles: ["pgadmin"]
+    profiles: [ "pgadmin" ]
+    environment:
+      <<: *common-environment
     restart: always
     env_file:
       - config/env/pgadmin

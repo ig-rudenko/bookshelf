@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Query, status
 from src.application.books.handlers import BookmarksQueryHandler, BookQueryHandler
 from src.application.users.handlers import UserQueryHandler
 from src.application.users.queries import UserFilterDTO
-from src.domain.books.entities import BookmarksQueryFilter
+from src.domain.books.entities import BookFilter, BookmarksQueryFilter
 from src.presentation.api.auth import superuser_required
 from src.presentation.api.dependencies import (
     get_book_query_handler,
@@ -15,6 +15,7 @@ from src.presentation.api.dependencies import (
 from src.presentation.api.handlers.queries import PaginatorQuery, paginator_query
 from src.presentation.api.schemas.books import BooksSchemaPaginated, BooksWithReadPagesPaginatedSchema
 from src.presentation.api.schemas.users import UserDetailSchema, UserSchemaPaginated
+from ..books import books_query_params
 
 router = APIRouter(prefix="/users", dependencies=[Depends(superuser_required)])
 
@@ -77,44 +78,46 @@ async def get_users(
 @router.get("/{user_id}/favorite", status_code=status.HTTP_200_OK, response_model=BooksSchemaPaginated)
 async def get_favorite_books_view(
     user_id: int,
-    paginator: Annotated[PaginatorQuery, Depends(paginator_query)],
+    query_params: Annotated[BookFilter, Depends(books_query_params)],
     handler: Annotated[BookmarksQueryHandler, Depends(get_bookmark_query_handler)],
 ):
     """Возвращает избранные книги пользователя."""
     books, count = await handler.handle_get_favorite_books(
         BookmarksQueryFilter(
             user_id=user_id,
-            page=paginator.page,
-            page_size=paginator.per_page,
+            page=query_params.page,
+            page_size=query_params.page_size,
+            book_filter=query_params,
         )
     )
     return BooksSchemaPaginated.from_books_dto(
         books=books,
         total_count=count,
-        current_page=paginator.page,
-        per_page=paginator.per_page,
+        current_page=query_params.page,
+        per_page=query_params.page_size,
     )
 
 
 @router.get("/{user_id}/read", status_code=status.HTTP_200_OK, response_model=BooksSchemaPaginated)
 async def get_read_books_view(
     user_id: int,
-    paginator: Annotated[PaginatorQuery, Depends(paginator_query)],
+    query_params: Annotated[BookFilter, Depends(books_query_params)],
     handler: Annotated[BookmarksQueryHandler, Depends(get_bookmark_query_handler)],
 ):
     """Возвращает прочитанные книги пользователя."""
     books, count = await handler.handle_get_read_books(
         BookmarksQueryFilter(
             user_id=user_id,
-            page=paginator.page,
-            page_size=paginator.per_page,
+            page=query_params.page,
+            page_size=query_params.page_size,
+            book_filter=query_params,
         )
     )
     return BooksSchemaPaginated.from_books_dto(
         books=books,
         total_count=count,
-        current_page=paginator.page,
-        per_page=paginator.per_page,
+        current_page=query_params.page,
+        per_page=query_params.page_size,
     )
 
 
@@ -123,16 +126,16 @@ async def get_read_books_view(
 )
 async def get_last_viewed_books_view(
     user_id: int,
-    paginator: Annotated[PaginatorQuery, Depends(paginator_query)],
+    query_params: Annotated[BookFilter, Depends(books_query_params)],
     query_handler: Annotated[BookQueryHandler, Depends(get_book_query_handler)],
 ):
     """Возвращает просмотренные книги пользователя с кол-вом просмотренных страниц."""
     result, count = await query_handler.handler_get_last_viewed_books(
-        user_id, paginator.page, paginator.per_page
+        user_id, query_params.page, query_params.page_size, query_params
     )
     return BooksWithReadPagesPaginatedSchema.from_books_dto(
         books=result,
         total_count=count,
-        current_page=paginator.page,
-        per_page=paginator.per_page,
+        current_page=query_params.page,
+        per_page=query_params.page_size,
     )

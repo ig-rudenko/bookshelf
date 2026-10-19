@@ -1,6 +1,5 @@
 import api from "@/services/api";
 
-
 export interface UserDetail {
     id: number;
     username: string;
@@ -16,41 +15,45 @@ export interface UserDetail {
 }
 
 export interface UserDetailPaginatedResult {
-    results: UserDetail[],
-    totalCount: number,
-    currentPage: number,
-    maxPages: number,
-    perPage: number
+    results: UserDetail[];
+    totalCount: number;
+    currentPage: number;
+    maxPages: number;
+    perPage: number;
 }
 
 class UsersService {
-
-    async getAllUsersList(page: number = 0, perPage?: number, sortBy?: string, sortDirection?: number, search?: string): Promise<UserDetailPaginatedResult | null> {
+    async getAllUsersList(
+        page: number = 0,
+        perPage?: number,
+        sortBy?: string,
+        sortDirection?: number,
+        search?: string
+    ): Promise<UserDetailPaginatedResult | null> {
         let params: any = {
-            "page": page,
+            page: page,
             "per-page": perPage,
-            "search": search,
+            search: search,
         };
         if (sortBy && sortDirection) {
             params = {
                 ...params,
                 "sort-by": sortBy,
                 "sort-order": sortDirection > 0 ? "asc" : "desc",
-            }
+            };
         }
 
         try {
             const resp = await api.get<UserDetailPaginatedResult>("/admin/users", {
-                params: params
+                params: params,
             });
             return resp.data;
         } catch (error) {
             console.error(error);
-            return null
+            return null;
         }
     }
-
 }
 
 const usersService = new UsersService();
-export {usersService};
+export { usersService };

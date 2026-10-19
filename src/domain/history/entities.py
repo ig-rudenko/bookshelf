@@ -43,3 +43,4 @@ class BookReadHistoryFilter:
     user_id: int | None
     page: int
     page_size: int
+    book_ids: list[int] | None = None
